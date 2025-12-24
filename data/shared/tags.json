@@ -1,0 +1,74 @@
+{
+  "concerns": [
+    { "id": "concern-tarumi", "name": "たるみ", "slug": "tarumi", "icon": "😟" },
+    { "id": "concern-faceline", "name": "フェイスラインのたるみ", "slug": "faceline", "icon": "😟" },
+    { "id": "concern-double-chin", "name": "二重あご", "slug": "double-chin", "icon": "😔" },
+    { "id": "concern-houreisen", "name": "ほうれい線", "slug": "houreisen", "icon": "📏" },
+    { "id": "concern-kogao", "name": "小顔になりたい", "slug": "kogao", "icon": "😊" },
+    { "id": "concern-nikikiato", "name": "ニキビ跡・クレーター", "slug": "nikikiato", "icon": "😟" },
+    { "id": "concern-keana", "name": "毛穴の開き", "slug": "keana", "icon": "🔍" },
+    { "id": "concern-hari", "name": "肌のハリ不足", "slug": "hari", "icon": "😔" },
+    { "id": "concern-kojiwa", "name": "小じわ", "slug": "kojiwa", "icon": "📏" },
+    { "id": "concern-kusumi", "name": "肌のくすみ", "slug": "kusumi", "icon": "🌫️" },
+    { "id": "concern-shimi", "name": "シミ・そばかす", "slug": "shimi", "icon": "🔴" },
+    { "id": "concern-akaragao", "name": "赤ら顔", "slug": "akaragao", "icon": "🔴" },
+    { "id": "concern-ninoude", "name": "二の腕のたるみ", "slug": "ninoude", "icon": "💪" },
+    { "id": "concern-onaka", "name": "お腹まわり", "slug": "onaka", "icon": "🏃" },
+    { "id": "concern-futomomo", "name": "太もも", "slug": "futomomo", "icon": "🦵" },
+    { "id": "concern-datsumo", "name": "ムダ毛", "slug": "datsumo", "icon": "✂️" },
+    { "id": "concern-nikubi", "name": "ニキビ", "slug": "nikubi", "icon": "😣" },
+    { "id": "concern-hirou", "name": "疲労・倦怠感", "slug": "hirou", "icon": "😴" },
+    { "id": "concern-bihaku", "name": "美白したい", "slug": "bihaku", "icon": "✨" }
+  ],
+  
+  "effects": [
+    { "id": "effect-liftup", "name": "リフトアップ", "slug": "liftup", "icon": "⬆️" },
+    { "id": "effect-kogao", "name": "小顔効果", "slug": "kogao", "icon": "✨" },
+    { "id": "effect-shibou", "name": "脂肪減少", "slug": "shibou", "icon": "🔥" },
+    { "id": "effect-hikishime", "name": "肌の引き締め", "slug": "hikishime", "icon": "💎" },
+    { "id": "effect-collagen", "name": "コラーゲン生成", "slug": "collagen", "icon": "🌸" },
+    { "id": "effect-keana", "name": "毛穴縮小", "slug": "keana", "icon": "🔬" },
+    { "id": "effect-hari", "name": "肌のハリ・弾力", "slug": "hari", "icon": "💎" },
+    { "id": "effect-hadashitsu", "name": "肌質改善", "slug": "hadashitsu", "icon": "🌟" },
+    { "id": "effect-nikikiato", "name": "ニキビ跡改善", "slug": "nikikiato", "icon": "✨" },
+    { "id": "effect-bihaku", "name": "美白", "slug": "bihaku", "icon": "💫" },
+    { "id": "effect-turnover", "name": "ターンオーバー促進", "slug": "turnover", "icon": "🔄" },
+    { "id": "effect-uruoi", "name": "潤い・保湿", "slug": "uruoi", "icon": "💧" },
+    { "id": "effect-datsumo", "name": "永久脱毛", "slug": "datsumo", "icon": "✨" },
+    { "id": "effect-hirou", "name": "疲労回復", "slug": "hirou", "icon": "⚡" }
+  ],
+  
+  "body_parts": [
+    { "id": "part-zengan", "name": "顔全体", "slug": "zengan", "icon": "👤" },
+    { "id": "part-hitai", "name": "額", "slug": "hitai", "icon": "👤" },
+    { "id": "part-komekami", "name": "こめかみ", "slug": "komekami", "icon": "👤" },
+    { "id": "part-mejiri", "name": "目尻", "slug": "mejiri", "icon": "👁️" },
+    { "id": "part-mebukuro", "name": "目の下", "slug": "mebukuro", "icon": "👁️" },
+    { "id": "part-hoo", "name": "頬", "slug": "hoo", "icon": "👤" },
+    { "id": "part-hana", "name": "鼻", "slug": "hana", "icon": "👃" },
+    { "id": "part-kuchi", "name": "口元", "slug": "kuchi", "icon": "👄" },
+    { "id": "part-ago", "name": "顎", "slug": "ago", "icon": "👤" },
+    { "id": "part-agoshita", "name": "顎下", "slug": "agoshita", "icon": "👤" },
+    { "id": "part-faceline", "name": "フェイスライン", "slug": "faceline", "icon": "👤" },
+    { "id": "part-kubi", "name": "首", "slug": "kubi", "icon": "👤" },
+    { "id": "part-ninoude", "name": "二の腕", "slug": "ninoude", "icon": "💪" },
+    { "id": "part-onaka", "name": "お腹", "slug": "onaka", "icon": "🏃" },
+    { "id": "part-oshiri", "name": "おしり", "slug": "oshiri", "icon": "🍑" },
+    { "id": "part-futomomo", "name": "太もも", "slug": "futomomo", "icon": "🦵" },
+    { "id": "part-fukurahagi", "name": "ふくらはぎ", "slug": "fukurahagi", "icon": "🦵" },
+    { "id": "part-waki", "name": "脇", "slug": "waki", "icon": "💪" },
+    { "id": "part-vio", "name": "VIO", "slug": "vio", "icon": "🌸" },
+    { "id": "part-zenshin", "name": "全身", "slug": "zenshin", "icon": "🧍" }
+  ],
+  
+  "features": [
+    { "id": "feature-no-downtime", "name": "ダウンタイムなし", "slug": "no-downtime", "icon": "✅" },
+    { "id": "feature-low-pain", "name": "痛み少ない", "slug": "low-pain", "icon": "😊" },
+    { "id": "feature-quick", "name": "施術時間が短い", "slug": "quick", "icon": "⏱️" },
+    { "id": "feature-immediate", "name": "即効性あり", "slug": "immediate", "icon": "⚡" },
+    { "id": "feature-long-lasting", "name": "効果長持ち", "slug": "long-lasting", "icon": "📅" },
+    { "id": "feature-first-time", "name": "初めての方おすすめ", "slug": "first-time", "icon": "🌟" },
+    { "id": "feature-popular", "name": "人気施術", "slug": "popular", "icon": "🏆" }
+  ]
+}
+

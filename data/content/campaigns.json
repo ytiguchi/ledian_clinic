@@ -1,0 +1,75 @@
+{
+  "campaigns": [
+    {
+      "id": "campaign-holiday-2024",
+      "title": "Holiday Campaign",
+      "slug": "holiday-2024",
+      "description": "年末年始限定！人気施術が最大30%OFF。新年を美しい肌で迎えましょう。",
+      "start_date": "2024-12-10",
+      "end_date": "2025-01-31",
+      "image_url": "/images/campaigns/holiday-2024.jpg",
+      "treatments": [
+        {
+          "treatment_id": "onda-lift",
+          "discount_type": "percentage",
+          "discount_value": 20,
+          "original_price": 24860,
+          "campaign_price": 19888
+        },
+        {
+          "treatment_id": "potenza",
+          "discount_type": "percentage",
+          "discount_value": 30,
+          "original_price": 31900,
+          "campaign_price": 22330
+        },
+        {
+          "treatment_id": "hifu-ultracel-zi",
+          "discount_type": "percentage",
+          "discount_value": 20,
+          "original_price": 22000,
+          "campaign_price": 17600
+        }
+      ],
+      "is_published": true,
+      "sort_order": 1
+    },
+    {
+      "id": "campaign-referral",
+      "title": "友だち紹介キャンペーン",
+      "slug": "referral",
+      "description": "お友だちをご紹介いただくと、紹介者・被紹介者ともに5,000円分のポイントプレゼント！",
+      "start_date": "2024-12-12",
+      "end_date": null,
+      "image_url": "/images/campaigns/referral.jpg",
+      "conditions": [
+        "ご紹介者様：5,000円分ポイント",
+        "ご新規様：5,000円分ポイント",
+        "ご紹介人数に上限なし"
+      ],
+      "is_published": true,
+      "sort_order": 2
+    },
+    {
+      "id": "campaign-artmake-launch",
+      "title": "アートメイク発売記念",
+      "slug": "artmake-launch",
+      "description": "アートメイクが新登場！発売記念特別価格でご提供中。",
+      "start_date": "2024-12-01",
+      "end_date": "2025-02-28",
+      "image_url": "/images/campaigns/artmake.jpg",
+      "treatments": [
+        {
+          "treatment_id": "artmake-eyebrow",
+          "discount_type": "percentage",
+          "discount_value": 20,
+          "original_price": 53900,
+          "campaign_price": 43120
+        }
+      ],
+      "is_published": true,
+      "sort_order": 3
+    }
+  ]
+}
+

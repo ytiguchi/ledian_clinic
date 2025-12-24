@@ -1,0 +1,4 @@
+- slug: liftup-tightening
+  name: リフトアップ・引き締め
+  sort_order: 10
+  is_active: true

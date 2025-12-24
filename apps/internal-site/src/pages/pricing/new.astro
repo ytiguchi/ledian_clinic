@@ -1,0 +1,272 @@
+---
+import Layout from '../../components/Layout.astro';
+---
+
+<Layout>
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div>
+      <a href="/pricing" class="text-accent hover:underline">← 料金管理に戻る</a>
+      <h2 class="text-3xl font-bold mt-4">新規プラン追加</h2>
+    </div>
+
+    <form class="bg-white rounded-lg shadow p-6 space-y-6" id="pricePlanForm">
+      <!-- 基本情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">基本情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">カテゴリ</label>
+            <select name="category" id="categorySelect" class="w-full px-4 py-2 border rounded-lg" required>
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">サブカテゴリ</label>
+            <select name="subcategory" id="subcategorySelect" class="w-full px-4 py-2 border rounded-lg" required>
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">施術</label>
+            <select name="treatment" id="treatmentSelect" class="w-full px-4 py-2 border rounded-lg" required>
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">プラン名</label>
+            <input
+              type="text"
+              name="planName"
+              placeholder="例: 1回、3回、200S"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 価格情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">価格情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">税抜価格（円）</label>
+            <input
+              type="number"
+              name="price"
+              placeholder="22600"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">税込価格（円）</label>
+            <input
+              type="number"
+              name="priceTaxed"
+              placeholder="24860"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">回数</label>
+            <input
+              type="number"
+              name="sessions"
+              placeholder="例: 3"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">プラン種別</label>
+            <select name="planType" class="w-full px-4 py-2 border rounded-lg" required>
+              <option value="single">単発</option>
+              <option value="course">回数コース</option>
+              <option value="trial">初回お試し</option>
+              <option value="monitor">モニター価格</option>
+              <option value="campaign">キャンペーン</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 原価情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">原価情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">原価率（%）</label>
+            <input
+              type="number"
+              name="costRate"
+              step="0.1"
+              placeholder="9.3"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">備品原価（円）</label>
+            <input
+              type="number"
+              name="supplyCost"
+              placeholder="100"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">人件費（円）</label>
+            <input
+              type="number"
+              name="staffCost"
+              placeholder="2000"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- アクション -->
+      <div class="flex justify-end gap-4 pt-4 border-t">
+        <a href="/pricing" class="px-6 py-2 border rounded-lg hover:bg-gray-50 transition">
+          キャンセル
+        </a>
+        <button
+          type="submit"
+          class="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition"
+        >
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  let categories: Array<{ id: string; name: string }> = [];
+  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
+  let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      categories = data.categories || [];
+      
+      const select = document.getElementById('categorySelect') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">選択してください</option>' +
+          categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('カテゴリ読み込みエラー:', error);
+    }
+  }
+
+  async function loadSubcategories(categoryId: string) {
+    try {
+      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
+      const data = await res.json();
+      subcategories = data.subcategories || [];
+      
+      const select = document.getElementById('subcategorySelect') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">選択してください</option>' +
+          subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('サブカテゴリ読み込みエラー:', error);
+    }
+  }
+
+  async function loadTreatments(subcategoryId: string) {
+    try {
+      const res = await fetch(`/api/treatments?subcategory_id=${subcategoryId}`);
+      const data = await res.json();
+      treatments = data.treatments || [];
+      
+      const select = document.getElementById('treatmentSelect') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">選択してください</option>' +
+          treatments.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('施術読み込みエラー:', error);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+
+    const categorySelect = document.getElementById('categorySelect') as HTMLSelectElement;
+    const subcategorySelect = document.getElementById('subcategorySelect') as HTMLSelectElement;
+    const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+
+    categorySelect?.addEventListener('change', (e) => {
+      const categoryId = (e.target as HTMLSelectElement).value;
+      if (categoryId) {
+        loadSubcategories(categoryId);
+        subcategorySelect.innerHTML = '<option value="">選択してください</option>';
+        treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+      }
+    });
+
+    subcategorySelect?.addEventListener('change', (e) => {
+      const subcategoryId = (e.target as HTMLSelectElement).value;
+      if (subcategoryId) {
+        loadTreatments(subcategoryId);
+        treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+      }
+    });
+
+    const form = document.getElementById('pricePlanForm') as HTMLFormElement;
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      
+      const data = {
+        treatment_id: formData.get('treatment'),
+        plan_name: formData.get('planName'),
+        plan_type: formData.get('planType'),
+        sessions: formData.get('sessions') ? Number(formData.get('sessions')) : null,
+        price: Number(formData.get('price')),
+        price_taxed: Number(formData.get('priceTaxed')),
+        cost_rate: formData.get('costRate') ? Number(formData.get('costRate')) : null,
+        supply_cost: formData.get('supplyCost') ? Number(formData.get('supplyCost')) : null,
+        staff_cost: formData.get('staffCost') ? Number(formData.get('staffCost')) : null,
+      };
+
+      try {
+        const res = await fetch('/api/pricing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          alert('保存しました');
+          window.location.href = '/pricing';
+        } else {
+          const error = await res.json();
+          alert(`保存に失敗しました: ${error.message || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('保存エラー:', error);
+        alert('保存に失敗しました');
+      }
+    });
+
+    // 税抜価格から税込価格を自動計算
+    const priceInput = form?.querySelector('input[name="price"]') as HTMLInputElement;
+    const priceTaxedInput = form?.querySelector('input[name="priceTaxed"]') as HTMLInputElement;
+    
+    priceInput?.addEventListener('input', (e) => {
+      const price = Number((e.target as HTMLInputElement).value);
+      if (priceTaxedInput && price > 0) {
+        priceTaxedInput.value = Math.round(price * 1.1).toString();
+      }
+    });
+  });
+</script>
+

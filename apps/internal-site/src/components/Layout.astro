@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="レディアンクリニック 管理サイト">
+  <div class="min-h-screen bg-bg">
+    <!-- Header -->
+    <header class="bg-primary text-white shadow-md">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <h1 class="text-2xl font-bold">Ledian Clinic 管理サイト</h1>
+          <nav class="flex gap-4">
+            <a href="/" class="hover:text-accent transition">ダッシュボード</a>
+            <a href="/pricing" class="hover:text-accent transition">料金管理</a>
+            <a href="/campaigns" class="hover:text-accent transition">キャンペーン</a>
+            <a href="/treatments" class="hover:text-accent transition">施術管理</a>
+            <a href="/before-afters" class="hover:text-accent transition">症例写真</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white mt-auto">
+      <div class="container mx-auto px-4 py-4 text-center text-sm">
+        <p>&copy; 2024 Ledian Clinic. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+</BaseLayout>
+

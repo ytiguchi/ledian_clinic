@@ -1,0 +1,6 @@
+- slug: ultracel-zi
+  subcategory_slug: hifu
+  name: HIFU ウルトラセルZi
+  description: リフトアップ・引き締め向けのHIFUメニュー（サイト掲載分をサンプル化）
+  sort_order: 10
+  is_active: true

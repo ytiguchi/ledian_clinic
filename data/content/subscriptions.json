@@ -1,0 +1,84 @@
+{
+  "plans": [
+    {
+      "id": "subscription-light",
+      "name": "ライトプラン",
+      "slug": "light",
+      "description": "美容初心者の方におすすめ。基本の美容ケアをお得に続けられます。",
+      "monthly_price": 9800,
+      "monthly_price_taxed": 10780,
+      "features": [
+        "毎月1回の施術が選べる",
+        "対象施術10%OFF",
+        "カウンセリング無料",
+        "LINEでいつでも予約"
+      ],
+      "included_treatments": [
+        { "name": "ピーリング（選べる）", "monthly_limit": 1 },
+        { "name": "ハイドラジェントル", "monthly_limit": 1 },
+        { "name": "エレクトロポレーション", "monthly_limit": 1 }
+      ],
+      "is_popular": false,
+      "sort_order": 1
+    },
+    {
+      "id": "subscription-standard",
+      "name": "スタンダードプラン",
+      "slug": "standard",
+      "description": "しっかり美肌ケアしたい方に。人気施術がお得に受けられます。",
+      "monthly_price": 19800,
+      "monthly_price_taxed": 21780,
+      "features": [
+        "毎月2回の施術が選べる",
+        "対象施術20%OFF",
+        "ポテンツァ・ダーマペン含む",
+        "カウンセリング無料",
+        "LINEでいつでも予約",
+        "誕生日月特典あり"
+      ],
+      "included_treatments": [
+        { "name": "ポテンツァ（S16/S25）", "monthly_limit": 1 },
+        { "name": "ダーマペン4", "monthly_limit": 1 },
+        { "name": "ピーリング（選べる）", "monthly_limit": 2 },
+        { "name": "エレクトロポレーション", "monthly_limit": 2 }
+      ],
+      "is_popular": true,
+      "sort_order": 2
+    },
+    {
+      "id": "subscription-premium",
+      "name": "プレミアムプラン",
+      "slug": "premium",
+      "description": "本格的なエイジングケアに。リフトアップ施術もお得に。",
+      "monthly_price": 39800,
+      "monthly_price_taxed": 43780,
+      "features": [
+        "毎月3回の施術が選べる",
+        "対象施術30%OFF",
+        "ハイフ・オンダリフト含む",
+        "全施術対象",
+        "カウンセリング無料",
+        "LINEでいつでも予約",
+        "誕生日月特典あり",
+        "優先予約"
+      ],
+      "included_treatments": [
+        { "name": "ハイフ（400S）", "monthly_limit": 1 },
+        { "name": "オンダリフト", "monthly_limit": 1 },
+        { "name": "ポテンツァ", "monthly_limit": 1 },
+        { "name": "ダーマペン4", "monthly_limit": 2 },
+        { "name": "ピーリング（選べる）", "monthly_limit": 3 }
+      ],
+      "is_popular": false,
+      "sort_order": 3
+    }
+  ],
+  
+  "notes": [
+    "最低契約期間は3ヶ月となります",
+    "未使用分の翌月繰越はできません",
+    "プラン変更は1ヶ月前までにお申し出ください",
+    "解約は1ヶ月前までにお申し出ください"
+  ]
+}
+

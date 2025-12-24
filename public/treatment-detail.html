@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オンダリフト | レディアンクリニック六本木</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1a1a1a;
+            --color-accent: #C9A86C;
+            --color-accent-light: #E8D5B5;
+            --color-bg: #FAF8F5;
+            --color-bg-dark: #1a1a1a;
+            --color-card: #FFFFFF;
+            --color-text: #333333;
+            --color-text-light: #666666;
+            --color-text-muted: #999999;
+            --color-border: #E8E4DF;
+            --color-success: #4CAF50;
+            --color-warning: #FF9800;
+            --color-pink: #E91E63;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --font-sans: 'Zen Kaku Gothic New', -apple-system, sans-serif;
+            --font-serif: 'Cormorant Garamond', serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.8;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-accent);
+        }
+
+        .nav-cta {
+            background: var(--color-primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 999px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding-top: 80px;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--color-accent);
+            color: var(--color-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-category {
+            font-size: 0.9rem;
+            color: var(--color-accent-light);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-style: italic;
+            color: var(--color-accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            line-height: 1.9;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 2rem;
+        }
+
+        .hero-image {
+            position: relative;
+        }
+
+        .hero-image-main {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+        }
+
+        /* Specs Bar */
+        .specs-bar {
+            background: white;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .specs-bar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .spec-item {
+            text-align: center;
+        }
+
+        .spec-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .spec-label {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .spec-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        /* Section Common */
+        .section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            color: var(--color-accent);
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        /* Concerns Section */
+        .concerns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .concern-card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .concern-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .concern-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .concern-text {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* Effects Section */
+        .effects-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            padding: 5rem 0;
+        }
+
+        .effects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .effect-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .effect-number {
+            font-family: var(--font-serif);
+            font-size: 4rem;
+            font-weight: 600;
+            color: var(--color-accent);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .effect-unit {
+            font-size: 1rem;
+            color: var(--color-accent-light);
+        }
+
+        .effect-label {
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Flow Section */
+        .flow-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .flow-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .flow-step {
+            width: 48px;
+            height: 48px;
+            background: var(--color-accent);
+            color: var(--color-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .flow-content {
+            flex: 1;
+        }
+
+        .flow-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .flow-desc {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        .flow-time {
+            font-size: 0.875rem;
+            color: var(--color-accent);
+            font-weight: 500;
+        }
+
+        /* Price Section */
+        .price-section {
+            background: white;
+        }
+
+        .price-table {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .price-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 2rem;
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--color-border);
+            align-items: center;
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .price-row.header {
+            background: var(--color-bg);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .price-name {
+            font-weight: 500;
+        }
+
+        .price-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .price-amount small {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--color-text-light);
+        }
+
+        .price-per {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        .price-campaign {
+            color: var(--color-pink);
+        }
+
+        /* FAQ Section */
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .faq-question {
+            padding: 1.5rem 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        .faq-question:hover {
+            background: var(--color-bg);
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--color-accent);
+        }
+
+        .faq-answer {
+            padding: 0 2rem 1.5rem;
+            color: var(--color-text-light);
+            line-height: 1.8;
+        }
+
+        /* Cautions Section */
+        .cautions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .caution-card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .caution-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-accent);
+        }
+
+        .caution-icon {
+            font-size: 1.5rem;
+        }
+
+        .caution-title {
+            font-weight: 700;
+        }
+
+        .caution-list {
+            list-style: none;
+        }
+
+        .caution-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        .caution-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--color-accent);
+        }
+
+        /* Related Section */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .related-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .related-image {
+            height: 160px;
+            background: linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-accent) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .related-content {
+            padding: 1.5rem;
+        }
+
+        .related-category {
+            font-size: 0.75rem;
+            color: var(--color-accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .related-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .related-price {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--color-accent) 0%, #D4B896 100%);
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .cta-text {
+            font-size: 1rem;
+            color: var(--color-primary);
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .cta-btn {
+            padding: 1rem 2.5rem;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-btn.primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .cta-btn.secondary {
+            background: white;
+            color: var(--color-primary);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--color-primary);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-info {
+            font-size: 0.875rem;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+                padding: 3rem 1.5rem;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-image {
+                order: -1;
+            }
+
+            .hero-image-main {
+                height: 250px;
+            }
+
+            .specs-bar-inner {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding: 1rem;
+            }
+
+            .spec-item {
+                min-width: 100px;
+            }
+
+            .effects-grid,
+            .cautions-grid,
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .price-row {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">Ledian Clinic</a>
+            <ul class="nav-links">
+                <li><a href="#">施術一覧</a></li>
+                <li><a href="#">料金表</a></li>
+                <li><a href="#">サブスク</a></li>
+                <li><a href="#">院長紹介</a></li>
+                <li><a href="#">アクセス</a></li>
+            </ul>
+            <a href="#" class="nav-cta">無料カウンセリング</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-content">
+                <span class="hero-badge">🏆 人気No.1</span>
+                <p class="hero-category">SKIN TIGHTENING</p>
+                <h1 class="hero-title">オンダリフト</h1>
+                <p class="hero-subtitle">Cut-free face & body lifting</p>
+                <p class="hero-description">
+                    マイクロ波の熱エネルギーで脂肪細胞を減少させ、コラーゲン生成を促進。
+                    切らずに顔のたるみ・二重あご・ボディラインを引き締める最新リフトアップ治療です。
+                    ダウンタイムほぼなしで、日常生活にすぐ戻れます。
+                </p>
+            </div>
+            <div class="hero-image">
+                <div class="hero-image-main">✨</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Specs Bar -->
+    <div class="specs-bar">
+        <div class="specs-bar-inner">
+            <div class="spec-item">
+                <div class="spec-icon">⏱️</div>
+                <div class="spec-label">施術時間</div>
+                <div class="spec-value">20〜40分</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-icon">📅</div>
+                <div class="spec-label">ダウンタイム</div>
+                <div class="spec-value">ほぼなし</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-icon">💫</div>
+                <div class="spec-label">痛み</div>
+                <div class="spec-value">★★☆☆☆</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-icon">🔄</div>
+                <div class="spec-label">推奨回数</div>
+                <div class="spec-value">3〜5回</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-icon">📆</div>
+                <div class="spec-label">持続期間</div>
+                <div class="spec-value">3〜6ヶ月</div>
+            </div>
+            <div class="spec-item">
+                <div class="spec-icon">🎯</div>
+                <div class="spec-label">施術間隔</div>
+                <div class="spec-value">2〜4週間</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Concerns Section -->
+    <section class="section">
+        <div class="section-header">
+            <p class="section-label">FOR YOU</p>
+            <h2 class="section-title">こんなお悩みに</h2>
+        </div>
+        <div class="concerns-grid">
+            <div class="concern-card">
+                <div class="concern-icon">😟</div>
+                <p class="concern-text">フェイスラインのたるみ</p>
+            </div>
+            <div class="concern-card">
+                <div class="concern-icon">😔</div>
+                <p class="concern-text">二重あごが気になる</p>
+            </div>
+            <div class="concern-card">
+                <div class="concern-icon">🙁</div>
+                <p class="concern-text">ほうれい線が目立つ</p>
+            </div>
+            <div class="concern-card">
+                <div class="concern-icon">😕</div>
+                <p class="concern-text">小顔になりたい</p>
+            </div>
+            <div class="concern-card">
+                <div class="concern-icon">💪</div>
+                <p class="concern-text">二の腕・お腹を引き締めたい</p>
+            </div>
+            <div class="concern-card">
+                <div class="concern-icon">🦵</div>
+                <p class="concern-text">太もも・ふくらはぎ痩せ</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Effects Section -->
+    <section class="effects-section">
+        <div class="section" style="padding-top: 0; padding-bottom: 0;">
+            <div class="section-header">
+                <p class="section-label" style="color: var(--color-accent-light);">EXPECTED EFFECTS</p>
+                <h2 class="section-title" style="color: white;">期待できる効果</h2>
+            </div>
+            <div class="effects-grid">
+                <div class="effect-card">
+                    <div class="effect-number">95<span class="effect-unit">%</span></div>
+                    <p class="effect-label">引き締め実感</p>
+                </div>
+                <div class="effect-card">
+                    <div class="effect-number">3-6<span class="effect-unit">ヶ月</span></div>
+                    <p class="effect-label">効果持続</p>
+                </div>
+                <div class="effect-card">
+                    <div class="effect-number">0<span class="effect-unit">日</span></div>
+                    <p class="effect-label">ダウンタイム</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Flow Section -->
+    <section class="section">
+        <div class="section-header">
+            <p class="section-label">TREATMENT FLOW</p>
+            <h2 class="section-title">施術の流れ</h2>
+        </div>
+        <div class="flow-list">
+            <div class="flow-item">
+                <div class="flow-step">1</div>
+                <div class="flow-content">
+                    <h4 class="flow-title">カウンセリング</h4>
+                    <p class="flow-desc">医師がお悩みをヒアリングし、最適な施術プランをご提案します。</p>
+                </div>
+                <div class="flow-time">約15分</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-step">2</div>
+                <div class="flow-content">
+                    <h4 class="flow-title">洗顔・準備</h4>
+                    <p class="flow-desc">施術部位をクレンジングし、マーキングを行います。</p>
+                </div>
+                <div class="flow-time">約5分</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-step">3</div>
+                <div class="flow-content">
+                    <h4 class="flow-title">オンダリフト照射</h4>
+                    <p class="flow-desc">マイクロ波を照射し、脂肪と皮膚を同時に引き締めます。</p>
+                </div>
+                <div class="flow-time">約20-30分</div>
+            </div>
+            <div class="flow-item">
+                <div class="flow-step">4</div>
+                <div class="flow-content">
+                    <h4 class="flow-title">終了・アフターケア</h4>
+                    <p class="flow-desc">施術直後からメイク可能。そのままお帰りいただけます。</p>
+                </div>
+                <div class="flow-time">約5分</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Price Section -->
+    <section class="section price-section">
+        <div class="section-header">
+            <p class="section-label">PRICE</p>
+            <h2 class="section-title">料金</h2>
+        </div>
+        <div class="price-table">
+            <div class="price-row header">
+                <div>プラン</div>
+                <div>料金</div>
+                <div>1回あたり</div>
+            </div>
+            <div class="price-row">
+                <div class="price-name">両頬 or 顎下（1回）</div>
+                <div class="price-amount">¥22,600 <small>(税込¥24,860)</small></div>
+                <div class="price-per">-</div>
+            </div>
+            <div class="price-row">
+                <div class="price-name">両頬 or 顎下（3回）</div>
+                <div class="price-amount">¥63,000 <small>(税込¥69,300)</small></div>
+                <div class="price-per">¥21,000/回 (税込¥23,100)</div>
+            </div>
+            <div class="price-row">
+                <div class="price-name">両頬 or 顎下（5回）</div>
+                <div class="price-amount">¥100,000 <small>(税込¥110,000)</small></div>
+                <div class="price-per">¥20,000/回 (税込¥22,000)</div>
+            </div>
+            <div class="price-row">
+                <div class="price-name">両頬 + 顎下セット（1回）</div>
+                <div class="price-amount">¥36,200 <small>(税込¥39,820)</small></div>
+                <div class="price-per">-</div>
+            </div>
+            <div class="price-row">
+                <div class="price-name">ボディ1部位（1回）</div>
+                <div class="price-amount">¥31,600 <small>(税込¥34,760)</small></div>
+                <div class="price-per">-</div>
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 2rem; color: var(--color-text-muted); font-size: 0.875rem;">
+            ※ 2部位以上は10%OFF / 平日12:00〜16:00来店でお顔2,000円OFF
+        </p>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section">
+        <div class="section-header">
+            <p class="section-label">FAQ</p>
+            <h2 class="section-title">よくあるご質問</h2>
+        </div>
+        <div class="faq-list">
+            <div class="faq-item">
+                <div class="faq-question">痛みはありますか？</div>
+                <div class="faq-answer">
+                    照射時に温かさを感じますが、痛みはほとんどありません。骨に近い部位では軽い熱感を感じることがありますが、我慢できる程度です。
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">効果はいつから実感できますか？</div>
+                <div class="faq-answer">
+                    施術直後から引き締まりを感じる方が多いです。その後、1〜3ヶ月かけてコラーゲン生成が進み、さらに効果が高まります。
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">何回くらい受けるのがおすすめですか？</div>
+                <div class="faq-answer">
+                    個人差はありますが、3〜5回の施術をおすすめしています。2〜4週間間隔で受けていただくと効果的です。
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">ダウンタイムはありますか？</div>
+                <div class="faq-answer">
+                    ほとんどありません。施術直後から通常の生活が可能で、メイクもすぐにできます。まれに軽い赤みが出ることがありますが、数時間で落ち着きます。
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cautions Section -->
+    <section class="section" style="background: var(--color-bg);">
+        <div class="section-header">
+            <p class="section-label">CAUTION</p>
+            <h2 class="section-title">施術に関する注意事項</h2>
+        </div>
+        <div class="cautions-grid">
+            <div class="caution-card">
+                <div class="caution-header">
+                    <span class="caution-icon">⚠️</span>
+                    <span class="caution-title">施術を受けられない方</span>
+                </div>
+                <ul class="caution-list">
+                    <li>妊娠中・授乳中の方</li>
+                    <li>ペースメーカー装着の方</li>
+                    <li>施術部位に金属が入っている方</li>
+                    <li>重度の心臓疾患がある方</li>
+                    <li>施術部位に炎症がある方</li>
+                </ul>
+            </div>
+            <div class="caution-card">
+                <div class="caution-header">
+                    <span class="caution-icon">📋</span>
+                    <span class="caution-title">施術前の注意</span>
+                </div>
+                <ul class="caution-list">
+                    <li>施術前2週間は強い日焼けを避けてください</li>
+                    <li>施術当日は飲酒をお控えください</li>
+                    <li>お顔の施術の場合、メイクを落としてください</li>
+                </ul>
+            </div>
+            <div class="caution-card">
+                <div class="caution-header">
+                    <span class="caution-icon">🩹</span>
+                    <span class="caution-title">施術後の注意</span>
+                </div>
+                <ul class="caution-list">
+                    <li>当日の激しい運動・サウナはお控えください</li>
+                    <li>施術後1週間は日焼け対策を行ってください</li>
+                    <li>赤みが続く場合はご連絡ください</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Section -->
+    <section class="section">
+        <div class="section-header">
+            <p class="section-label">RELATED</p>
+            <h2 class="section-title">関連施術</h2>
+        </div>
+        <div class="related-grid">
+            <a href="#" class="related-card">
+                <div class="related-image">⚡</div>
+                <div class="related-content">
+                    <p class="related-category">リフトアップ</p>
+                    <h4 class="related-title">ハイフ（ウルトラセルZi）</h4>
+                    <p class="related-price">¥20,000〜 (税込¥22,000)</p>
+                </div>
+            </a>
+            <a href="#" class="related-card">
+                <div class="related-image">🧵</div>
+                <div class="related-content">
+                    <p class="related-category">リフトアップ</p>
+                    <h4 class="related-title">糸リフト</h4>
+                    <p class="related-price">¥98,000〜 (税込¥107,800)</p>
+                </div>
+            </a>
+            <a href="#" class="related-card">
+                <div class="related-image">💉</div>
+                <div class="related-content">
+                    <p class="related-category">小顔</p>
+                    <h4 class="related-title">ボトックス（エラ）</h4>
+                    <p class="related-price">¥15,000〜 (税込¥16,500)</p>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2 class="cta-title">まずは無料カウンセリングへ</h2>
+        <p class="cta-text">経験豊富な医師があなたに最適な施術プランをご提案します</p>
+        <div class="cta-buttons">
+            <a href="#" class="cta-btn primary">WEB予約</a>
+            <a href="#" class="cta-btn secondary">LINEで予約</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="footer-logo">Ledian Clinic</p>
+        <p class="footer-info">〒106-0032 東京都港区六本木5丁目2-2 トーマスビル</p>
+        <p class="footer-info">六本木駅 徒歩2分 / 平日10:00-21:00 土日祝11:00-20:00</p>
+        <p class="footer-info" style="margin-top: 1rem;">© 2024 Ledian Clinic. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // FAQ Toggle
+        document.querySelectorAll('.faq-question').forEach(q => {
+            q.addEventListener('click', () => {
+                const answer = q.nextElementSibling;
+                const isOpen = answer.style.display === 'block';
+                
+                // Close all
+                document.querySelectorAll('.faq-answer').forEach(a => a.style.display = 'none');
+                document.querySelectorAll('.faq-question').forEach(q => q.style.background = '');
+                
+                // Open clicked
+                if (!isOpen) {
+                    answer.style.display = 'block';
+                    q.style.background = 'var(--color-bg)';
+                }
+            });
+        });
+
+        // Initialize - hide all answers
+        document.querySelectorAll('.faq-answer').forEach(a => a.style.display = 'none');
+    </script>
+</body>
+</html>
+

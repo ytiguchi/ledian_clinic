@@ -1,0 +1,44 @@
+- treatment_slug: ultracel-zi
+  plan_name: 200SHOT
+  plan_type: single
+  sessions: 1
+  price: 20000
+  price_taxed: 22000
+  sort_order: 10
+  is_active: true
+
+- treatment_slug: ultracel-zi
+  plan_name: 400SHOT
+  plan_type: single
+  sessions: 1
+  price: 38000
+  price_taxed: 41800
+  sort_order: 20
+  is_active: true
+
+- treatment_slug: ultracel-zi
+  plan_name: 600SHOT
+  plan_type: single
+  sessions: 1
+  price: 54000
+  price_taxed: 59400
+  sort_order: 30
+  is_active: true
+
+- treatment_slug: ultracel-zi
+  plan_name: 800SHOT
+  plan_type: single
+  sessions: 1
+  price: 68000
+  price_taxed: 74800
+  sort_order: 40
+  is_active: true
+
+- treatment_slug: ultracel-zi
+  plan_name: 1000SHOT
+  plan_type: single
+  sessions: 1
+  price: 80000
+  price_taxed: 88000
+  sort_order: 50
+  is_active: true

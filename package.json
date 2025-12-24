@@ -1,0 +1,24 @@
+{
+  "name": "ledian-clinic-menu",
+  "version": "1.0.0",
+  "description": "レディアンクリニック メニュー管理システム",
+  "main": "src/index.ts",
+  "types": "src/types/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "parse-csv": "python3 scripts/parse_menu_csv.py",
+    "db:reset": "psql -d ledian_clinic -c 'TRUNCATE categories CASCADE;' && psql -d ledian_clinic -f database/seed.sql"
+  },
+  "keywords": [
+    "clinic",
+    "menu",
+    "postgresql"
+  ],
+  "author": "Ledian Clinic",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}
+

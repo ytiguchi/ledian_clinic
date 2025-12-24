@@ -1,0 +1,574 @@
+---
+import Layout from '../../../components/Layout.astro';
+
+const id = Astro.params.id;
+export const prerender = false;
+---
+
+<Layout>
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div>
+      <a href="/campaigns" class="text-accent hover:underline">← キャンペーン管理に戻る</a>
+      <h2 class="text-3xl font-bold mt-4">キャンペーン編集</h2>
+    </div>
+
+    <div id="loadingMessage" class="bg-white rounded-lg shadow p-8 text-center">
+      <p class="text-gray-500">データを読み込み中...</p>
+    </div>
+
+    <form class="bg-white rounded-lg shadow p-6 space-y-6 hidden" id="campaignForm">
+      <input type="hidden" name="id" id="campaignId" />
+
+      <!-- 基本情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">基本情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">キャンペーン名 <span class="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="title"
+              id="title"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">スラッグ <span class="text-red-500">*</span></label>
+            <input
+              type="text"
+              name="slug"
+              id="slug"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">説明</label>
+            <textarea
+              name="description"
+              id="description"
+              rows="3"
+              class="w-full px-4 py-2 border rounded-lg"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">キャンペーン種別</label>
+            <select name="campaignType" id="campaignType" class="w-full px-4 py-2 border rounded-lg">
+              <option value="discount">割引</option>
+              <option value="bundle">セット</option>
+              <option value="point">ポイント</option>
+              <option value="referral">紹介</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">優先度</label>
+            <input
+              type="number"
+              name="priority"
+              id="priority"
+              min="0"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 期間設定 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">期間設定</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">開始日</label>
+            <input
+              type="date"
+              name="startDate"
+              id="startDate"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">終了日</label>
+            <input
+              type="date"
+              name="endDate"
+              id="endDate"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 対象プラン -->
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">対象プラン</h3>
+          <button
+            type="button"
+            onclick="togglePlanSelector()"
+            class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition text-sm"
+          >
+            + プラン追加
+          </button>
+        </div>
+        
+        <!-- プラン選択モーダル -->
+        <div id="planSelectorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+            <div class="p-4 border-b flex justify-between items-center">
+              <h4 class="text-lg font-semibold">通常メニューから選択</h4>
+              <button onclick="togglePlanSelector()" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+            </div>
+            <div class="p-4 border-b">
+              <input
+                type="text"
+                id="planSearchInput"
+                placeholder="施術名・プラン名で検索..."
+                class="w-full px-4 py-2 border rounded-lg"
+                oninput="filterPlans()"
+              />
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+              <div id="availablePlans" class="space-y-2">
+                <p class="text-gray-500 text-center py-8">読み込み中...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 選択済みプランリスト -->
+        <div id="planList" class="space-y-4">
+          <p class="text-sm text-gray-500">プランを追加してください</p>
+        </div>
+      </div>
+
+      <!-- 公開設定 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">公開設定</h3>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              name="isPublished"
+              id="isPublished"
+              class="w-4 h-4 text-accent border-gray-300 rounded"
+            />
+            <span>公開する</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- アクション -->
+      <div class="flex justify-end gap-4 pt-4 border-t">
+        <a href="/campaigns" class="px-6 py-2 border rounded-lg hover:bg-gray-50 transition">
+          キャンセル
+        </a>
+        <button
+          type="submit"
+          class="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition"
+        >
+          更新
+        </button>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<script define:vars={{ campaignId: id }}>
+  interface CampaignData {
+    id: string;
+    title: string;
+    slug: string;
+    description: string | null;
+    start_date: string | null;
+    end_date: string | null;
+    campaign_type: string;
+    priority: number;
+    is_published: number;
+  }
+
+  interface Plan {
+    id?: string;
+    treatment_plan_id: string;
+    discount_type: string;
+    discount_value: number | null;
+    special_price: number | null;
+    special_price_taxed: number | null;
+  }
+
+  let campaign: CampaignData | null = null;
+  let plans: Plan[] = [];
+  let allTreatmentPlans: Array<{ 
+    id: string; 
+    plan_name: string; 
+    treatment_name: string; 
+    treatment_id: string;
+    category_name: string;
+    subcategory_name: string;
+    price: number;
+    price_taxed: number;
+  }> = [];
+
+  async function loadData() {
+    try {
+      // キャンペーンデータ取得
+      const res = await fetch(`/api/campaigns/${campaignId}`);
+      if (!res.ok) {
+        throw new Error('キャンペーンが見つかりません');
+      }
+      const data = await res.json();
+      campaign = data.campaign as CampaignData;
+      plans = data.plans || [];
+
+      // プラン一覧取得（対象プラン選択用）
+      await loadTreatmentPlans();
+
+      // フォームに値を設定
+      populateForm(campaign);
+
+      // フォームを表示
+      document.getElementById('loadingMessage')?.classList.add('hidden');
+      const form = document.getElementById('campaignForm');
+      if (form) {
+        form.classList.remove('hidden');
+      }
+
+      // プランリストを表示
+      renderPlanList();
+    } catch (error) {
+      console.error('データ読み込みエラー:', error);
+      const loadingMsg = document.getElementById('loadingMessage');
+      if (loadingMsg) {
+        loadingMsg.innerHTML = `<p class="text-red-500">データの読み込みに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
+      }
+    }
+  }
+
+  async function loadTreatmentPlans() {
+    try {
+      const res = await fetch('/api/pricing');
+      const data = await res.json();
+      allTreatmentPlans = (data.plans || []).map((p: any) => ({
+        id: p.id,
+        plan_name: p.plan_name,
+        treatment_name: p.treatment_name,
+        treatment_id: p.treatment_id,
+        category_name: p.category_name,
+        subcategory_name: p.subcategory_name,
+        price: p.price,
+        price_taxed: p.price_taxed
+      }));
+      renderAvailablePlans();
+    } catch (error) {
+      console.error('プラン一覧読み込みエラー:', error);
+    }
+  }
+
+  function togglePlanSelector() {
+    const modal = document.getElementById('planSelectorModal');
+    if (modal) {
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        renderAvailablePlans();
+      }
+    }
+  }
+
+  function filterPlans() {
+    renderAvailablePlans();
+  }
+
+  function renderAvailablePlans() {
+    const container = document.getElementById('availablePlans');
+    if (!container) return;
+
+    const searchTerm = (document.getElementById('planSearchInput') as HTMLInputElement)?.value.toLowerCase() || '';
+    const selectedPlanIds = plans.map(p => p.treatment_plan_id);
+    
+    // カテゴリ・サブカテゴリでグループ化
+    const grouped: Record<string, Record<string, typeof allTreatmentPlans>> = {};
+    allTreatmentPlans
+      .filter(plan => {
+        const matchesSearch = !searchTerm || 
+          plan.treatment_name.toLowerCase().includes(searchTerm) ||
+          plan.plan_name.toLowerCase().includes(searchTerm) ||
+          plan.category_name.toLowerCase().includes(searchTerm) ||
+          plan.subcategory_name.toLowerCase().includes(searchTerm);
+        return matchesSearch && !selectedPlanIds.includes(plan.id);
+      })
+      .forEach(plan => {
+        if (!grouped[plan.category_name]) {
+          grouped[plan.category_name] = {};
+        }
+        if (!grouped[plan.category_name][plan.subcategory_name]) {
+          grouped[plan.category_name][plan.subcategory_name] = [];
+        }
+        grouped[plan.category_name][plan.subcategory_name].push(plan);
+      });
+
+    if (Object.keys(grouped).length === 0) {
+      container.innerHTML = '<p class="text-gray-500 text-center py-8">該当するプランが見つかりません</p>';
+      return;
+    }
+
+    container.innerHTML = Object.entries(grouped).map(([categoryName, subcategories]) => `
+      <div class="mb-6">
+        <h5 class="font-semibold text-lg mb-3 text-gray-700 border-b pb-2">${escapeHtml(categoryName)}</h5>
+        ${Object.entries(subcategories).map(([subcategoryName, plans]) => `
+          <div class="ml-4 mb-4">
+            <h6 class="font-medium text-sm text-gray-600 mb-2">${escapeHtml(subcategoryName)}</h6>
+            <div class="space-y-1">
+              ${plans.map(plan => `
+                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
+                  <input
+                    type="checkbox"
+                    class="mr-3 w-4 h-4 text-accent"
+                    value="${plan.id}"
+                    onchange="handlePlanSelection('${plan.id}', this.checked)"
+                  />
+                  <div class="flex-1">
+                    <div class="font-medium">${escapeHtml(plan.treatment_name)}</div>
+                    <div class="text-sm text-gray-600">${escapeHtml(plan.plan_name)}</div>
+                    <div class="text-sm text-gray-500">¥${plan.price_taxed.toLocaleString()}（税込）</div>
+                  </div>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function handlePlanSelection(planId: string, isSelected: boolean) {
+    if (isSelected) {
+      const plan = allTreatmentPlans.find(p => p.id === planId);
+      if (plan) {
+        plans.push({
+          treatment_plan_id: planId,
+          discount_type: 'percentage',
+          discount_value: null,
+          special_price: null,
+          special_price_taxed: null
+        });
+      }
+    } else {
+      plans = plans.filter(p => p.treatment_plan_id !== planId);
+    }
+    renderPlanList();
+    renderAvailablePlans(); // 選択済みを除外するために再描画
+  }
+
+  function populateForm(data: CampaignData) {
+    (document.getElementById('campaignId') as HTMLInputElement).value = data.id;
+    (document.getElementById('title') as HTMLInputElement).value = data.title;
+    (document.getElementById('slug') as HTMLInputElement).value = data.slug;
+    (document.getElementById('description') as HTMLTextAreaElement).value = data.description || '';
+    (document.getElementById('campaignType') as HTMLSelectElement).value = data.campaign_type;
+    (document.getElementById('priority') as HTMLInputElement).value = data.priority.toString();
+    
+    if (data.start_date) {
+      (document.getElementById('startDate') as HTMLInputElement).value = data.start_date.split('T')[0];
+    }
+    if (data.end_date) {
+      (document.getElementById('endDate') as HTMLInputElement).value = data.end_date.split('T')[0];
+    }
+    
+    (document.getElementById('isPublished') as HTMLInputElement).checked = data.is_published === 1;
+  }
+
+  function renderPlanList() {
+    const planList = document.getElementById('planList');
+    if (!planList) return;
+
+    if (plans.length === 0) {
+      planList.innerHTML = '<p class="text-sm text-gray-500">プランを追加してください</p>';
+      return;
+    }
+
+    planList.innerHTML = plans.map((plan, index) => {
+      const selectedPlan = allTreatmentPlans.find(p => p.id === plan.treatment_plan_id);
+      const originalPrice = selectedPlan?.price_taxed || 0;
+      let campaignPrice = originalPrice;
+      
+      if (plan.special_price_taxed) {
+        campaignPrice = plan.special_price_taxed;
+      } else if (plan.discount_type === 'percentage' && plan.discount_value) {
+        campaignPrice = Math.floor(originalPrice * (1 - plan.discount_value / 100));
+      } else if (plan.discount_type === 'fixed' && plan.discount_value) {
+        campaignPrice = Math.max(0, originalPrice - plan.discount_value);
+      }
+      
+      const discountAmount = originalPrice - campaignPrice;
+      const discountRate = originalPrice > 0 ? Math.round((discountAmount / originalPrice) * 100) : 0;
+
+      return `
+        <div class="border rounded-lg p-4 bg-white plan-item shadow-sm" data-index="${index}">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <div class="font-semibold text-lg">${escapeHtml(selectedPlan?.treatment_name || '')}</div>
+              <div class="text-sm text-gray-600 mt-1">${escapeHtml(selectedPlan?.category_name || '')} / ${escapeHtml(selectedPlan?.subcategory_name || '')}</div>
+              <div class="text-sm text-gray-500 mt-1">${escapeHtml(selectedPlan?.plan_name || '')}</div>
+              <div class="mt-2 flex items-center gap-4">
+                <div>
+                  <span class="text-sm text-gray-500">通常価格:</span>
+                  <span class="text-lg font-semibold ml-2">¥${originalPrice.toLocaleString()}</span>
+                </div>
+                ${discountAmount > 0 ? `
+                  <div class="text-accent">
+                    <span class="text-sm">キャンペーン価格:</span>
+                    <span class="text-lg font-semibold ml-2">¥${campaignPrice.toLocaleString()}</span>
+                    <span class="text-sm ml-2">(${discountRate}% OFF)</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="removePlan(${index})"
+              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm"
+            >
+              削除
+            </button>
+          </div>
+          
+          <input type="hidden" name="plan_${index}_treatment_plan_id" value="${plan.treatment_plan_id}" />
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+            <div>
+              <label class="block text-sm font-medium mb-1">割引タイプ <span class="text-red-500">*</span></label>
+              <select name="plan_${index}_discount_type" class="w-full px-4 py-2 border rounded-lg discount-type-select" onchange="updatePlanPreview(${index})">
+                <option value="percentage" ${plan.discount_type === 'percentage' ? 'selected' : ''}>パーセント割引</option>
+                <option value="fixed" ${plan.discount_type === 'fixed' ? 'selected' : ''}>固定額割引</option>
+                <option value="special_price" ${plan.discount_type === 'special_price' ? 'selected' : ''}>特別価格</option>
+              </select>
+            </div>
+            <div id="plan_${index}_discount_value_container">
+              <label class="block text-sm font-medium mb-1">割引値</label>
+              <input
+                type="number"
+                name="plan_${index}_discount_value"
+                value="${plan.discount_value || ''}"
+                placeholder="パーセント(%) または 固定額(円)"
+                class="w-full px-4 py-2 border rounded-lg"
+                oninput="updatePlanPreview(${index})"
+              />
+            </div>
+            <div id="plan_${index}_special_price_container" class="${plan.discount_type === 'special_price' ? '' : 'hidden'}">
+              <label class="block text-sm font-medium mb-1">特別価格（税抜）</label>
+              <input
+                type="number"
+                name="plan_${index}_special_price"
+                value="${plan.special_price || ''}"
+                placeholder="特別価格を設定"
+                class="w-full px-4 py-2 border rounded-lg"
+                oninput="updatePlanPreview(${index})"
+              />
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    // 割引タイプに応じて表示/非表示を切り替え
+    plans.forEach((plan, index) => {
+      const discountTypeSelect = document.querySelector(`select[name="plan_${index}_discount_type"]`) as HTMLSelectElement;
+      const discountValueContainer = document.getElementById(`plan_${index}_discount_value_container`);
+      const specialPriceContainer = document.getElementById(`plan_${index}_special_price_container`);
+      
+      if (discountTypeSelect && discountValueContainer && specialPriceContainer) {
+        discountTypeSelect.addEventListener('change', () => {
+          if (discountTypeSelect.value === 'special_price') {
+            discountValueContainer.classList.add('hidden');
+            specialPriceContainer.classList.remove('hidden');
+          } else {
+            discountValueContainer.classList.remove('hidden');
+            specialPriceContainer.classList.add('hidden');
+          }
+        });
+      }
+    });
+  }
+
+  function removePlan(index: number) {
+    plans.splice(index, 1);
+    renderPlanList();
+    renderAvailablePlans(); // 選択解除されたプランを再度表示
+  }
+
+  function updatePlanPreview(index: number) {
+    // プレビュー更新（必要に応じて実装）
+    // 現在は renderPlanList で再計算されるので、ここでは特に処理不要
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+
+    const form = document.getElementById('campaignForm') as HTMLFormElement;
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      
+      // プランデータを収集
+      const planData: Plan[] = [];
+      plans.forEach((plan, index) => {
+        const discountType = formData.get(`plan_${index}_discount_type`) as string;
+        const discountValue = formData.get(`plan_${index}_discount_value`);
+        const specialPrice = formData.get(`plan_${index}_special_price`);
+        
+        planData.push({
+          treatment_plan_id: plan.treatment_plan_id,
+          discount_type: discountType || plan.discount_type,
+          discount_value: discountValue ? Number(discountValue) : null,
+          special_price: specialPrice ? Number(specialPrice) : null,
+          special_price_taxed: specialPrice ? Math.round(Number(specialPrice) * 1.1) : null
+        });
+      });
+      
+      const data = {
+        title: formData.get('title'),
+        slug: formData.get('slug'),
+        description: formData.get('description') || null,
+        campaign_type: formData.get('campaignType') || 'discount',
+        priority: formData.get('priority') ? Number(formData.get('priority')) : 0,
+        start_date: formData.get('startDate') || null,
+        end_date: formData.get('endDate') || null,
+        is_published: formData.get('isPublished') === 'on',
+        sort_order: 0,
+        plans: planData
+      };
+
+      try {
+        const res = await fetch(`/api/campaigns/${campaignId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          alert('更新しました');
+          window.location.reload();
+        } else {
+          const error = await res.json();
+          alert(`更新に失敗しました: ${error.message || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('更新エラー:', error);
+        alert('更新に失敗しました');
+      }
+    });
+  });
+
+  (window as any).togglePlanSelector = togglePlanSelector;
+  (window as any).filterPlans = filterPlans;
+  (window as any).handlePlanSelection = handlePlanSelection;
+  (window as any).removePlan = removePlan;
+  (window as any).updatePlanPreview = updatePlanPreview;
+</script>

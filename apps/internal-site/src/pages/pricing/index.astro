@@ -1,0 +1,241 @@
+---
+import Layout from '../../components/Layout.astro';
+---
+
+<Layout>
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-3xl font-bold">料金管理</h2>
+      <a href="/pricing/new" class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-light transition">
+        + 新規プラン追加
+      </a>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input
+          type="text"
+          placeholder="施術名で検索..."
+          class="px-4 py-2 border rounded-lg"
+          id="searchInput"
+        />
+        <select class="px-4 py-2 border rounded-lg" id="categoryFilter">
+          <option value="">すべてのカテゴリ</option>
+        </select>
+        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition">
+          検索
+        </button>
+      </div>
+    </div>
+
+    <!-- Price Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold">カテゴリ</th>
+            <th class="px-4 py-3 text-left font-semibold">施術名</th>
+            <th class="px-4 py-3 text-left font-semibold">プラン</th>
+            <th class="px-4 py-3 text-right font-semibold">税抜価格</th>
+            <th class="px-4 py-3 text-right font-semibold">税込価格</th>
+            <th class="px-4 py-3 text-right font-semibold">キャンペーン価格</th>
+            <th class="px-4 py-3 text-center font-semibold">操作</th>
+          </tr>
+        </thead>
+        <tbody id="priceTableBody">
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+              データを読み込み中...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  interface PricePlan {
+    id: string;
+    plan_name: string;
+    plan_type: string;
+    sessions: number | null;
+    price: number;
+    price_taxed: number;
+    campaign_price: number | null;
+    campaign_price_taxed: number | null;
+    category_name: string;
+    subcategory_name: string;
+    treatment_name: string;
+  }
+
+  let plans: PricePlan[] = [];
+  let categories: Array<{ id: string; name: string }> = [];
+  let searchQuery = '';
+  let selectedCategoryId = '';
+
+  // データ取得
+  async function loadData() {
+    try {
+      // カテゴリ一覧取得
+      const catRes = await fetch('/api/categories');
+      if (!catRes.ok) {
+        const errorData = await catRes.json().catch(() => ({ message: `HTTP ${catRes.status}: ${catRes.statusText}` }));
+        console.error('カテゴリAPI エラー:', errorData);
+        throw new Error(errorData.message || errorData.error || 'カテゴリの読み込みに失敗しました');
+      }
+      const catData = await catRes.json();
+      if (catData.error) {
+        console.error('カテゴリAPI エラー:', catData);
+        throw new Error(catData.message || catData.error || 'カテゴリの読み込みに失敗しました');
+      }
+      categories = catData.categories || [];
+      
+      // カテゴリ選択肢を更新
+      const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+      if (categoryFilter) {
+        categoryFilter.innerHTML = '<option value="">すべてのカテゴリ</option>' +
+          categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+      }
+
+      // 料金プラン取得
+      await loadPricing();
+    } catch (error) {
+      console.error('データ読み込みエラー:', error);
+      showError('データの読み込みに失敗しました');
+    }
+  }
+
+  async function loadPricing() {
+    try {
+      const params = new URLSearchParams();
+      if (selectedCategoryId) params.append('category_id', selectedCategoryId);
+      if (searchQuery) params.append('search', searchQuery);
+
+      const res = await fetch(`/api/pricing?${params.toString()}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: `HTTP ${res.status}: ${res.statusText}` }));
+        console.error('API エラー:', errorData);
+        showError(`料金データの読み込みに失敗しました: ${errorData.message || errorData.error || 'Unknown error'}`);
+        return;
+      }
+      const data = await res.json();
+      if (data.error) {
+        console.error('API エラー:', data);
+        showError(`料金データの読み込みに失敗しました: ${data.message || data.error}`);
+        return;
+      }
+      plans = data.plans || [];
+      renderTable();
+    } catch (error) {
+      console.error('料金データ読み込みエラー:', error);
+      showError('料金データの読み込みに失敗しました');
+    }
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('priceTableBody');
+    if (!tbody) return;
+
+    if (plans.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+            データが見つかりませんでした
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = plans.map(plan => `
+      <tr class="border-b hover:bg-gray-50">
+        <td class="px-4 py-3">${escapeHtml(plan.category_name)}</td>
+        <td class="px-4 py-3">${escapeHtml(plan.treatment_name)}</td>
+        <td class="px-4 py-3">
+          ${escapeHtml(plan.plan_name)}
+          ${plan.sessions ? ` (${plan.sessions}回)` : ''}
+        </td>
+        <td class="px-4 py-3 text-right">¥${plan.price.toLocaleString()}</td>
+        <td class="px-4 py-3 text-right">¥${plan.price_taxed.toLocaleString()}</td>
+        <td class="px-4 py-3 text-right">
+          ${plan.campaign_price_taxed 
+            ? `<span class="text-accent font-semibold">¥${plan.campaign_price_taxed.toLocaleString()}</span>` 
+            : '<span class="text-gray-400">-</span>'}
+        </td>
+        <td class="px-4 py-3 text-center">
+          <a href="/pricing/${plan.id}/edit" class="text-accent hover:underline mr-3">編集</a>
+          <button onclick="deletePlan('${plan.id}')" class="text-red-500 hover:underline">削除</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showError(message: string) {
+    const tbody = document.getElementById('priceTableBody');
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="px-4 py-8 text-center text-red-500">
+            ${escapeHtml(message)}
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  async function deletePlan(id: string) {
+    if (!confirm('このプランを削除しますか？')) return;
+    
+    try {
+      const res = await fetch(`/api/pricing-id/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        await loadPricing();
+      } else {
+        alert('削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('削除エラー:', error);
+      alert('削除に失敗しました');
+    }
+  }
+
+  // イベントリスナー
+  document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+    const searchButton = document.querySelector('button') as HTMLButtonElement;
+
+    searchInput?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchQuery = searchInput.value;
+        loadPricing();
+      }
+    });
+
+    categoryFilter?.addEventListener('change', () => {
+      selectedCategoryId = categoryFilter.value;
+      loadPricing();
+    });
+
+    searchButton?.addEventListener('click', () => {
+      if (searchInput) {
+        searchQuery = searchInput.value;
+        loadPricing();
+      }
+    });
+  });
+
+  // グローバル関数として公開（削除ボタン用）
+  (window as any).deletePlan = deletePlan;
+</script>
+

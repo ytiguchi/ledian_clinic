@@ -1,0 +1,302 @@
+---
+import Layout from '../../components/Layout.astro';
+---
+
+<Layout>
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div>
+      <a href="/before-afters" class="text-accent hover:underline">← 症例写真管理に戻る</a>
+      <h2 class="text-3xl font-bold mt-4">新規症例写真追加</h2>
+    </div>
+
+    <form class="bg-white rounded-lg shadow p-6 space-y-6" id="beforeAfterForm">
+      <!-- 基本情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">基本情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">カテゴリ</label>
+            <select name="category" id="categorySelect" class="w-full px-4 py-2 border rounded-lg" required>
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">サブカテゴリ</label>
+            <select name="subcategory" id="subcategorySelect" class="w-full px-4 py-2 border rounded-lg">
+              <option value="">選択してください</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">施術 <span class="text-red-500">*</span></label>
+            <select name="treatment" id="treatmentSelect" class="w-full px-4 py-2 border rounded-lg" required>
+              <option value="">選択してください</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 画像アップロード -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">画像 <span class="text-red-500">*</span></h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2">施術前画像URL</label>
+            <input
+              type="url"
+              name="beforeImageUrl"
+              id="beforeImageUrl"
+              placeholder="https://example.com/before.jpg"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+            <div class="mt-2 aspect-square bg-gray-100 rounded overflow-hidden">
+              <img id="beforePreview" src="" alt="施術前プレビュー" class="w-full h-full object-cover hidden" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">施術後画像URL</label>
+            <input
+              type="url"
+              name="afterImageUrl"
+              id="afterImageUrl"
+              placeholder="https://example.com/after.jpg"
+              class="w-full px-4 py-2 border rounded-lg"
+              required
+            />
+            <div class="mt-2 aspect-square bg-gray-100 rounded overflow-hidden">
+              <img id="afterPreview" src="" alt="施術後プレビュー" class="w-full h-full object-cover hidden" />
+            </div>
+          </div>
+        </div>
+        <p class="text-sm text-gray-500 mt-2">
+          ※ 画像アップロード機能は今後実装予定です。現在は画像URLを入力してください。
+        </p>
+      </div>
+
+      <!-- 詳細情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">詳細情報</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">説明文</label>
+            <textarea
+              name="caption"
+              id="caption"
+              rows="3"
+              placeholder="症例の説明を入力してください"
+              class="w-full px-4 py-2 border rounded-lg"
+            ></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">患者年齢</label>
+              <input
+                type="number"
+                name="patientAge"
+                id="patientAge"
+                min="0"
+                max="150"
+                class="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">性別</label>
+              <select name="patientGender" id="patientGender" class="w-full px-4 py-2 border rounded-lg">
+                <option value="">選択してください</option>
+                <option value="男性">男性</option>
+                <option value="女性">女性</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">施術回数</label>
+              <input
+                type="number"
+                name="treatmentCount"
+                id="treatmentCount"
+                min="1"
+                class="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">施術期間</label>
+              <input
+                type="text"
+                name="treatmentPeriod"
+                id="treatmentPeriod"
+                placeholder="例: 3ヶ月"
+                class="w-full px-4 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 公開設定 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">公開設定</h3>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              name="isPublished"
+              id="isPublished"
+              class="w-4 h-4 text-accent border-gray-300 rounded"
+            />
+            <span>公開する</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- アクション -->
+      <div class="flex justify-end gap-4 pt-4 border-t">
+        <a href="/before-afters" class="px-6 py-2 border rounded-lg hover:bg-gray-50 transition">
+          キャンセル
+        </a>
+        <button
+          type="submit"
+          class="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition"
+        >
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  let categories: Array<{ id: string; name: string }> = [];
+  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
+  let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      categories = data.categories || [];
+      
+      const select = document.getElementById('categorySelect') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">選択してください</option>' +
+          categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('カテゴリ読み込みエラー:', error);
+    }
+  }
+
+  async function loadSubcategories(categoryId: string) {
+    try {
+      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
+      const data = await res.json();
+      subcategories = data.subcategories || [];
+      
+      const select = document.getElementById('subcategorySelect') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">選択してください</option>' +
+          subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('サブカテゴリ読み込みエラー:', error);
+    }
+  }
+
+  async function loadTreatments(subcategoryId: string) {
+    try {
+      const res = await fetch(`/api/treatments?subcategory_id=${subcategoryId}`);
+      const data = await res.json();
+      treatments = data.treatments || [];
+      
+      const select = document.getElementById('treatmentSelect') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">選択してください</option>' +
+          treatments.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('施術読み込みエラー:', error);
+    }
+  }
+
+  function updateImagePreview(inputId: string, previewId: string) {
+    const input = document.getElementById(inputId) as HTMLInputElement;
+    const preview = document.getElementById(previewId) as HTMLImageElement;
+    
+    input?.addEventListener('input', () => {
+      const url = input.value;
+      if (url && preview) {
+        preview.src = url;
+        preview.classList.remove('hidden');
+      } else {
+        preview.classList.add('hidden');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+
+    const categorySelect = document.getElementById('categorySelect') as HTMLSelectElement;
+    const subcategorySelect = document.getElementById('subcategorySelect') as HTMLSelectElement;
+    const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+
+    categorySelect?.addEventListener('change', (e) => {
+      const categoryId = (e.target as HTMLSelectElement).value;
+      if (categoryId) {
+        loadSubcategories(categoryId);
+        subcategorySelect.innerHTML = '<option value="">選択してください</option>';
+        treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+      }
+    });
+
+    subcategorySelect?.addEventListener('change', (e) => {
+      const subcategoryId = (e.target as HTMLSelectElement).value;
+      if (subcategoryId) {
+        loadTreatments(subcategoryId);
+        treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+      }
+    });
+
+    updateImagePreview('beforeImageUrl', 'beforePreview');
+    updateImagePreview('afterImageUrl', 'afterPreview');
+
+    const form = document.getElementById('beforeAfterForm') as HTMLFormElement;
+    
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      
+      const data = {
+        treatment_id: formData.get('treatment'),
+        before_image_url: formData.get('beforeImageUrl'),
+        after_image_url: formData.get('afterImageUrl'),
+        caption: formData.get('caption') || null,
+        patient_age: formData.get('patientAge') ? Number(formData.get('patientAge')) : null,
+        patient_gender: formData.get('patientGender') || null,
+        treatment_count: formData.get('treatmentCount') ? Number(formData.get('treatmentCount')) : null,
+        treatment_period: formData.get('treatmentPeriod') || null,
+        is_published: formData.get('isPublished') === 'on',
+        sort_order: 0
+      };
+
+      try {
+        const res = await fetch('/api/before-afters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          alert('保存しました');
+          window.location.href = '/before-afters';
+        } else {
+          const error = await res.json();
+          alert(`保存に失敗しました: ${error.message || 'Unknown error'}`);
+        }
+      } catch (error) {
+        console.error('保存エラー:', error);
+        alert('保存に失敗しました');
+      }
+    });
+  });
+</script>
+

@@ -1,0 +1,136 @@
+{
+  "treatment_id": "dermapen4",
+  "name": "ダーマペン4",
+  "name_en": "Dermapen 4",
+  
+  "detail": {
+    "tagline": "極細針で肌の再生力を引き出す定番美肌治療",
+    "tagline_en": "Microneedling for natural skin regeneration",
+    "summary": "ダーマペン4は、極細の針で肌に微細な穴を開け、肌本来の再生力を引き出す美肌治療です。ニキビ跡・毛穴・小じわ・肌のハリ改善に効果的。ヴェルベットスキンとの組み合わせで、さらに高い効果が期待できます。",
+    "description": "## ダーマペン4とは\n\n16本の極細針（33G）が1秒間に最大1,920個の微細な穴を開け、肌の自然治癒力を活性化させます。\n\n## ヴェルベットスキン\n\nダーマペン4とマッサージピールを組み合わせた人気メニュー。ツヤ肌・もち肌を目指す方におすすめです。\n\n## こんな方におすすめ\n\n- ニキビ跡・毛穴が気になる方\n- ポテンツァより手軽に試したい方\n- 定期的な美肌メンテナンスをしたい方",
+    
+    "specs": {
+      "duration": {
+        "min": 30,
+        "max": 45,
+        "text": "30〜45分"
+      },
+      "downtime": {
+        "days": 2,
+        "text": "1〜2日（赤み）"
+      },
+      "pain_level": 2,
+      "effect_duration": {
+        "months": 3,
+        "text": "1〜3ヶ月"
+      },
+      "recommended_sessions": 5,
+      "session_interval": {
+        "weeks": 3,
+        "text": "2〜4週間"
+      }
+    },
+    
+    "popularity_rank": 4,
+    "is_featured": false,
+    "is_new": false
+  },
+  
+  "targets": {
+    "concerns": [
+      { "name": "ニキビ跡", "icon": "😟", "is_primary": true },
+      { "name": "毛穴の開き", "icon": "🔍", "is_primary": true },
+      { "name": "小じわ", "icon": "📏", "is_primary": false },
+      { "name": "肌のハリ不足", "icon": "😔", "is_primary": false },
+      { "name": "肌のくすみ", "icon": "🌫️", "is_primary": false }
+    ],
+    "effects": [
+      { "name": "肌質改善", "icon": "🌟" },
+      { "name": "毛穴縮小", "icon": "🔬" },
+      { "name": "肌のハリ", "icon": "💎" },
+      { "name": "ターンオーバー促進", "icon": "🔄" },
+      { "name": "コラーゲン生成", "icon": "🌸" }
+    ],
+    "body_parts": [
+      { "name": "顔全体", "icon": "👤" }
+    ]
+  },
+  
+  "flow": [
+    {
+      "step": 1,
+      "title": "カウンセリング",
+      "description": "お肌の状態を確認し、施術内容をご説明します。",
+      "duration_minutes": 10,
+      "icon": "💬"
+    },
+    {
+      "step": 2,
+      "title": "洗顔・麻酔クリーム",
+      "description": "メイクを落とし、表皮麻酔クリームを塗布します。20〜30分待機。",
+      "duration_minutes": 30,
+      "icon": "💊"
+    },
+    {
+      "step": 3,
+      "title": "ダーマペン施術",
+      "description": "極細針で肌に微細な穴を開けていきます。",
+      "duration_minutes": 20,
+      "icon": "⚡"
+    },
+    {
+      "step": 4,
+      "title": "美容液導入・鎮静",
+      "description": "成長因子などの美容液を導入し、鎮静パックで肌を落ち着かせます。",
+      "duration_minutes": 15,
+      "icon": "💧"
+    }
+  ],
+  
+  "cautions": {
+    "contraindications": [
+      "妊娠中の方",
+      "重度の炎症性ニキビがある方",
+      "ケロイド体質の方",
+      "血液をサラサラにする薬を服用中の方"
+    ],
+    "before": [
+      "施術前1週間はレチノール製品の使用をお控えください",
+      "当日はメイクを落としてお越しください"
+    ],
+    "after": [
+      "当日〜翌日はメイク・洗顔をお控えください",
+      "1〜2日は赤みが続きます",
+      "保湿・日焼け止めをしっかり行ってください"
+    ]
+  },
+  
+  "faqs": [
+    {
+      "question": "ポテンツァとの違いは？",
+      "answer": "ダーマペンは針のみ、ポテンツァは針＋RF（高周波）です。深いニキビ跡にはポテンツァ、手軽なケアにはダーマペンがおすすめです。"
+    },
+    {
+      "question": "ヴェルベットスキンとは？",
+      "answer": "ダーマペン4とマッサージピールを組み合わせた施術です。ツヤ肌・ハリ肌を目指す方に人気です。"
+    }
+  ],
+  
+  "related": {
+    "recommended": [
+      {
+        "id": "potenza",
+        "name": "ポテンツァ",
+        "reason": "より深いニキビ跡改善に"
+      }
+    ],
+    "alternative": [
+      {
+        "id": "potenza",
+        "name": "ポテンツァ",
+        "reason": "深い悩みにはこちら"
+      }
+    ]
+  }
+}
+

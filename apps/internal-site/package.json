@@ -1,0 +1,20 @@
+{
+  "name": "ledian-internal-site",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "dev:with-d1": "npm run build && wrangler pages dev dist",
+    "dev:local": "npm run build && wrangler pages dev dist --local"
+  },
+  "dependencies": {
+    "astro": "^5.16.6"
+  },
+  "devDependencies": {
+    "@astrojs/cloudflare": "^12.6.12"
+  }
+}

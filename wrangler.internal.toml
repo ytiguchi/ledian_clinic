@@ -1,0 +1,18 @@
+# Cloudflare Pages + D1 (internal site)
+name = "ledian-clinic-internal"
+compatibility_date = "2025-01-01"
+
+# Astro build output for internal site
+pages_build_output_dir = "apps/internal-site/dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ledian-internal-prod"
+database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"
+# プレビュー環境は廃止。本番環境のみ使用
+
+# Cloudflare adapter warns about SESSION KV; replace IDs with real KV namespace IDs if使用
+[[kv_namespaces]]
+binding = "SESSION"
+id = "ca140e5a5a1b4712956b3b33a463d873"
+# プレビュー環境は廃止。本番環境のみ使用

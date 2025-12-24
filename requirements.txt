@@ -1,0 +1,6 @@
+# レディアンクリニック メニュー管理システム
+# Python依存関係
+
+# 標準ライブラリのみ使用（追加パッケージ不要）
+# csv, json, re, uuid, pathlib, dataclasses, typing, datetime
+

@@ -1,0 +1,5 @@
+- slug: hifu
+  category_slug: liftup-tightening
+  name: HIFU
+  sort_order: 10
+  is_active: true
