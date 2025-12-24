@@ -31,3 +31,5 @@ curl http://localhost:8788/api/pricing
 - カテゴリ: 3件
 - 料金プラン: 4件
 
+
+

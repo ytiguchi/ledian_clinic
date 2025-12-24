@@ -19,7 +19,7 @@ Lineworks 連携の社内向けサイトを Cloudflare だけで完結させる�
 
 ## データフロー
 1. `data/`(YAML) をパーサーで `INSERT/UPDATE` 用 SQL か JSON に変換。
-2. GitHub Actions から `wrangler d1 execute` でマイグレーション/シード（ステージ/本番別の D1 バインド）。
+2. GitHub Actions から `wrangler d1 execute` でマイグレーション/シード（public は stg/prod、internal は prod のみ）。
 3. フロント/社内Bot/カウンセリング資料向け API は Pages Functions で提供（例: `/api/price-list`, `/api/treatments`）。Access 通過必須。
 4. 生成物（PDF/CSV）が必要になったら Functions 内で生成し、署名付き URL か一時ストレージ(S3互換/R2)を利用。
 
@@ -41,9 +41,9 @@ Lineworks 連携の社内向けサイトを Cloudflare だけで完結させる�
 - uses: pnpm/action-setup@v4
 - run: pnpm install
 - run: pnpm build  # フロント/Functions
-- run: pnpm run migrate:d1:stg   # wrangler d1 migrations apply
-- run: pnpm run seed:d1:stg      # wrangler d1 execute --file seed.sql
-- run: pnpm run deploy:stg       # wrangler pages deploy
+- run: pnpm run migrate:d1       # wrangler d1 migrations apply
+- run: pnpm run seed:d1          # wrangler d1 execute --file seed.sql
+- run: pnpm run deploy           # wrangler pages deploy
 ```
 本番は手動承認ステップを挟む。シークレット: `CLOUDFLARE_API_TOKEN`, `ACCOUNT_ID`, `D1_DB_NAME` など。
 
@@ -53,12 +53,11 @@ Lineworks 連携の社内向けサイトを Cloudflare だけで完結させる�
 - Webhook で Lineworks Bot へ更新通知を送る場合、Access を通った内部 Functions から POST。
 
 ## D1 メモ（2025-12-24）
-- DB (internal/master): `ledian-internal-prod`, `ledian-internal-stg`
+- DB (internal/master): `ledian-internal-prod`
 - DB (public): `ledian-public-prod`, `ledian-public-stg`
 - マイグレーション格納: `database/d1/migrations/001_init.sql`
 - wrangler apply 例:
   - internal prod: `npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --remote`
-  - internal stg: `... --preview`
   - public prod: `npx wrangler@4.56.0 d1 migrations apply ledian-public-prod --config wrangler.toml --remote`
   - public stg: `... --preview`
 - シード/同期フロー: `docs/seed-and-sync.md` 参照（internalをマスター、publicはマスク/抽出）

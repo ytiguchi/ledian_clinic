@@ -130,3 +130,5 @@ SELECT cron.schedule('sync-campaign-prices', '0 0 * * *', 'SELECT sync_campaign_
 4. **自動同期**: `sync_campaign_prices()`で`treatment_plans`を自動更新
 5. **プラン単位**: プランごとに個別設定可能
 
+
+

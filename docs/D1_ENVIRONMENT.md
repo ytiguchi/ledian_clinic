@@ -1,71 +1,75 @@
 # D1データベース環境について
 
-## ⚠️ 注意: 内部サイトはプレビュー環境を廃止
+## ⚠️ 注意: 内部サイトは本番環境のみ
 
-内部サイト（internal）では、プレビュー環境を廃止し、本番環境のみで運用します。
-
-詳細は [内部サイト設定](./INTERNAL_SITE_CONFIG.md) を参照してください。
+内部サイト（internal）はプレビュー環境を廃止し、本番環境のみで運用します。`wrangler.internal.toml` には `preview_database_id` を設定しません。
 
 ---
 
-## 環境別データベース（参考: 公開サイト用）
+## 環境別データベース
 
-Cloudflare D1では、本番環境とプレビュー環境で別々のデータベースを使用できます（公開サイトなどで使用する場合）。
+### internal（本番のみ）
 
-### 現在の設定
-
-`apps/internal-site/wrangler.toml` の設定：
+`wrangler.internal.toml` の設定：
 
 ```toml
 [[d1_databases]]
 binding = "DB"
 database_name = "ledian-internal-prod"
-database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"      # 本番環境用
-preview_database_id = "86b12d9e-8578-4f08-a49b-9d8be919f486"  # プレビュー環境用
+database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"
 ```
 
-### 環境の切り替え
+### public（本番 + プレビュー）
 
-- **本番環境（Production）**: `database_id` が使用される
-  - Cloudflare Pagesの本番デプロイ時に使用
-  - `wrangler d1 execute --remote` で操作
+`wrangler.toml` の設定：
 
-- **プレビュー環境（Preview）**: `preview_database_id` が使用される
-  - Pull Requestのプレビュー環境やプレビューデプロイ時に使用
-  - `wrangler d1 execute --remote --preview` で操作
-
-- **ローカル開発環境**: `.wrangler/state/v3/d1` 内のローカルSQLiteファイル
-  - `wrangler d1 execute --local` で操作
-
-### マイグレーションの適用
-
-本番環境とプレビュー環境の両方にマイグレーションを適用する必要があります：
-
-```bash
-# 本番環境
-cd apps/internal-site
-wrangler d1 migrations apply ledian-internal-prod --remote
-
-# プレビュー環境
-wrangler d1 migrations apply ledian-internal-prod --remote --preview
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "ledian-public-prod"
+database_id = "1528077a-91e3-421f-adab-38e7fd412734"
+preview_database_id = "37a6de04-9beb-4f46-9531-653fe3fb64d7"
 ```
 
-### データ投入
+---
 
-本番環境とプレビュー環境に個別にデータを投入する必要があります：
+## 環境の切り替え
+
+- **internal production**: `database_id` が使用される（preview は使用しない）
+- **public production**: `database_id` が使用される
+- **public preview**: `preview_database_id` が使用される（`--preview` を指定）
+- **ローカル開発**: `.wrangler/state/v3/d1` 内のローカルSQLiteファイル（`--local` を指定）
+
+---
+
+## マイグレーションの適用
 
 ```bash
-# 本番環境にデータ投入
-wrangler d1 execute ledian-internal-prod --remote --file ../../database/d1/seed-all.sql
+# internal production
+wrangler d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --remote
 
-# プレビュー環境にデータ投入
-wrangler d1 execute ledian-internal-prod --remote --preview --file ../../database/d1/seed-all.sql
+# public production
+wrangler d1 migrations apply ledian-public-prod --config wrangler.toml --remote
+
+# public preview
+wrangler d1 migrations apply ledian-public-prod --config wrangler.toml --remote --preview
+```
+
+## データ投入
+
+```bash
+# internal production
+wrangler d1 execute ledian-internal-prod --config wrangler.internal.toml --remote --file database/d1/seed-all.sql
+
+# public production
+wrangler d1 execute ledian-public-prod --config wrangler.toml --remote --file database/d1/seed-all.sql
+
+# public preview
+wrangler d1 execute ledian-public-prod --config wrangler.toml --remote --preview --file database/d1/seed-all.sql
 ```
 
 ## 注意点
 
-- 本番環境とプレビュー環境は**完全に別のデータベース**です
-- 本番環境のデータを変更しても、プレビュー環境には影響しません
+- internal は **productionのみ** で運用します（preview は使用しません）
+- public の production と preview は **完全に別DB** です
 - ローカル開発環境のデータも独立しています
-- デプロイ時に自動で切り替わるため、コードを変更する必要はありません
-

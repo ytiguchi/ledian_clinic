@@ -18,7 +18,7 @@
 
 ## 設定ファイル
 
-`apps/internal-site/wrangler.toml`:
+`wrangler.internal.toml`:
 
 ```toml
 [[d1_databases]]
@@ -26,7 +26,6 @@ binding = "DB"
 database_name = "ledian-internal-prod"
 database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"
 # プレビュー環境は廃止。本番環境のみ使用
-migrations_dir = "../../database/d1/migrations"
 
 [[kv_namespaces]]
 binding = "SESSION"
@@ -44,19 +43,15 @@ id = "ca140e5a5a1b4712956b3b33a463d873"
 ## マイグレーション適用
 
 ```bash
-cd apps/internal-site
-
 # 本番環境（--remote）
-wrangler d1 migrations apply ledian-internal-prod --remote
+wrangler d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --remote
 ```
 
 ## データ投入
 
 ```bash
-cd apps/internal-site
-
 # 本番環境（--remote）
-wrangler d1 execute ledian-internal-prod --remote --file ../../database/d1/seed-all.sql
+wrangler d1 execute ledian-internal-prod --config wrangler.internal.toml --remote --file database/d1/seed-all.sql
 ```
 
 ## 関連ドキュメント

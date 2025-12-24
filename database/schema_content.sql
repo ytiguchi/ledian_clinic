@@ -7,10 +7,11 @@
 -- 施術詳細コンテンツ
 -- ============================================
 
--- 施術の詳細情報（1施術につき1レコード）
+-- 施術の詳細情報（1サブカテゴリにつき1レコード）
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照（サブカテゴリ = 各施術ページ）
 CREATE TABLE treatment_details (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL UNIQUE REFERENCES subcategories(id) ON DELETE CASCADE,
     
     -- 基本テキスト
     tagline VARCHAR(100),                    -- キャッチコピー「切らずにリフトアップ」
@@ -49,7 +50,6 @@ CREATE TABLE treatment_details (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
-    UNIQUE(treatment_id)
 );
 
 -- ============================================
@@ -79,14 +79,15 @@ CREATE TABLE tags (
 );
 
 -- 施術×タグ紐付け
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE treatment_tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
     is_primary BOOLEAN DEFAULT false,        -- メインタグかどうか
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(treatment_id, tag_id)
+    UNIQUE(subcategory_id, tag_id)
 );
 
 -- ============================================
@@ -102,7 +103,7 @@ CREATE TABLE treatment_flows (
     duration_minutes INTEGER,                -- 所要時間（分）
     icon VARCHAR(10),                        -- 絵文字アイコン
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(treatment_id, step_number)
+    UNIQUE(subcategory_id, step_number)
 );
 
 -- ============================================
@@ -117,9 +118,10 @@ CREATE TYPE caution_type AS ENUM (
     'risk'               -- リスク・副作用
 );
 
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE treatment_cautions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     caution_type caution_type NOT NULL,
     content TEXT NOT NULL,
     sort_order INTEGER DEFAULT 0,
@@ -130,9 +132,10 @@ CREATE TABLE treatment_cautions (
 -- よくある質問（FAQ）
 -- ============================================
 
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE treatment_faqs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     question TEXT NOT NULL,
     answer TEXT NOT NULL,
     sort_order INTEGER DEFAULT 0,
@@ -145,9 +148,10 @@ CREATE TABLE treatment_faqs (
 -- ビフォーアフター
 -- ============================================
 
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照（サブカテゴリ = 各施術ページ）
 CREATE TABLE treatment_before_afters (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     before_image_url VARCHAR(500) NOT NULL,
     after_image_url VARCHAR(500) NOT NULL,
     caption TEXT,                            -- 説明文
@@ -172,16 +176,17 @@ CREATE TYPE relation_type AS ENUM (
     'set_menu'       -- セットメニュー
 );
 
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE treatment_relations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
-    related_treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
+    related_subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     relation_type relation_type NOT NULL,
     description TEXT,                        -- 関連理由の説明
     sort_order INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(treatment_id, related_treatment_id, relation_type),
-    CHECK(treatment_id != related_treatment_id)
+    UNIQUE(subcategory_id, related_subcategory_id, relation_type),
+    CHECK(subcategory_id != related_subcategory_id)
 );
 
 -- ============================================
@@ -224,15 +229,16 @@ COMMENT ON COLUMN campaigns.campaign_type IS 'キャンペーン種別: discount
 COMMENT ON COLUMN campaigns.priority IS '優先度（数値が大きいほど優先、複数キャンペーン適用時）';
 
 -- キャンペーン×施術紐付け（旧: treatment_id単位、新: campaign_plans推奨）
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE campaign_treatments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     discount_type VARCHAR(20),               -- 'percentage', 'fixed', 'special_price'
     discount_value INTEGER,                  -- 割引値
     special_price INTEGER,                   -- 特別価格
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(campaign_id, treatment_id)
+    UNIQUE(campaign_id, subcategory_id)
 );
 
 -- キャンペーン×プラン紐付け（推奨: プラン単位で設定可能）
@@ -292,10 +298,11 @@ CREATE TABLE subscription_plans (
 );
 
 -- サブスク×施術紐付け（含まれる施術）
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE subscription_treatments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     subscription_id UUID NOT NULL REFERENCES subscription_plans(id) ON DELETE CASCADE,
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     monthly_limit INTEGER,                   -- 月間利用上限回数（NULLは無制限）
     discount_rate INTEGER,                   -- 追加利用時の割引率
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -325,15 +332,16 @@ END $$;
 -- インデックス
 -- ============================================
 
-CREATE INDEX idx_treatment_details_treatment ON treatment_details(treatment_id);
-CREATE INDEX idx_treatment_tags_treatment ON treatment_tags(treatment_id);
+CREATE INDEX idx_treatment_details_subcategory ON treatment_details(subcategory_id);
+CREATE INDEX idx_treatment_tags_subcategory ON treatment_tags(subcategory_id);
 CREATE INDEX idx_treatment_tags_tag ON treatment_tags(tag_id);
 CREATE INDEX idx_tags_type ON tags(tag_type);
-CREATE INDEX idx_treatment_flows_treatment ON treatment_flows(treatment_id);
-CREATE INDEX idx_treatment_cautions_treatment ON treatment_cautions(treatment_id);
-CREATE INDEX idx_treatment_faqs_treatment ON treatment_faqs(treatment_id);
-CREATE INDEX idx_treatment_relations_treatment ON treatment_relations(treatment_id);
-CREATE INDEX idx_treatment_relations_related ON treatment_relations(related_treatment_id);
+CREATE INDEX idx_treatment_flows_subcategory ON treatment_flows(subcategory_id);
+CREATE INDEX idx_treatment_cautions_subcategory ON treatment_cautions(subcategory_id);
+CREATE INDEX idx_treatment_faqs_subcategory ON treatment_faqs(subcategory_id);
+CREATE INDEX idx_treatment_before_afters_subcategory ON treatment_before_afters(subcategory_id);
+CREATE INDEX idx_treatment_relations_subcategory ON treatment_relations(subcategory_id);
+CREATE INDEX idx_treatment_relations_related ON treatment_relations(related_subcategory_id);
 CREATE INDEX idx_campaigns_dates ON campaigns(start_date, end_date);
 CREATE INDEX idx_campaigns_published ON campaigns(is_published);
 CREATE INDEX idx_campaigns_priority ON campaigns(priority);

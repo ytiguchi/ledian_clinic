@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryDB } from '../../lib/db';
+import type { CategoriesResponse } from '../../types/api';
 
 export const GET: APIRoute = async ({ locals }) => {
   if (!locals?.runtime?.env) {
@@ -21,12 +22,13 @@ export const GET: APIRoute = async ({ locals }) => {
       'SELECT * FROM categories ORDER BY sort_order'
     );
 
-    return new Response(JSON.stringify({
+    const response: CategoriesResponse = {
       categories: categories.map(cat => ({
         ...cat,
         is_active: cat.is_active === 1,
       })),
-    }), {
+    };
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',

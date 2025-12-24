@@ -62,3 +62,5 @@ wrangler pages dev dist --local --port 8788
 - ポート8788が既に使用されていないか確認
 - エラーメッセージを確認
 
+
+

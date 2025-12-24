@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS subcategories (
     category_id TEXT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) NOT NULL,
+    description TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     is_active INTEGER NOT NULL DEFAULT 1,
     created_at DATETIME NOT NULL DEFAULT (datetime('now')),
@@ -53,6 +54,7 @@ CREATE TABLE IF NOT EXISTS treatments (
 -- 料金プラン
 -- ============================================
 
+-- 4階層構造: Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan
 CREATE TABLE IF NOT EXISTS treatment_plans (
     id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     treatment_id TEXT NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
@@ -103,6 +105,7 @@ CREATE TABLE IF NOT EXISTS treatment_options (
     updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
+-- 4階層構造に合わせて treatment_id を参照
 CREATE TABLE IF NOT EXISTS treatment_option_mappings (
     id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     treatment_id TEXT NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,

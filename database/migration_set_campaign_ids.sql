@@ -57,3 +57,5 @@ COMMIT;
 -- WHERE tp.campaign_price IS NOT NULL
 -- ORDER BY c.title, t.name;
 
+
+

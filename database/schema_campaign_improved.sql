@@ -227,3 +227,5 @@ COMMENT ON FUNCTION sync_campaign_prices IS 'campaign_plansからtreatment_plans
 -- 例3: キャンペーン価格を同期（定期実行）
 -- SELECT sync_campaign_prices();
 
+
+

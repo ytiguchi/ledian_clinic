@@ -19,3 +19,5 @@ CREATE TABLE IF NOT EXISTS treatment_before_afters (
 CREATE INDEX IF NOT EXISTS idx_before_afters_treatment ON treatment_before_afters(treatment_id);
 CREATE INDEX IF NOT EXISTS idx_before_afters_published ON treatment_before_afters(is_published);
 
+
+

@@ -38,3 +38,5 @@ CREATE INDEX IF NOT EXISTS idx_campaigns_published ON campaigns(is_published);
 CREATE INDEX IF NOT EXISTS idx_campaign_plans_campaign ON campaign_plans(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_campaign_plans_plan ON campaign_plans(treatment_plan_id);
 
+
+

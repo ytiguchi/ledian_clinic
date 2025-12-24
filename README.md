@@ -9,19 +9,28 @@ ledian_clinic/
 ├── database/
 │   ├── schema.sql                  # 基本テーブル定義
 │   ├── schema_content.sql          # コンテンツ管理テーブル
+│   ├── schema_d1.sql               # D1向けスキーマ
 │   ├── seed.sql                    # シードデータ（自動生成）
 │   ├── seed_data.json              # JSON形式のデータ（自動生成）
 │   ├── migration_add_campaign_id.sql   # campaign_idカラム追加
 │   ├── migration_set_campaign_ids.sql  # campaign_id設定用SQL
 │   ├── setup_complete.sh           # セットアップスクリプト
-│   └── README_MIGRATION.md         # マイグレーション詳細
+│   ├── README_MIGRATION.md         # マイグレーション詳細
+│   └── d1/                         # D1マイグレーション/シード
 ├── data/
+│   ├── catalog/                    # 施術カテゴリ・施術本体
 │   ├── content/
 │   │   ├── campaigns.json          # キャンペーンデータ
 │   │   ├── subscriptions.json      # サブスクリプションデータ
 │   │   └── treatments/             # 施術詳細データ
+│   ├── pricing/                    # 料金プラン・オプション
 │   └── shared/
 │       └── tags.json               # タグマスター
+├── apps/
+│   ├── public-site/                # 一般向けサイト
+│   └── internal-site/              # 社内向けサイト
+├── docs/                           # 運用ドキュメント
+├── outputs/                        # 生成物（PDF/CSV/静的JSON）
 ├── scripts/
 │   ├── parse_menu_csv.py           # CSV → 構造化データ変換
 │   └── update_campaign_ids.py      # campaign_id更新用

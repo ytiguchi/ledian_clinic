@@ -49,3 +49,5 @@ echo "  psql -d $DB_NAME -c \"SELECT COUNT(*) FROM categories;\""
 echo "  psql -d $DB_NAME -c \"SELECT COUNT(*) FROM treatments;\""
 echo "  psql -d $DB_NAME -c \"SELECT COUNT(*) FROM treatment_plans;\""
 
+
+

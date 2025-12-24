@@ -3,8 +3,8 @@
 ## ✅ 実行完了
 
 **実行日時**: 2024-12-24  
-**対象環境**: internal staging (preview)  
-**データベース**: `ledian-internal-prod` (preview: 86b12d9e-8578-4f08-a49b-9d8be919f486)
+**対象環境**: internal production  
+**データベース**: `ledian-internal-prod`
 
 ## 📋 適用されたマイグレーション
 
@@ -53,14 +53,15 @@
    - 既存のPostgreSQLデータからD1への移行
    - または、新しいデータを投入
 
-3. **Production環境への適用**（準備ができたら）
+3. **public環境への適用**（必要に応じて）
    ```bash
-   ./database/d1/migrate.sh internal prod
+   ./database/d1/migrate.sh public prod
    ```
 
 ## ⚠️ 注意事項
 
-- 現在は **staging (preview)** 環境にのみ適用されています
-- production環境への適用は、十分なテスト後に実施してください
+- internal は **production** にのみ適用済みです
+- public への適用は十分なテスト後に実施してください
 - マイグレーションは一度実行するとロールバックできません
+
 

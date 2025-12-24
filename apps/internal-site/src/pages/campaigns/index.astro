@@ -3,41 +3,52 @@ import Layout from '../../components/Layout.astro';
 ---
 
 <Layout>
-  <div class="space-y-6">
-    <div class="flex justify-between items-center">
-      <h2 class="text-3xl font-bold">キャンペーン管理</h2>
-      <a href="/campaigns/new" class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-light transition">
-        + 新規キャンペーン
+  <div class="campaigns-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">キャンペーン管理</h1>
+        <p class="page-subtitle">プロモーション・割引キャンペーンを管理します</p>
+      </div>
+      <a href="/campaigns/new" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        新規キャンペーン
       </a>
     </div>
 
-    <!-- Filter -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select class="px-4 py-2 border rounded-lg" id="publishedFilter">
-          <option value="">すべて</option>
-          <option value="published">公開中のみ</option>
-          <option value="unpublished">非公開のみ</option>
-        </select>
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label class="label">ステータス</label>
+          <select class="select" id="publishedFilter">
+            <option value="">すべて</option>
+            <option value="published">公開中のみ</option>
+            <option value="unpublished">非公開のみ</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <!-- Campaign List -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-gray-50">
+    <!-- Campaign Table -->
+    <div class="table-container">
+      <table class="table">
+        <thead>
           <tr>
-            <th class="px-4 py-3 text-left font-semibold">キャンペーン名</th>
-            <th class="px-4 py-3 text-left font-semibold">期間</th>
-            <th class="px-4 py-3 text-left font-semibold">対象プラン数</th>
-            <th class="px-4 py-3 text-center font-semibold">状態</th>
-            <th class="px-4 py-3 text-center font-semibold">操作</th>
+            <th>キャンペーン名</th>
+            <th>期間</th>
+            <th class="text-center">対象プラン数</th>
+            <th class="text-center">状態</th>
+            <th class="text-center">操作</th>
           </tr>
         </thead>
         <tbody id="campaignTableBody">
           <tr>
-            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-              データを読み込み中...
+            <td colspan="5">
+              <div class="loading">読み込み中...</div>
             </td>
           </tr>
         </tbody>
@@ -45,6 +56,132 @@ import Layout from '../../components/Layout.astro';
     </div>
   </div>
 </Layout>
+
+<style>
+  .campaigns-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 200px;
+    gap: 1rem;
+  }
+
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  /* Campaign Info */
+  .campaign-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .campaign-title {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .campaign-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Period */
+  .campaign-period {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* Plan Count */
+  .plan-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    padding: 0.25rem 0.75rem;
+    background: var(--color-bg-hover);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  /* Status Badges */
+  .status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .status-indicator {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .action-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: none;
+  }
+
+  .action-btn-edit {
+    background: var(--color-accent-subtle);
+    color: var(--color-accent-dark);
+  }
+
+  .action-btn-edit:hover {
+    background: var(--color-accent);
+    color: var(--color-primary);
+  }
+
+  .action-btn-delete {
+    background: var(--color-error-light);
+    color: #b91c1c;
+  }
+
+  .action-btn-delete:hover {
+    background: var(--color-error);
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .table {
+      min-width: 600px;
+    }
+  }
+</style>
 
 <script>
   interface Campaign {
@@ -98,8 +235,12 @@ import Layout from '../../components/Layout.astro';
     if (campaigns.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-            キャンペーンが見つかりませんでした
+          <td colspan="5">
+            <div class="empty-state">
+              <div class="empty-state-icon">🎁</div>
+              <div class="empty-state-title">キャンペーンがありません</div>
+              <div class="empty-state-desc">新規キャンペーンを作成してください</div>
+            </div>
           </td>
         </tr>
       `;
@@ -109,28 +250,35 @@ import Layout from '../../components/Layout.astro';
     tbody.innerHTML = campaigns.map(campaign => {
       const period = getPeriodText(campaign.start_date, campaign.end_date);
       const status = getStatus(campaign);
+      const statusBadgeClass = campaign.is_published ? 'badge-success' : 'badge-neutral';
       
       return `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="px-4 py-3">
-            <div class="font-semibold">${escapeHtml(campaign.title)}</div>
-            ${campaign.description ? `<div class="text-sm text-gray-500 mt-1">${escapeHtml(campaign.description)}</div>` : ''}
+        <tr>
+          <td>
+            <div class="campaign-info">
+              <span class="campaign-title">${escapeHtml(campaign.title)}</span>
+              ${campaign.description ? `<span class="campaign-desc">${escapeHtml(campaign.description)}</span>` : ''}
+            </div>
           </td>
-          <td class="px-4 py-3">
-            <div class="text-sm">${period}</div>
+          <td>
+            <span class="campaign-period">${period}</span>
           </td>
-          <td class="px-4 py-3">
-            <span class="text-sm">${campaign.plan_count}件</span>
+          <td class="text-center">
+            <span class="plan-count">${campaign.plan_count}件</span>
           </td>
-          <td class="px-4 py-3 text-center">
-            <span class="text-xs px-2 py-1 rounded ${campaign.is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-              ${campaign.is_published ? '公開中' : '非公開'}
-            </span>
-            ${status ? `<div class="text-xs text-gray-500 mt-1">${status}</div>` : ''}
+          <td class="text-center">
+            <div class="status-container">
+              <span class="badge ${statusBadgeClass}">
+                ${campaign.is_published ? '公開中' : '非公開'}
+              </span>
+              ${status ? `<span class="status-indicator">${status}</span>` : ''}
+            </div>
           </td>
-          <td class="px-4 py-3 text-center">
-            <a href="/campaigns/${campaign.id}/edit" class="text-accent hover:underline mr-3">編集</a>
-            <button onclick="deleteCampaign('${campaign.id}')" class="text-red-500 hover:underline">削除</button>
+          <td>
+            <div class="action-buttons">
+              <a href="/campaigns/${campaign.id}/edit" class="action-btn action-btn-edit">編集</a>
+              <button onclick="deleteCampaign('${campaign.id}')" class="action-btn action-btn-delete">削除</button>
+            </div>
           </td>
         </tr>
       `;
@@ -172,8 +320,11 @@ import Layout from '../../components/Layout.astro';
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="px-4 py-8 text-center text-red-500">
-            ${escapeHtml(message)}
+          <td colspan="5">
+            <div class="empty-state" style="color: var(--color-error)">
+              <div class="empty-state-icon">⚠️</div>
+              <div class="empty-state-title">${escapeHtml(message)}</div>
+            </div>
           </td>
         </tr>
       `;
@@ -208,4 +359,3 @@ import Layout from '../../components/Layout.astro';
 
   (window as any).deleteCampaign = deleteCampaign;
 </script>
-

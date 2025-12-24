@@ -9,6 +9,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # 引数チェック
 if [ "$1" = "" ]; then
   echo "Usage: $0 [internal|public] [stg|prod]"
+  echo "  internal prod - internal production database"
+  echo "  public stg    - public preview database"
+  echo "  public prod   - public production database"
   exit 1
 fi
 
@@ -33,13 +36,22 @@ if [ ! -f "$CONFIG_FILE" ]; then
   exit 1
 fi
 
+if [ "$ENV" = "stg" ] && [ "$SITE_TYPE" = "internal" ]; then
+  echo "Error: internal preview database is not available"
+  exit 1
+fi
+
 # Node.jsバージョンチェック
 NODE_VERSION=$(node --version | sed 's/v//' | cut -d. -f1)
 if [ "$NODE_VERSION" -lt 20 ]; then
   echo "Error: Node.js v20.0.0 or higher is required (current: $(node --version))"
   echo ""
   echo "Please upgrade Node.js or use the manual command:"
-  echo "  npx wrangler@4.56.0 d1 migrations apply $DB_NAME --config $CONFIG_FILE --remote ${ENV:+-preview}"
+  if [ "$ENV" = "stg" ]; then
+    echo "  npx wrangler@4.56.0 d1 migrations apply $DB_NAME --config $CONFIG_FILE --remote --preview"
+  else
+    echo "  npx wrangler@4.56.0 d1 migrations apply $DB_NAME --config $CONFIG_FILE --remote"
+  fi
   exit 1
 fi
 

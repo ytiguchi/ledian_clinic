@@ -70,3 +70,5 @@ WHERE tp.campaign_price IS NOT NULL
   );
 ```
 
+
+

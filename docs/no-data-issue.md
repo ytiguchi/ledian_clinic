@@ -35,7 +35,7 @@ npm run build
 # 2. wrangler pages dev で起動
 npm run dev:local
 # または
-wrangler pages dev dist --config ../../wrangler.internal.toml --local
+wrangler pages dev dist --local
 ```
 
 ### 方法3: 既存データの移行
@@ -52,4 +52,5 @@ PostgreSQLからD1へのデータ移行スクリプトを作成する必要が�
 
 1. `wrangler pages dev`で起動してAPIの動作確認
 2. または、既存のPostgreSQLデータをD1に移行
+
 

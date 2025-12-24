@@ -54,12 +54,13 @@ export interface CategoryWithSubcategories extends Category {
   subcategories: SubcategoryWithTreatments[];
 }
 
-/** サブカテゴリ（小分類） */
+/** サブカテゴリ（中分類/治療法グループ） */
 export interface Subcategory {
   id: UUID;
   categoryId: UUID;
   name: string;
   slug: string;
+  description: string | null;
   sortOrder: number;
   isActive: boolean;
   createdAt: Timestamp;
@@ -71,7 +72,7 @@ export interface SubcategoryWithTreatments extends Subcategory {
   treatments: TreatmentWithPlans[];
 }
 
-/** 施術 */
+/** 施術（小分類/個別施術） */
 export interface Treatment {
   id: UUID;
   subcategoryId: UUID;
@@ -187,7 +188,7 @@ export interface MedicationPlan {
 // API レスポンス型
 // ============================================
 
-/** 料金表一覧（ビュー用） */
+/** 料金表一覧（ビュー用） - 4階層構造 */
 export interface PriceListItem {
   categoryName: string;
   subcategoryName: string;
@@ -241,6 +242,7 @@ export interface CreateSubcategoryInput {
   categoryId: UUID;
   name: string;
   slug?: string;
+  description?: string;
   sortOrder?: number;
 }
 
@@ -342,4 +344,6 @@ export type Nullable<T> = T | null;
 
 /** Optional型（undefinedも許可） */
 export type Optional<T> = T | null | undefined;
+
+
 

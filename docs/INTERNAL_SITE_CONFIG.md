@@ -8,7 +8,7 @@
 
 ### 本番環境のみ使用
 
-`apps/internal-site/wrangler.toml`:
+`wrangler.internal.toml`:
 
 ```toml
 [[d1_databases]]
@@ -16,7 +16,6 @@ binding = "DB"
 database_name = "ledian-internal-prod"
 database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"
 # プレビュー環境は廃止。本番環境のみ使用
-migrations_dir = "../../database/d1/migrations"
 ```
 
 ### KV Namespaces設定
@@ -27,6 +26,10 @@ binding = "SESSION"
 id = "ca140e5a5a1b4712956b3b33a463d873"
 # プレビュー環境は廃止。本番環境のみ使用
 ```
+
+### pages dev の設定ファイル
+
+`wrangler pages dev` はカスタムパスの設定ファイルを読めないため、ローカル開発では `apps/internal-site/wrangler.toml` を使用します。
 
 ## 環境構成
 
@@ -51,37 +54,31 @@ id = "ca140e5a5a1b4712956b3b33a463d873"
 ## マイグレーション適用
 
 ```bash
-cd apps/internal-site
-
 # 本番環境（--remote）
-wrangler d1 migrations apply ledian-internal-prod --remote
+wrangler d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --remote
 
 # ローカル環境（--local）
-wrangler d1 migrations apply ledian-internal-prod --local
+wrangler d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --local
 ```
 
 ## データ投入
 
 ```bash
-cd apps/internal-site
-
 # 本番環境（--remote）
-wrangler d1 execute ledian-internal-prod --remote --file ../../database/d1/seed-all.sql
+wrangler d1 execute ledian-internal-prod --config wrangler.internal.toml --remote --file database/d1/seed-all.sql
 
 # ローカル環境（--local）
-wrangler d1 execute ledian-internal-prod --local --file ../../database/d1/seed-all.sql
+wrangler d1 execute ledian-internal-prod --config wrangler.internal.toml --local --file database/d1/seed-all.sql
 ```
 
 ## デプロイ
 
 ```bash
-cd apps/internal-site
-
 # ビルド
 npm run build
 
 # デプロイ
-wrangler pages deploy dist
+wrangler pages deploy apps/internal-site/dist --project-name ledian-clinic-internal
 ```
 
 ## Cloudflare Pages設定

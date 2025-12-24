@@ -70,7 +70,7 @@ npm --version   # npmのバージョンも確認
 
 # マイグレーション実行
 cd /Users/iguchiyuuta/Dev/ledian_clinic
-./database/d1/migrate.sh internal stg
+./database/d1/migrate.sh internal prod
 ```
 
 ## トラブルシューティング
@@ -99,4 +99,5 @@ nvm use 20
 # デフォルトを設定
 nvm alias default 20
 ```
+
 

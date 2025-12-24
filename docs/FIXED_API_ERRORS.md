@@ -36,3 +36,5 @@ wrangler pages dev dist --local --port 8788
 
 データが0件の場合は、seed-sample.sqlを実行してデータを投入してください。
 
+
+

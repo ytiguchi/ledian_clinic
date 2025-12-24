@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getDB, queryDB } from '../../lib/db';
+import { getDB } from '../../lib/db';
+import type { PricePlan, PricingResponse } from '../../types/api';
 
 export const prerender = false;
 
@@ -12,73 +13,143 @@ export const GET: APIRoute = async ({ locals, url }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  let query = '';
+  let params: unknown[] = [];
   try {
     const db = getDB(locals.runtime.env);
     
-    const categoryId = url.searchParams.get('category_id');
-    const search = url.searchParams.get('search');
+    const categoryId = url.searchParams.get('category_id')?.trim();
+    const subcategoryId = url.searchParams.get('subcategory_id')?.trim();
+    const search = url.searchParams.get('search')?.trim();
     
-    let query = `
-      SELECT 
-        tp.id,
-        tp.plan_name,
-        tp.plan_type,
-        tp.sessions,
-        tp.price,
-        tp.price_taxed,
-        tp.campaign_price,
-        tp.campaign_price_taxed,
-        tp.cost_rate,
-        tp.supply_cost,
-        tp.staff_cost,
-        tp.total_cost,
-        t.id AS treatment_id,
-        t.name AS treatment_name,
-        sc.id AS subcategory_id,
-        sc.name AS subcategory_name,
-        c.id AS category_id,
-        c.name AS category_name
-      FROM treatment_plans tp
-      JOIN treatments t ON tp.treatment_id = t.id
-      JOIN subcategories sc ON t.subcategory_id = sc.id
-      JOIN categories c ON sc.category_id = c.id
-      WHERE tp.is_active = 1
-    `;
+    // データベース構造を確認（treatment_idカラムが存在するか）
+    // SQLiteのpragma_table_infoを使用
+    let hasTreatmentId = false;
+    try {
+      const checkResult = await db.prepare(`
+        PRAGMA table_info(treatment_plans)
+      `).all<{ name: string }>();
+      
+      if (checkResult.success && checkResult.results) {
+        hasTreatmentId = checkResult.results.some(col => col.name === 'treatment_id');
+      }
+    } catch (e) {
+      // エラーが発生した場合は、subcategory_idを使用（3階層構造）
+      console.warn('Could not check table structure, assuming 3-tier structure:', e);
+      hasTreatmentId = false;
+    }
     
-    const params: unknown[] = [];
+    // 4階層構造（treatment_idがある場合）または3階層構造（subcategory_idがある場合）に対応
+    if (hasTreatmentId) {
+      // 4階層構造: Category → Subcategory → Treatment → Treatment Plan
+      query = `
+        SELECT 
+          tp.id,
+          tp.plan_name,
+          tp.plan_type,
+          tp.sessions,
+          tp.price,
+          tp.price_taxed,
+          tp.campaign_price,
+          tp.campaign_price_taxed,
+          tp.cost_rate,
+          tp.supply_cost,
+          tp.staff_cost,
+          tp.total_cost,
+          t.id AS treatment_id,
+          t.name AS treatment_name,
+          t.slug AS treatment_slug,
+          sc.id AS subcategory_id,
+          sc.name AS subcategory_name,
+          c.id AS category_id,
+          c.name AS category_name
+        FROM treatment_plans tp
+        JOIN treatments t ON tp.treatment_id = t.id
+        JOIN subcategories sc ON t.subcategory_id = sc.id
+        JOIN categories c ON sc.category_id = c.id
+        WHERE tp.is_active = 1
+      `;
+    } else {
+      // 3階層構造: Category → Subcategory → Treatment Plan
+      query = `
+        SELECT 
+          tp.id,
+          tp.plan_name,
+          tp.plan_type,
+          tp.sessions,
+          tp.price,
+          tp.price_taxed,
+          tp.campaign_price,
+          tp.campaign_price_taxed,
+          tp.cost_rate,
+          tp.supply_cost,
+          tp.staff_cost,
+          tp.total_cost,
+          sc.id AS treatment_id,
+          sc.name AS treatment_name,
+          sc.slug AS treatment_slug,
+          sc.id AS subcategory_id,
+          sc.name AS subcategory_name,
+          c.id AS category_id,
+          c.name AS category_name
+        FROM treatment_plans tp
+        JOIN subcategories sc ON tp.subcategory_id = sc.id
+        JOIN categories c ON sc.category_id = c.id
+        WHERE tp.is_active = 1
+      `;
+    }
     
-    if (categoryId) {
+    params = [];
+    
+    if (categoryId && categoryId !== '' && categoryId !== 'undefined' && categoryId !== 'null') {
       query += ' AND c.id = ?';
       params.push(categoryId);
     }
     
-    if (search) {
-      query += ' AND (t.name LIKE ? OR tp.plan_name LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
+    if (subcategoryId && subcategoryId !== '' && subcategoryId !== 'undefined' && subcategoryId !== 'null') {
+      query += ' AND sc.id = ?';
+      params.push(subcategoryId);
     }
     
-    query += ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order';
+    if (search && search !== '' && search !== 'undefined' && search !== 'null') {
+      if (hasTreatmentId) {
+        query += ' AND (t.name LIKE ? OR sc.name LIKE ? OR tp.plan_name LIKE ? OR c.name LIKE ?)';
+      } else {
+        query += ' AND (sc.name LIKE ? OR tp.plan_name LIKE ? OR c.name LIKE ?)';
+      }
+      const searchPattern = `%${search}%`;
+      if (hasTreatmentId) {
+        params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+      } else {
+        params.push(searchPattern, searchPattern, searchPattern);
+      }
+    }
     
-    const plans = await queryDB<{
-      id: string;
-      plan_name: string;
-      plan_type: string;
-      sessions: number | null;
-      price: number;
-      price_taxed: number;
-      campaign_price: number | null;
-      campaign_price_taxed: number | null;
-      cost_rate: number | null;
-      supply_cost: number | null;
-      staff_cost: number | null;
-      total_cost: number | null;
-      treatment_id: string;
-      treatment_name: string;
-      subcategory_id: string;
-      subcategory_name: string;
-      category_id: string;
-      category_name: string;
-    }>(db, query, params);
+    if (hasTreatmentId) {
+      query += ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order';
+    } else {
+      query += ' ORDER BY c.sort_order, sc.sort_order, tp.sort_order';
+    }
+    
+    // クエリとパラメータをログ出力
+    const questionMarks = (query.match(/\?/g) || []).length;
+    console.log('Pricing query question marks:', questionMarks);
+    console.log('Pricing params length:', params.length);
+    console.log('Pricing query:', query);
+    console.log('Pricing params:', JSON.stringify(params));
+    
+    // queryDBの代わりに直接prepareとbindを使用
+    let stmt = db.prepare(query);
+    if (params.length > 0) {
+      stmt = stmt.bind(...params);
+    }
+    const result = await stmt.all<PricePlan>();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Database query failed');
+    }
+    
+    const plans = result.results || [];
     
     // プラン名を追加（編集フォーム用）
     const plansWithName = plans.map(p => ({
@@ -86,7 +157,8 @@ export const GET: APIRoute = async ({ locals, url }) => {
       name: p.plan_name
     }));
     
-    return new Response(JSON.stringify({ plans: plansWithName }), {
+    const response: PricingResponse = { plans: plansWithName };
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
@@ -94,9 +166,13 @@ export const GET: APIRoute = async ({ locals, url }) => {
     });
   } catch (error) {
     console.error('Error fetching pricing:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', { errorMessage, errorStack, query, params });
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: errorMessage,
+      stack: errorStack
     }), {
       status: 500,
       headers: {

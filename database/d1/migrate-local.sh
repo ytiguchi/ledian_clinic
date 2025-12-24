@@ -46,3 +46,5 @@ echo "Y" | npx wrangler@4.56.0 d1 migrations apply "$DB_NAME" --config "$CONFIG_
 
 echo "Migration completed successfully!"
 
+
+

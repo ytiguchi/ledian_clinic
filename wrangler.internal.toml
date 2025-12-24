@@ -9,6 +9,7 @@ pages_build_output_dir = "apps/internal-site/dist"
 binding = "DB"
 database_name = "ledian-internal-prod"
 database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"
+migrations_dir = "database/d1/migrations"
 # プレビュー環境は廃止。本番環境のみ使用
 
 # Cloudflare adapter warns about SESSION KV; replace IDs with real KV namespace IDs if使用

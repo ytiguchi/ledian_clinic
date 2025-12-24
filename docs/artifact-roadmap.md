@@ -4,7 +4,7 @@
 
 ## フェーズ1: 基盤整備（進行中）
 - [x] ディレクトリ構造の確立 (`data/`, `docs/`, `apps/`、チャネル別 content 階層)。
-- [x] D1 環境整備（internal/public prod & stg、マイグレーション適用）。
+- [x] D1 環境整備（internal prod のみ、public prod & stg、マイグレーション適用）。
 - [ ] 正規化データのフィールド定義を YAML で確定（`catalog/`, `pricing/` の必須/任意項目）。
 - [ ] サンプルデータ投入（1カテゴリ/1施術/複数プランで最低限のパスを通す）。
 

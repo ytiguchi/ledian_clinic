@@ -62,9 +62,10 @@ CREATE TYPE plan_type AS ENUM (
 );
 
 -- 施術プラン（料金体系）
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照（サブカテゴリ = 各施術ページ）
 CREATE TABLE treatment_plans (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     
     -- プラン情報
     plan_name VARCHAR(100) NOT NULL,        -- "200S", "全顔", "1回" 等
@@ -121,13 +122,14 @@ CREATE TABLE treatment_options (
 );
 
 -- 施術とオプションの関連
+-- 注意: 本番サイト構造に合わせて subcategory_id を直接参照
 CREATE TABLE treatment_option_mappings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    treatment_id UUID NOT NULL REFERENCES treatments(id) ON DELETE CASCADE,
+    subcategory_id UUID NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
     option_id UUID NOT NULL REFERENCES treatment_options(id) ON DELETE CASCADE,
     is_required BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(treatment_id, option_id)
+    UNIQUE(subcategory_id, option_id)
 );
 
 -- ============================================
@@ -171,7 +173,7 @@ CREATE TABLE medication_plans (
 
 CREATE INDEX idx_subcategories_category ON subcategories(category_id);
 CREATE INDEX idx_treatments_subcategory ON treatments(subcategory_id);
-CREATE INDEX idx_treatment_plans_treatment ON treatment_plans(treatment_id);
+CREATE INDEX idx_treatment_plans_subcategory ON treatment_plans(subcategory_id);
 CREATE INDEX idx_treatment_plans_type ON treatment_plans(plan_type);
 CREATE INDEX idx_medication_plans_medication ON medication_plans(medication_id);
 

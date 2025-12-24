@@ -3,43 +3,1101 @@ import Layout from '../../components/Layout.astro';
 ---
 
 <Layout>
-  <div class="space-y-6">
-    <div class="flex justify-between items-center">
-      <h2 class="text-3xl font-bold">施術管理</h2>
-      <a href="/treatments/new" class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-light transition">
-        + 新規施術
-      </a>
-    </div>
-
-    <!-- Filter -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select class="px-4 py-2 border rounded-lg" id="categoryFilter">
-          <option value="">すべてのカテゴリ</option>
-        </select>
-        <input
-          type="text"
-          placeholder="施術名で検索..."
-          class="px-4 py-2 border rounded-lg"
-          id="searchInput"
-        />
-        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition">
-          検索
-        </button>
+  <div class="training-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">施術研修コンテンツ</h1>
+        <p class="page-subtitle">カテゴリ → 施術 → 詳細情報をドリルダウンで確認</p>
       </div>
     </div>
 
-    <!-- Treatment Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="treatmentGrid">
-      <div class="bg-white rounded-lg shadow p-6 text-center">
-        <p class="text-gray-500">データを読み込み中...</p>
+    <!-- Navigation Breadcrumb -->
+    <nav class="nav-breadcrumb" id="navBreadcrumb">
+      <button class="breadcrumb-item active" data-level="category">
+        <span class="breadcrumb-icon">🏠</span>
+        カテゴリ一覧
+      </button>
+    </nav>
+
+    <!-- Level 1: Category Grid -->
+    <div class="content-level" id="categoryLevel">
+      <div class="category-grid" id="categoryGrid">
+        <div class="loading-state">読み込み中...</div>
+      </div>
+    </div>
+
+    <!-- Level 2: Subcategory & Treatment List -->
+    <div class="content-level hidden" id="subcategoryLevel">
+      <div class="two-column-layout">
+        <aside class="sidebar-nav" id="subcategorySidebar">
+          <!-- Subcategory list will be rendered here -->
+        </aside>
+        <main class="treatment-list" id="treatmentList">
+          <!-- Treatment cards will be rendered here -->
+        </main>
+      </div>
+    </div>
+
+    <!-- Level 3: Treatment Detail -->
+    <div class="content-level hidden" id="detailLevel">
+      <div class="detail-container" id="treatmentDetail">
+        <!-- Treatment detail will be rendered here -->
       </div>
     </div>
   </div>
 </Layout>
 
-<script>
-  // TODO: APIから施術一覧を取得
-  console.log('施術一覧読み込み準備中...');
-</script>
+<style>
+  .training-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
 
+  /* Breadcrumb Navigation */
+  .nav-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    overflow-x: auto;
+  }
+
+  .breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  .breadcrumb-item:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text);
+  }
+
+  .breadcrumb-item.active {
+    background: var(--color-accent);
+    color: var(--color-primary);
+    pointer-events: none;
+  }
+
+  .breadcrumb-item::after {
+    content: '›';
+    margin-left: 0.5rem;
+    color: var(--color-text-muted);
+  }
+
+  .breadcrumb-item:last-child::after {
+    display: none;
+  }
+
+  .breadcrumb-icon {
+    font-size: 0.875rem;
+  }
+
+  /* Content Levels */
+  .content-level {
+    animation: fadeIn 0.3s ease;
+  }
+
+  .content-level.hidden {
+    display: none;
+  }
+
+  /* Category Grid */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .category-card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-border-light);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-align: center;
+  }
+
+  .category-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .category-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .category-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.25rem 0;
+  }
+
+  .category-count {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Two Column Layout */
+  .two-column-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.5rem;
+  }
+
+  .sidebar-nav {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    padding: 1rem;
+    height: fit-content;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .sidebar-title {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.75rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .sidebar-item {
+    display: block;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-item:hover {
+    background: var(--color-bg-hover);
+    color: var(--color-text);
+  }
+
+  .sidebar-item.active {
+    background: var(--color-accent);
+    color: var(--color-primary);
+  }
+
+  .sidebar-item .count {
+    float: right;
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+    background: rgba(0,0,0,0.1);
+    border-radius: var(--radius-full);
+  }
+
+  /* Treatment List */
+  .treatment-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    align-content: start;
+  }
+
+  .treatment-card {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+  }
+
+  .treatment-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .treatment-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .treatment-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .treatment-tag {
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--color-bg-hover);
+    border-radius: var(--radius-full);
+    color: var(--color-text-muted);
+  }
+
+  .treatment-tag.has-content {
+    background: var(--color-success-light);
+    color: var(--color-success);
+  }
+
+  .treatment-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Detail Container */
+  .detail-container {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .detail-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    color: white;
+  }
+
+  .detail-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .detail-subtitle {
+    font-size: 0.875rem;
+    color: var(--color-accent-light);
+    margin: 0;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .detail-section {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-hover);
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .section-icon {
+    font-size: 1.25rem;
+  }
+
+  .section-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+
+  .section-content {
+    padding: 1.25rem;
+  }
+
+  /* Overview Table */
+  .overview-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .overview-table tr {
+    border-bottom: 1px solid var(--color-border-light);
+  }
+
+  .overview-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .overview-table th {
+    text-align: left;
+    padding: 0.75rem 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    width: 30%;
+    vertical-align: top;
+  }
+
+  .overview-table td {
+    padding: 0.75rem 0;
+    font-size: 0.875rem;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  /* Contraindications Highlight */
+  .contraindication-row {
+    background: rgba(239, 68, 68, 0.05);
+  }
+
+  .contraindication-row th {
+    color: var(--color-error);
+  }
+
+  .contraindication-row td {
+    color: var(--color-error);
+    font-weight: 500;
+  }
+
+  /* Features List */
+  .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .feature-item {
+    padding: 1rem;
+    background: var(--color-bg-hover);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-accent);
+  }
+
+  .feature-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .feature-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* FAQ List */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .faq-item {
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .faq-question {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--color-bg-hover);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+  }
+
+  .faq-question:hover {
+    background: var(--color-bg-active);
+  }
+
+  .faq-q-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--color-accent);
+    color: var(--color-primary);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .faq-q-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text);
+    flex: 1;
+  }
+
+  .faq-toggle {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-fast);
+  }
+
+  .faq-item.open .faq-toggle {
+    transform: rotate(180deg);
+  }
+
+  .faq-answer {
+    display: none;
+    padding: 1rem;
+    padding-top: 0;
+    background: white;
+  }
+
+  .faq-item.open .faq-answer {
+    display: block;
+  }
+
+  .faq-a-text {
+    font-size: 0.8125rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin: 0;
+    padding-left: 2.5rem;
+  }
+
+  /* About Section */
+  .about-text {
+    font-size: 0.9375rem;
+    color: var(--color-text);
+    line-height: 1.8;
+  }
+
+  /* Full Width Section */
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* Loading & Empty States */
+  .loading-state, .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text-muted);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .two-column-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar-nav {
+      position: static;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .sidebar-title {
+      width: 100%;
+    }
+
+    .sidebar-item {
+      flex: 0 0 auto;
+      margin-bottom: 0;
+    }
+
+    .nav-breadcrumb {
+      padding: 0.5rem;
+    }
+
+    .breadcrumb-item {
+      padding: 0.375rem 0.625rem;
+      font-size: 0.75rem;
+    }
+  }
+</style>
+
+<script>
+  interface Category {
+    id: string;
+    name: string;
+    slug: string;
+    sort_order: number;
+    is_active: boolean;
+  }
+
+  interface Subcategory {
+    id: string;
+    category_id: string;
+    name: string;
+    slug: string;
+    sort_order: number;
+    is_active: boolean;
+  }
+
+  interface Treatment {
+    id: string;
+    name: string;
+    slug: string;
+    subcategory_id: string;
+    subcategory_name: string;
+    category_id: string;
+    category_name: string;
+  }
+
+  interface EducationContent {
+    slug: string;
+    name_ja: string;
+    name_en?: string;
+    description?: string;
+    about?: string;
+    features?: Array<{ title: string; description: string }>;
+    overview?: Record<string, string>;
+    faqs?: Array<{ question: string; answer: string }>;
+  }
+
+  let categories: Category[] = [];
+  let subcategories: Subcategory[] = [];
+  let treatments: Treatment[] = [];
+  let educationContents: Record<string, EducationContent> = {};
+  
+  let currentCategory: Category | null = null;
+  let currentSubcategory: Subcategory | null = null;
+  let currentTreatment: Treatment | null = null;
+
+  const categoryIcons: Record<string, string> = {
+    'スキンケア': '✨',
+    '医療脱毛': '💫',
+    'アートメイク': '🎨',
+    '点滴・注射': '💉',
+    '脂肪吸引': '🏋️',
+    '脂肪溶解注射': '💧',
+    '肌育注射': '🌸',
+    'ボトックス': '💎',
+    'ヒアルロン酸': '💧',
+    '糸リフト': '🧵',
+    '麻酔': '💤',
+    'ドクターズコスメ': '🧴',
+    '肌診断': '🔬',
+    'LDM': '⚡',
+    'ニキビ・ニキビ痕・毛穴治療': '🩹',
+    'リフトアップ・引き締め': '⬆️',
+    'ピーリング': '🍋',
+    'シミ・美白治療': '☀️',
+    '痩身治療': '🏃',
+    '導入・エレクトロポレーション': '⚡',
+    'ローマピンク': '🌸',
+  };
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function getCategoryIcon(name: string): string {
+    for (const [key, icon] of Object.entries(categoryIcons)) {
+      if (name.includes(key) || key.includes(name)) return icon;
+    }
+    return '✨';
+  }
+
+  async function init() {
+    try {
+      // Load all data in parallel (education API is optional)
+      const [catRes, subRes, treatRes, eduRes] = await Promise.allSettled([
+        fetch('/api/categories'),
+        fetch('/api/subcategories'),
+        fetch('/api/treatments'),
+        fetch('/api/education').catch(() => ({ ok: false, json: () => Promise.resolve({ treatments: [] }) }))
+      ]);
+
+      const catResult = catRes.status === 'fulfilled' ? catRes.value : null;
+      const subResult = subRes.status === 'fulfilled' ? subRes.value : null;
+      const treatResult = treatRes.status === 'fulfilled' ? treatRes.value : null;
+      const eduResult = eduRes.status === 'fulfilled' ? eduRes.value : null;
+
+      if (!catResult?.ok || !subResult?.ok || !treatResult?.ok) {
+        console.error('API error:', { 
+          catRes: catResult?.status, 
+          subRes: subResult?.status, 
+          treatRes: treatResult?.status 
+        });
+        const grid = document.getElementById('categoryGrid');
+        if (grid) {
+          grid.innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><p>データの読み込みに失敗しました</p></div>';
+        }
+        return;
+      }
+
+      const catData = await catResult.json();
+      const subData = await subResult.json();
+      const treatData = await treatResult.json();
+      const eduData = eduResult?.ok ? await eduResult.json() : { treatments: [] };
+
+      console.log('Loaded data:', { 
+        categories: catData.categories?.length || 0,
+        subcategories: subData.subcategories?.length || 0,
+        treatments: treatData.treatments?.length || 0
+      });
+
+      categories = (catData.categories || []).filter((c: any) => c.is_active !== false);
+      subcategories = (subData.subcategories || []).filter((s: any) => s.is_active !== false);
+      treatments = treatData.treatments || [];
+
+      console.log('Filtered data:', { 
+        categories: categories.length,
+        subcategories: subcategories.length,
+        treatments: treatments.length
+      });
+      
+      // Index education content by slug
+      const eduList = eduData.treatments || [];
+      for (const item of eduList) {
+        try {
+          const res = await fetch(`/api/education/${item.slug}`);
+          if (res.ok) {
+            educationContents[item.slug] = await res.json();
+          }
+        } catch (e) {
+          // Skip if not found
+        }
+      }
+
+      renderCategories();
+    } catch (error) {
+      console.error('Error loading data:', error);
+      const grid = document.getElementById('categoryGrid');
+      if (grid) {
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>エラーが発生しました: ${error instanceof Error ? error.message : 'Unknown error'}</p></div>`;
+      }
+    }
+  }
+
+  function renderCategories() {
+    const grid = document.getElementById('categoryGrid');
+    if (!grid) return;
+
+    // サブカテゴリの数をカテゴリごとに集計（アクティブなサブカテゴリのみ）
+    const subcatCounts: Record<string, number> = {};
+    subcategories.forEach(sub => {
+      subcatCounts[sub.category_id] = (subcatCounts[sub.category_id] || 0) + 1;
+    });
+
+    // カテゴリだけを表示（is_activeがtrueのもののみ）
+    const activeCategories = categories.filter(cat => cat.is_active !== false);
+    
+    console.log('Rendering categories:', activeCategories.length);
+    
+    if (activeCategories.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>カテゴリがありません</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = activeCategories.map(cat => `
+      <div class="category-card" data-id="${cat.id}">
+        <div class="category-icon">${getCategoryIcon(cat.name)}</div>
+        <h3 class="category-name">${escapeHtml(cat.name)}</h3>
+        <p class="category-count">${subcatCounts[cat.id] || 0} メニュー</p>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('.category-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const category = activeCategories.find(c => c.id === id);
+        if (category) selectCategory(category);
+      });
+    });
+  }
+
+  function selectCategory(category: Category) {
+    currentCategory = category;
+    currentSubcategory = null;
+
+    // Update breadcrumb
+    updateBreadcrumb([
+      { label: 'カテゴリ一覧', icon: '🏠', level: 'category' },
+      { label: category.name, icon: getCategoryIcon(category.name), level: 'subcategory', active: true }
+    ]);
+
+    // Show subcategory level
+    showLevel('subcategoryLevel');
+
+    // Render sidebar with subcategories（アクティブなサブカテゴリのみ）
+    const sidebar = document.getElementById('subcategorySidebar');
+    const categorySubcats = subcategories.filter(s => s.category_id === category.id);
+    
+    if (sidebar) {
+      sidebar.innerHTML = `
+        <h4 class="sidebar-title">サブカテゴリ</h4>
+        <button class="sidebar-item active" data-id="">
+          すべて表示
+          <span class="count">${getTreatmentCount(category.id, null)}</span>
+        </button>
+        ${categorySubcats.map(sub => `
+          <button class="sidebar-item" data-id="${sub.id}">
+            ${escapeHtml(sub.name)}
+            <span class="count">${getTreatmentCount(category.id, sub.id)}</span>
+          </button>
+        `).join('')}
+      `;
+
+      sidebar.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', () => {
+          sidebar.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          
+          const subId = item.getAttribute('data-id');
+          currentSubcategory = subId ? subcategories.find(s => s.id === subId) || null : null;
+          renderTreatmentList();
+        });
+      });
+    }
+
+    renderTreatmentList();
+  }
+
+  function getTreatmentCount(categoryId: string, subcategoryId: string | null): number {
+    return treatments.filter(t => 
+      t.category_id === categoryId && 
+      (!subcategoryId || t.subcategory_id === subcategoryId)
+    ).length;
+  }
+
+  function renderTreatmentList() {
+    const list = document.getElementById('treatmentList');
+    if (!list || !currentCategory) return;
+
+    let filtered = treatments.filter(t => t.category_id === currentCategory!.id);
+    if (currentSubcategory) {
+      filtered = filtered.filter(t => t.subcategory_id === currentSubcategory!.id);
+    }
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <p>該当する施術がありません</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = filtered.map(treatment => {
+      const eduSlug = getEducationSlug(treatment.name);
+      const hasContent = educationContents[eduSlug];
+      
+      return `
+        <div class="treatment-card" data-id="${treatment.id}" data-slug="${eduSlug}">
+          <h3 class="treatment-name">${escapeHtml(treatment.name)}</h3>
+          <div class="treatment-tags">
+            <span class="treatment-tag">${escapeHtml(treatment.subcategory_name)}</span>
+            ${hasContent ? '<span class="treatment-tag has-content">研修資料あり</span>' : ''}
+          </div>
+          <p class="treatment-desc">
+            ${hasContent && hasContent.description ? escapeHtml(hasContent.description.substring(0, 80)) + '...' : 'クリックして詳細を表示'}
+          </p>
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('.treatment-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
+        const slug = card.getAttribute('data-slug');
+        const treatment = treatments.find(t => t.id === id);
+        if (treatment) selectTreatment(treatment, slug || '');
+      });
+    });
+  }
+
+  function selectTreatment(treatment: Treatment, slug: string) {
+    currentTreatment = treatment;
+
+    // Update breadcrumb
+    updateBreadcrumb([
+      { label: 'カテゴリ一覧', icon: '🏠', level: 'category' },
+      { label: currentCategory?.name || '', icon: getCategoryIcon(currentCategory?.name || ''), level: 'subcategory' },
+      { label: treatment.name, icon: '📋', level: 'detail', active: true }
+    ]);
+
+    showLevel('detailLevel');
+    renderTreatmentDetail(treatment, slug);
+  }
+
+  function renderTreatmentDetail(treatment: Treatment, slug: string) {
+    const container = document.getElementById('treatmentDetail');
+    if (!container) return;
+
+    const content = educationContents[slug];
+
+    if (!content) {
+      container.innerHTML = `
+        <div class="detail-header">
+          <h1 class="detail-title">${escapeHtml(treatment.name)}</h1>
+          <p class="detail-subtitle">${escapeHtml(treatment.subcategory_name)}</p>
+        </div>
+        <div class="detail-section full-width">
+          <div class="section-content">
+            <div class="empty-state">
+              <div class="empty-icon">📚</div>
+              <p>研修コンテンツは準備中です</p>
+            </div>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    // Extract overview data
+    const overview = content.overview || {};
+    const contraindication = overview['禁忌'] || null;
+    
+    container.innerHTML = `
+      <div class="detail-header">
+        <h1 class="detail-title">${escapeHtml(content.name_ja || treatment.name)}</h1>
+        <p class="detail-subtitle">${content.name_en ? escapeHtml(content.name_en) : escapeHtml(treatment.subcategory_name)}</p>
+      </div>
+
+      <div class="detail-grid">
+        <!-- 施術概要 -->
+        <div class="detail-section">
+          <div class="section-header">
+            <span class="section-icon">📖</span>
+            <h2 class="section-title">施術概要</h2>
+          </div>
+          <div class="section-content">
+            <p class="about-text">${escapeHtml(content.about || content.description || '概要情報なし')}</p>
+          </div>
+        </div>
+
+        <!-- プロトコール（施術情報） -->
+        <div class="detail-section">
+          <div class="section-header">
+            <span class="section-icon">📋</span>
+            <h2 class="section-title">プロトコール</h2>
+          </div>
+          <div class="section-content">
+            <table class="overview-table">
+              ${Object.entries(overview)
+                .filter(([key]) => key !== '項目' && key !== '禁忌')
+                .map(([key, value]) => `
+                  <tr>
+                    <th>${escapeHtml(key)}</th>
+                    <td>${escapeHtml(value)}</td>
+                  </tr>
+                `).join('')}
+              ${contraindication ? `
+                <tr class="contraindication-row">
+                  <th>⚠️ 禁忌</th>
+                  <td>${escapeHtml(contraindication)}</td>
+                </tr>
+              ` : ''}
+            </table>
+          </div>
+        </div>
+
+        <!-- こだわり・特徴 -->
+        ${content.features && content.features.length > 0 ? `
+          <div class="detail-section full-width">
+            <div class="section-header">
+              <span class="section-icon">✨</span>
+              <h2 class="section-title">施術の特徴・メカニズム</h2>
+            </div>
+            <div class="section-content">
+              <div class="features-list">
+                ${content.features.map(f => `
+                  <div class="feature-item">
+                    <h4 class="feature-title">${escapeHtml(f.title)}</h4>
+                    <p class="feature-desc">${escapeHtml(f.description)}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- FAQ -->
+        ${content.faqs && content.faqs.length > 0 ? `
+          <div class="detail-section full-width">
+            <div class="section-header">
+              <span class="section-icon">❓</span>
+              <h2 class="section-title">よくある質問（カウンセリング対応用）</h2>
+            </div>
+            <div class="section-content">
+              <div class="faq-list">
+                ${content.faqs.map((faq, i) => `
+                  <div class="faq-item" data-faq="${i}">
+                    <div class="faq-question">
+                      <span class="faq-q-icon">Q</span>
+                      <span class="faq-q-text">${escapeHtml(faq.question)}</span>
+                      <span class="faq-toggle">▼</span>
+                    </div>
+                    <div class="faq-answer">
+                      <p class="faq-a-text">${escapeHtml(faq.answer)}</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    // Add FAQ toggle handlers
+    container.querySelectorAll('.faq-item').forEach(item => {
+      item.querySelector('.faq-question')?.addEventListener('click', () => {
+        item.classList.toggle('open');
+      });
+    });
+  }
+
+  function getEducationSlug(treatmentName: string): string {
+    const slugMap: Record<string, string> = {
+      'オンダリフト': 'onda-pro',
+      'オンダプロ': 'onda-pro',
+      'HIFU': 'high-intensity-focused-ultrasound',
+      'ウルトラセルZi': 'high-intensity-focused-ultrasound',
+      'ボトックス': 'botox',
+      'ヒアルロン酸': 'hyaluronic-acid-2',
+      'ポテンツァ': 'potenza',
+      'ピコレーザー': 'pico-laser',
+      '糸リフト': 'thread-lift',
+      'フォトフェイシャル': 'stella-m22',
+      'ステラM22': 'stella-m22',
+      '医療脱毛': 'soprano-ice-platinum',
+      'ソプラノアイス': 'soprano-ice-platinum',
+      'アートメイク': 'permanent-makeup',
+      'ケアシス': 'carecys',
+      'エリシスセンス': 'ellisys-sense',
+      'トライフィルプロ': 'trifill-pro',
+      '脂肪溶解注射': 'lipodissolve-injection',
+      '肌育注射': 'skin-boosting-injection',
+      'マッサージピール': 'massage-peel',
+      'ハイドラジェントル': 'hydra-gentle',
+      'Vカーボンピール': 'v-carbon-peel',
+      'サブシジョン': 'subcision',
+      'ローマピンク': 'roma-pink',
+      'LDM': 'lhala-10-ldm',
+      'Eve V Muse': 'eve-v-muse',
+      'ミラノリピール': 'milano-repeel',
+      'マヌカピール': 'manuka-peel',
+      'ララドクター': 'lhala-doctor',
+      'ジャルプロ': 'jalupro-glowpeel',
+      'ブラックピール': 'v-carbon-peel',
+    };
+
+    if (slugMap[treatmentName]) return slugMap[treatmentName];
+    
+    for (const [key, slug] of Object.entries(slugMap)) {
+      if (treatmentName.includes(key) || key.includes(treatmentName)) {
+        return slug;
+      }
+    }
+
+    return treatmentName.toLowerCase().replace(/\s+/g, '-');
+  }
+
+  interface BreadcrumbItem {
+    label: string;
+    icon: string;
+    level: string;
+    active?: boolean;
+  }
+
+  function updateBreadcrumb(items: BreadcrumbItem[]) {
+    const nav = document.getElementById('navBreadcrumb');
+    if (!nav) return;
+
+    nav.innerHTML = items.map(item => `
+      <button class="breadcrumb-item ${item.active ? 'active' : ''}" data-level="${item.level}">
+        <span class="breadcrumb-icon">${item.icon}</span>
+        ${escapeHtml(item.label)}
+      </button>
+    `).join('');
+
+    nav.querySelectorAll('.breadcrumb-item:not(.active)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const level = btn.getAttribute('data-level');
+        navigateToLevel(level || 'category');
+      });
+    });
+  }
+
+  function navigateToLevel(level: string) {
+    switch (level) {
+      case 'category':
+        currentCategory = null;
+        currentSubcategory = null;
+        currentTreatment = null;
+        updateBreadcrumb([
+          { label: 'カテゴリ一覧', icon: '🏠', level: 'category', active: true }
+        ]);
+        showLevel('categoryLevel');
+        break;
+      case 'subcategory':
+        if (currentCategory) {
+          currentTreatment = null;
+          selectCategory(currentCategory);
+        }
+        break;
+    }
+  }
+
+  function showLevel(levelId: string) {
+    ['categoryLevel', 'subcategoryLevel', 'detailLevel'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.toggle('hidden', id !== levelId);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>

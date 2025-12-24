@@ -9,7 +9,6 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # 引数チェック
 if [ "$1" = "" ]; then
   echo "Usage: $0 [internal|public] [stg|prod]"
-  echo "  internal stg  - internal preview database"
   echo "  internal prod - internal production database"
   echo "  public stg    - public preview database"
   echo "  public prod   - public production database"
@@ -38,6 +37,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 if [ "$ENV" = "stg" ]; then
+  if [ "$SITE_TYPE" = "internal" ]; then
+    echo "Error: internal preview database is not available"
+    exit 1
+  fi
   echo "Applying migrations to ${SITE_TYPE} staging (preview) database..."
   npx wrangler@4.56.0 d1 migrations apply "$DB_NAME" --config "$CONFIG_FILE" --remote --preview
 elif [ "$ENV" = "prod" ]; then
@@ -54,4 +57,5 @@ else
 fi
 
 echo "Migration completed successfully!"
+
 

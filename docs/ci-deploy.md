@@ -3,7 +3,7 @@
 internal をマスターにし、public はマスク/抽出データを同期する前提。Actions での想定手順をまとめる。
 
 ## 前提
-- D1: internal/public の prod/stg が存在し、`database/d1/migrations/001_init.sql` が適用済み。
+- D1: internal は prod のみ、public は prod/stg が存在し、`database/d1/migrations/001_init.sql` が適用済み。
 - wrangler設定: `wrangler.internal.toml`（internal）、`wrangler.toml`（public）。
 - ビルド出力: Astro想定（`apps/public-site/dist`, `apps/internal-site/dist`）。実際のFWに合わせて変更。
 
@@ -11,22 +11,21 @@ internal をマスターにし、public はマスク/抽出データを同期す
 1) checkout + node 20 セットアップ  
 2) 依存インストール（pnpm/yarn/npm 任意）  
 3) build (public/internal)  
-4) migrations apply (stg)  
-5) seed internal (stg)  
-6) mask/seed public (stg)  
-7) Pages deploy (stg)  
-8) 手動承認後に prod でも 4-7 を実行
+4) migrations apply (public stg)  
+5) mask/seed public (stg)  
+6) Pages deploy (public stg)  
+7) 手動承認後に prod を実行（internal prod → public prod）
 
 ## コマンド例
 - マイグレーション（stg）  
-  - internal: `npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --remote --preview`
   - public: `npx wrangler@4.56.0 d1 migrations apply ledian-public-prod --config wrangler.toml --remote --preview`
 - マイグレーション（prod）  
   - internal: `npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod --config wrangler.internal.toml --remote`
   - public: `npx wrangler@4.56.0 d1 migrations apply ledian-public-prod --config wrangler.toml --remote`
 - シード（スクリプト実装後の想定）  
-  - internal stg: `npx wrangler@4.56.0 d1 execute ledian-internal-prod --config wrangler.internal.toml --remote --preview --file outputs/seed-internal.sql`
+  - internal prod: `npx wrangler@4.56.0 d1 execute ledian-internal-prod --config wrangler.internal.toml --remote --file outputs/seed-internal.sql`
   - public stg: `npx wrangler@4.56.0 d1 execute ledian-public-prod --config wrangler.toml --remote --preview --file outputs/seed-public.sql`
+  - public prod: `npx wrangler@4.56.0 d1 execute ledian-public-prod --config wrangler.toml --remote --file outputs/seed-public.sql`
 - Pages deploy（フレームワークに応じて）  
   - `npx wrangler@4.56.0 pages deploy apps/public-site/dist --project-name ledian-clinic`
   - `npx wrangler@4.56.0 pages deploy apps/internal-site/dist --project-name ledian-clinic-internal`

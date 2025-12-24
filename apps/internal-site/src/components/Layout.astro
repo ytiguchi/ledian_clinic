@@ -1,36 +1,440 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: '/', icon: '📊', label: 'ダッシュボード' },
+  { href: '/pricing', icon: '💰', label: '料金管理' },
+  { href: '/campaigns', icon: '🎁', label: 'キャンペーン' },
+  { href: '/treatments', icon: '✨', label: '施術管理' },
+  { href: '/before-afters', icon: '📸', label: '症例写真' },
+];
+
+function isActive(href: string): boolean {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+}
 ---
 
 <BaseLayout title="レディアンクリニック 管理サイト">
-  <div class="min-h-screen bg-bg">
-    <!-- Header -->
-    <header class="bg-primary text-white shadow-md">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <h1 class="text-2xl font-bold">Ledian Clinic 管理サイト</h1>
-          <nav class="flex gap-4">
-            <a href="/" class="hover:text-accent transition">ダッシュボード</a>
-            <a href="/pricing" class="hover:text-accent transition">料金管理</a>
-            <a href="/campaigns" class="hover:text-accent transition">キャンペーン</a>
-            <a href="/treatments" class="hover:text-accent transition">施術管理</a>
-            <a href="/before-afters" class="hover:text-accent transition">症例写真</a>
-          </nav>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="/" class="logo">
+          <img src="/images/header-logo.svg" alt="Ledian Clinic" class="logo-image" />
+        </a>
+        <span class="logo-badge">管理システム</span>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          {navItems.map((item) => (
+            <li>
+              <a 
+                href={item.href} 
+                class:list={['nav-item', { active: isActive(item.href) }]}
+              >
+                <span class="nav-icon">{item.icon}</span>
+                <span class="nav-label">{item.label}</span>
+                {isActive(item.href) && <span class="nav-indicator" />}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar">👤</div>
+          <div class="user-details">
+            <span class="user-name">管理者</span>
+            <span class="user-role">Administrator</span>
+          </div>
         </div>
       </div>
-    </header>
+    </aside>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-      <slot />
-    </main>
+    <div class="main-wrapper">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        
+        <div class="topbar-right">
+          <div class="current-time" id="currentTime"></div>
+          <button class="notification-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            <span class="notification-dot"></span>
+          </button>
+        </div>
+      </header>
 
-    <!-- Footer -->
-    <footer class="bg-primary text-white mt-auto">
-      <div class="container mx-auto px-4 py-4 text-center text-sm">
-        <p>&copy; 2024 Ledian Clinic. All rights reserved.</p>
-      </div>
-    </footer>
+      <!-- Page Content -->
+      <main class="main-content">
+        <slot />
+      </main>
+    </div>
   </div>
+  
+  <!-- Mobile Menu Overlay -->
+  <div class="mobile-overlay" id="mobileOverlay"></div>
 </BaseLayout>
 
+<style>
+  /* App Layout */
+  .app-layout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--color-bg);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: var(--z-fixed);
+    transition: transform var(--transition-slow);
+  }
+
+  .sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--color-text-inverse);
+  }
+
+  .logo-image {
+    height: 36px;
+    width: auto;
+    max-width: 100%;
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+  }
+
+  .logo-badge {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.25rem 0.625rem;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+    color: var(--color-primary);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+  }
+
+  /* Navigation */
+  .sidebar-nav {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+  }
+
+  .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    color: rgba(255, 255, 255, 0.65);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    position: relative;
+    transition: all var(--transition-base);
+    margin: 0.125rem 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .nav-item:hover {
+    color: var(--color-text-inverse);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-item.active {
+    color: var(--color-accent);
+    background: rgba(212, 168, 83, 0.12);
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--color-accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  .nav-icon {
+    font-size: 1.25rem;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .nav-label {
+    flex: 1;
+  }
+
+  .nav-indicator {
+    width: 6px;
+    height: 6px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  /* Sidebar Footer */
+  .sidebar-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+  }
+
+  .user-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-inverse);
+  }
+
+  .user-role {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Main Wrapper */
+  .main-wrapper {
+    flex: 1;
+    margin-left: 260px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Top Bar */
+  .topbar {
+    height: 64px;
+    background: var(--color-bg-card);
+    border-bottom: 1px solid var(--color-border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    color: var(--color-text);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
+  }
+
+  .mobile-menu-btn:hover {
+    background: var(--color-bg-hover);
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-left: auto;
+  }
+
+  .current-time {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+  }
+
+  .notification-btn {
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+  }
+
+  .notification-btn:hover {
+    color: var(--color-text);
+    background: var(--color-bg-hover);
+  }
+
+  .notification-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 8px;
+    height: 8px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    border: 2px solid var(--color-bg-card);
+  }
+
+  /* Main Content */
+  .main-content {
+    flex: 1;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Mobile Overlay */
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: calc(var(--z-fixed) - 1);
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+  }
+
+  .mobile-overlay.active {
+    opacity: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .main-wrapper {
+      margin-left: 0;
+    }
+
+    .mobile-menu-btn {
+      display: flex;
+    }
+
+    .mobile-overlay.active {
+      display: block;
+    }
+
+    .topbar {
+      padding: 0 1rem;
+    }
+
+    .main-content {
+      padding: 1.5rem 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sidebar {
+      width: 280px;
+    }
+
+    .current-time {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  // Current time display
+  function updateTime() {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    const timeStr = now.toLocaleDateString('ja-JP', options);
+    const timeElement = document.getElementById('currentTime');
+    if (timeElement) {
+      timeElement.textContent = timeStr;
+    }
+  }
+  
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.querySelector('.sidebar');
+  const mobileOverlay = document.getElementById('mobileOverlay');
+
+  function toggleMobileMenu() {
+    sidebar?.classList.toggle('open');
+    mobileOverlay?.classList.toggle('active');
+    document.body.style.overflow = sidebar?.classList.contains('open') ? 'hidden' : '';
+  }
+
+  mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+  mobileOverlay?.addEventListener('click', toggleMobileMenu);
+</script>

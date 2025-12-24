@@ -28,7 +28,7 @@ data/ (YAML正規化)
 
 ## 推奨ビルド/デプロイ単位
 - `apps/public-site`: GitHub Actions → Cloudflare Pages deploy (prod/stg)。Astro build → `dist`。
-- `apps/internal-site`: 同様に Pages deploy だが、Access で保護。ステージングは `preview_database_id` を参照。
+- `apps/internal-site`: 同様に Pages deploy だが、Access で保護。internal は prod のみ運用（preview database なし）。
 
 ## 今後のToDo（実装前）
 - `apps/public-site/` と `apps/internal-site/` のフレームワークを決定（例: React/Next, SvelteKit, Astro 等）。

@@ -7,7 +7,7 @@
 
 ## 解決方法
 
-`wrangler pages dev`はカスタムパスの設定ファイルをサポートしていないため、`apps/internal-site/wrangler.toml`を作成しました。
+`wrangler pages dev`はカスタムパスの設定ファイルをサポートしていないため、`apps/internal-site/wrangler.toml`を作成しました（internal は本番DBのみ）。
 
 ### 修正内容
 
@@ -28,4 +28,5 @@ wrangler pages dev dist --local
 ```
 
 ブラウザで `http://localhost:8788/pricing` にアクセスすると、データが表示されます。
+
 

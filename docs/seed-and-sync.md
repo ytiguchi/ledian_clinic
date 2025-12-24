@@ -6,7 +6,7 @@
 
 ## 前提
 - D1 DB:
-  - internal: `ledian-internal-prod`, `ledian-internal-stg`
+  - internal: `ledian-internal-prod`
   - public: `ledian-public-prod`, `ledian-public-stg`
 - スキーマ: `database/d1/migrations/001_init.sql` 適用済み
 - wrangler:
@@ -19,9 +19,9 @@
 - 上記を CI（GitHub Actions）から呼び出す。
 
 ## 運用フロー（案）
-1) internal にシード  
+1) internal にシード（production）  
    ```
-   npx wrangler@4.56.0 d1 execute ledian-internal-stg --config wrangler.internal.toml --remote --file outputs/seed-internal.sql
+   npx wrangler@4.56.0 d1 execute ledian-internal-prod --config wrangler.internal.toml --remote --file outputs/seed-internal.sql
    ```
    ※ `outputs/seed-internal.sql` は `scripts/seed_from_yaml` が生成。
 
@@ -32,7 +32,6 @@
    ※ `outputs/seed-public.sql` は internal を参照して生成（マスク済み）。
 
 3) 確認 → 問題なければ prod に昇格  
-   - internal prod へ同じ seed を実行  
    - public prod へマスク済み seed を実行
 
 ## マスク/抽出ポリシー（例）

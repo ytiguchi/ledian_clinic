@@ -62,3 +62,5 @@ npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod \
 2. 必要に応じてシードデータを投入
 3. 各ページ（料金管理、キャンペーン管理等）が正常に動作することを確認
 
+
+

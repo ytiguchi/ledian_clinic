@@ -25,7 +25,7 @@ npm run build
 npm run dev:local
 
 # または直接実行
-wrangler pages dev dist --config ../../wrangler.internal.toml --local
+wrangler pages dev dist --local
 ```
 
 これで、ローカルD1データベースに接続してAPIが動作します。
@@ -56,4 +56,5 @@ npm run dev:local  # wrangler pages dev、D1使用可能
 1. **モックデータモード**: `npm run dev`でモックデータを表示
 2. **開発用プロキシ**: APIリクエストを`wrangler pages dev`にプロキシ
 3. **Viteプラグイン**: 開発時にD1をエミュレート
+
 

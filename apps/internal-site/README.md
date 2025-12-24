@@ -2,8 +2,8 @@
 
 - フレームワーク: Astro 5.x (minimal scaffold)
 - 認証: Cloudflare Access + Lineworks SSO 前提（公開せず）。
-- Pages Project: `wrangler.internal.toml` で設定（出力: `apps/internal-site/dist`）。
-- DB: D1 バインド `DB`（prod/stg）。
+- Pages Project: 本番/CIは `wrangler.internal.toml`、`wrangler pages dev` は `apps/internal-site/wrangler.toml` を参照。
+- DB: D1 バインド `DB`（prodのみ）。
 
 ## 🚀 開発
 
@@ -26,7 +26,7 @@ apps/internal-site/
 ```
 
 ## 🔌 D1統合
-- マイグレーション: `npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod --config ../../wrangler.internal.toml --remote`（stgは --preview）
+- マイグレーション: `npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod --config wrangler.toml --remote`
 - 今後、Functions/API を追加して D1 からカテゴリ/施術/料金を読み込む予定。
 
 ## TODO

@@ -33,6 +33,13 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional
 from datetime import datetime
 
+try:
+    import yaml
+except ImportError:
+    print("⚠️  yamlモジュールが見つかりません。YAML出力をスキップします。")
+    print("   インストール: pip install pyyaml")
+    yaml = None
+
 
 @dataclass
 class TreatmentPlan:
@@ -73,6 +80,7 @@ class Subcategory:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     slug: str = ""
+    description: Optional[str] = None
     treatments: list = field(default_factory=list)
     sort_order: int = 0
 
@@ -188,14 +196,21 @@ def get_safe(row: list, idx: int) -> str:
 
 
 def parse_csv(csv_path: str) -> list[Category]:
-    """CSVをパースして構造化データに変換"""
+    """CSVをパースして構造化データに変換（4階層構造対応）
+    
+    4階層構造（CSVの構造をそのままマッピング）:
+    - Category（大カテゴリ）: col[0]
+    - Subcategory（中カテゴリ）: col[1]
+    - Treatment（小カテゴリ）: col[2]
+    - Treatment Plan: プラン情報（col[3]は施術説明として扱う）
+    """
     
     categories: dict[str, Category] = {}
     
     # 現在の状態を保持
     current_category = ""
-    current_subcategory = ""
-    current_treatment = ""
+    current_subcategory = ""  # 中カテゴリ（col[1]）
+    current_treatment = ""     # 小カテゴリ（col[2]）
     
     category_order = 0
     subcategory_order = 0
@@ -218,9 +233,9 @@ def parse_csv(csv_path: str) -> list[Category]:
             
             # カラム抽出
             col_category = get_safe(row, 0)      # 大カテゴリ
-            col_subcategory = get_safe(row, 1)   # 小カテゴリ
-            col_detail = get_safe(row, 2)        # 施術詳細
-            col_treatment = get_safe(row, 3)     # 施術名
+            col_middle_category = get_safe(row, 1)   # 中カテゴリ
+            col_small_category = get_safe(row, 2)    # 小カテゴリ
+            col_description = get_safe(row, 3)       # 施術説明
             col_sessions = get_safe(row, 4)      # 回数・個数
             col_price = get_safe(row, 5)         # 価格(税抜)
             col_price_per = get_safe(row, 6)     # /回
@@ -263,15 +278,15 @@ def parse_csv(csv_path: str) -> list[Category]:
             category = categories[current_category]
             
             # ========================================
-            # サブカテゴリ処理
+            # サブカテゴリ（中カテゴリ）処理
             # ========================================
-            if col_subcategory:
+            if col_middle_category:
                 # 無効なサブカテゴリ名をスキップ
-                if col_subcategory.startswith('※') or '×' in col_subcategory:
+                if col_middle_category.startswith('※') or '×' in col_middle_category:
                     pass
                 else:
-                    if col_subcategory != current_subcategory:
-                        current_subcategory = col_subcategory
+                    if col_middle_category != current_subcategory:
+                        current_subcategory = col_middle_category
                         current_treatment = ""
                         subcategory_order += 1
                         treatment_order = 0
@@ -285,6 +300,7 @@ def parse_csv(csv_path: str) -> list[Category]:
                             new_sub = Subcategory(
                                 name=current_subcategory,
                                 slug=slugify(current_subcategory),
+                                description=f"{current_category} - {current_subcategory}",
                                 sort_order=subcategory_order
                             )
                             category.subcategories.append(new_sub)
@@ -301,6 +317,7 @@ def parse_csv(csv_path: str) -> list[Category]:
                     new_sub = Subcategory(
                         name=current_subcategory,
                         slug=slugify(current_subcategory),
+                        description=f"{current_category}の治療法",
                         sort_order=subcategory_order
                     )
                     category.subcategories.append(new_sub)
@@ -313,13 +330,12 @@ def parse_csv(csv_path: str) -> list[Category]:
                 continue
             
             # ========================================
-            # 施術名の決定
+            # 施術名（小カテゴリ）の決定
             # ========================================
-            # 優先順位: col_treatment > col_detail > current_treatment
-            treatment_name = col_treatment if col_treatment else col_detail
+            # 4階層構造: col[2]（小カテゴリ）を個別施術として使用
+            treatment_name = col_small_category if col_small_category else current_treatment
             if not treatment_name:
-                treatment_name = current_treatment
-            if not treatment_name:
+                # 小カテゴリがない場合は、中カテゴリ名を使用
                 treatment_name = current_subcategory
             
             # ========================================
@@ -346,6 +362,7 @@ def parse_csv(csv_path: str) -> list[Category]:
                     new_treatment = Treatment(
                         name=current_treatment,
                         slug=slugify(current_treatment),
+                        description=col_description if col_description else None,
                         sort_order=treatment_order
                     )
                     subcategory.treatments.append(new_treatment)
@@ -356,6 +373,10 @@ def parse_csv(csv_path: str) -> list[Category]:
             )
             if not treatment:
                 continue
+            
+            # 施術説明を更新（col[3]の内容をdescriptionに設定）
+            if col_description and col_description != treatment.description:
+                treatment.description = col_description
             
             # ========================================
             # プラン作成
@@ -445,13 +466,14 @@ def generate_sql(categories: list[Category], output_path: str):
         )
     
     lines.append("")
-    lines.append("-- サブカテゴリ")
+    lines.append("-- サブカテゴリ（治療法グループ）")
     
     for cat in categories:
         for sub in cat.subcategories:
+            description = escape_sql(sub.description) if sub.description else 'NULL'
             lines.append(
-                f"INSERT INTO subcategories (id, category_id, name, slug, sort_order) VALUES "
-                f"({escape_sql(sub.id)}, {escape_sql(cat.id)}, {escape_sql(sub.name)}, {escape_sql(sub.slug)}, {sub.sort_order});"
+                f"INSERT INTO subcategories (id, category_id, name, slug, description, sort_order) VALUES "
+                f"({escape_sql(sub.id)}, {escape_sql(cat.id)}, {escape_sql(sub.name)}, {escape_sql(sub.slug)}, {description}, {sub.sort_order});"
             )
     
     lines.append("")
@@ -541,20 +563,106 @@ def print_summary(categories: list[Category]):
     print(f"✨ 合計: {len(categories)}カテゴリ, {total_subcategories}サブカテゴリ, {total_treatments}施術, {total_plans}プラン")
 
 
+def generate_yaml(categories: list[Category], output_dir: Path):
+    """YAMLファイル出力（4階層構造対応）"""
+    if yaml is None:
+        print("⚠️  YAML出力をスキップします（pyyamlがインストールされていません）")
+        return
+    
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # categories.yml
+    categories_data = []
+    for cat in categories:
+        categories_data.append({
+            'slug': cat.slug,
+            'name': cat.name,
+            'sort_order': cat.sort_order,
+            'is_active': True
+        })
+    
+    categories_file = output_dir / 'categories.yml'
+    with open(categories_file, 'w', encoding='utf-8') as f:
+        f.write('# 本番サイトの構造に合わせたカテゴリ定義\n')
+        f.write('# https://ledianclinic.jp/service/ のカテゴリ構造\n\n')
+        yaml.dump(categories_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    
+    print(f"✅ YAML出力: {categories_file}")
+    
+    # subcategories.yml
+    subcategories_data = []
+    for cat in categories:
+        for sub in cat.subcategories:
+            subcategories_data.append({
+                'slug': sub.slug,
+                'category_slug': cat.slug,
+                'name': sub.name,
+                'description': sub.description or f'{cat.name}の治療法',
+                'sort_order': sub.sort_order,
+                'is_active': True
+            })
+    
+    subcategories_file = output_dir / 'subcategories.yml'
+    with open(subcategories_file, 'w', encoding='utf-8') as f:
+        f.write('# 本番サイトの構造に合わせたサブカテゴリ定義（治療法グループ）\n')
+        f.write('# 4階層構造: Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan\n')
+        f.write('# https://ledianclinic.jp/service/ の構造に合わせて定義\n\n')
+        yaml.dump(subcategories_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    
+    print(f"✅ YAML出力: {subcategories_file}")
+    
+    # treatments.yml
+    treatments_data = []
+    for cat in categories:
+        for sub in cat.subcategories:
+            for treat in sub.treatments:
+                treatments_data.append({
+                    'slug': treat.slug,
+                    'subcategory_slug': sub.slug,
+                    'name': treat.name,
+                    'description': treat.description or None,
+                    'sort_order': treat.sort_order,
+                    'is_active': True
+                })
+    
+    treatments_file = output_dir / 'treatments.yml'
+    with open(treatments_file, 'w', encoding='utf-8') as f:
+        f.write('# 本番サイトの構造に合わせた施術定義（個別施術）\n')
+        f.write('# 4階層構造: Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan\n')
+        f.write('# https://ledianclinic.jp/service/{slug}/ の各ページが個別施術\n\n')
+        yaml.dump(treatments_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+    
+    print(f"✅ YAML出力: {treatments_file}")
+
+
 def main():
     # パス設定
     script_dir = Path(__file__).parent
     project_dir = script_dir.parent
     
-    csv_path = Path.home() / "Desktop" / "レディアンクリニックメニュー表 - メニュー一覧.csv"
+    # CSVファイルのパス（DesktopまたはDownloadsから検索）
+    desktop_path = Path.home() / "Desktop" / "レディアンクリニックメニュー表 - メニュー一覧.csv"
+    downloads_path = Path.home() / "Downloads" / "レディアンクリニックメニュー表 - メニュー一覧.csv"
+    
+    if downloads_path.exists():
+        csv_path = downloads_path
+    elif desktop_path.exists():
+        csv_path = desktop_path
+    else:
+        csv_path = desktop_path  # エラーメッセージ用
     json_output = project_dir / "database" / "seed_data.json"
     sql_output = project_dir / "database" / "seed.sql"
+    yaml_output_dir = project_dir / "data" / "catalog"
     
     if not csv_path.exists():
         print(f"❌ CSVファイルが見つかりません: {csv_path}")
+        print(f"   期待されるパス: {csv_path}")
         return
     
     print(f"📄 CSVファイル読み込み: {csv_path}")
+    print(f"📊 4階層構造で正規化します:")
+    print(f"   Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan")
+    print()
     
     # パース実行
     categories = parse_csv(str(csv_path))
@@ -566,8 +674,13 @@ def main():
     json_output.parent.mkdir(parents=True, exist_ok=True)
     generate_json(categories, str(json_output))
     generate_sql(categories, str(sql_output))
+    generate_yaml(categories, yaml_output_dir)
     
     print("\n✨ 完了！")
+    print(f"\n📝 生成されたファイル:")
+    print(f"   - JSON: {json_output}")
+    print(f"   - SQL: {sql_output}")
+    print(f"   - YAML: {yaml_output_dir}/")
 
 
 if __name__ == "__main__":

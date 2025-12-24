@@ -1,5 +1,490 @@
-- slug: hifu
-  category_slug: liftup-tightening
-  name: HIFU
-  sort_order: 10
+# 本番サイトの構造に合わせたサブカテゴリ定義（治療法グループ）
+# 4階層構造: Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan
+# https://ledianclinic.jp/service/ の構造に合わせて定義
+
+- slug: eve-v-muse
+  category_slug: 肌診断
+  name: Eve V muse
+  description: 肌診断 - Eve V muse
+  sort_order: 1
+  is_active: true
+- slug: stella-m22
+  category_slug: フォトフェイシャル
+  name: Stella M22
+  description: フォトフェイシャル - Stella M22
+  sort_order: 1
+  is_active: true
+- slug: ハイフ
+  category_slug: リフトアップ
+  name: ハイフ
+  description: リフトアップ - ハイフ
+  sort_order: 1
+  is_active: true
+- slug: オンダリフト
+  category_slug: リフトアップ
+  name: オンダリフト
+  description: リフトアップ - オンダリフト
+  sort_order: 1
+  is_active: true
+- slug: オリジオkiss
+  category_slug: リフトアップ
+  name: オリジオKISS
+  description: リフトアップ - オリジオKISS
+  sort_order: 1
+  is_active: true
+- slug: ポテンツァ
+  category_slug: ニキビニキビ痕毛穴治療
+  name: ポテンツァ
+  description: ニキビ・ニキビ痕・毛穴治療 - ポテンツァ
+  sort_order: 1
+  is_active: true
+- slug: エリシスセンス
+  category_slug: ニキビニキビ痕毛穴治療
+  name: エリシスセンス
+  description: ニキビ・ニキビ痕・毛穴治療 - エリシスセンス
+  sort_order: 1
+  is_active: true
+- slug: ニードル薬剤
+  category_slug: ニキビニキビ痕毛穴治療
+  name: ニードル薬剤
+  description: ニキビ・ニキビ痕・毛穴治療 - ニードル薬剤
+  sort_order: 1
+  is_active: true
+- slug: トライフィルプロ
+  category_slug: ニキビニキビ痕毛穴治療
+  name: トライフィルプロ
+  description: ニキビ・ニキビ痕・毛穴治療 - トライフィルプロ
+  sort_order: 1
+  is_active: true
+- slug: サブシジョン
+  category_slug: ニキビニキビ痕毛穴治療
+  name: サブシジョン
+  description: ニキビ・ニキビ痕・毛穴治療 - サブシジョン
+  sort_order: 1
+  is_active: true
+- slug: ダーマペン4
+  category_slug: ニキビニキビ痕毛穴治療
+  name: ダーマペン4
+  description: ニキビ・ニキビ痕・毛穴治療 - ダーマペン4
+  sort_order: 1
+  is_active: true
+- slug: ピコレーザー
+  category_slug: レーザー治療
+  name: ピコレーザー
+  description: レーザー治療 - ピコレーザー
+  sort_order: 1
+  is_active: true
+- slug: ララドクター
+  category_slug: 各種ピーリング
+  name: ララドクター
+  description: 各種ピーリング - ララドクター
+  sort_order: 1
+  is_active: true
+- slug: マッサージピール
+  category_slug: 各種ピーリング
+  name: マッサージピール
+  description: 各種ピーリング - マッサージピール
+  sort_order: 1
+  is_active: true
+- slug: ミラノリピール
+  category_slug: 各種ピーリング
+  name: ミラノリピール
+  description: 各種ピーリング - ミラノリピール
+  sort_order: 1
+  is_active: true
+- slug: マヌカピール
+  category_slug: 各種ピーリング
+  name: マヌカピール
+  description: 各種ピーリング - マヌカピール
+  sort_order: 1
+  is_active: true
+- slug: ハイドラジェントル
+  category_slug: 各種ピーリング
+  name: ハイドラジェントル
+  description: 各種ピーリング - ハイドラジェントル
+  sort_order: 1
+  is_active: true
+- slug: ブラックピール
+  category_slug: 各種ピーリング
+  name: ブラックピール
+  description: 各種ピーリング - ブラックピール
+  sort_order: 1
+  is_active: true
+- slug: ジャルプログロウピール
+  category_slug: 各種ピーリング
+  name: ジャルプログロウピール
+  description: 各種ピーリング - ジャルプログロウピール
+  sort_order: 1
+  is_active: true
+- slug: 各種ピーリング
+  category_slug: 各種ピーリング
+  name: 各種ピーリング
+  description: 各種ピーリングの治療法
+  sort_order: 1
+  is_active: true
+- slug: ケアシスs
+  category_slug: 導入エレクトロポレーション
+  name: ケアシスS
+  description: 導入・エレクトロポレーション - ケアシスS
+  sort_order: 1
+  is_active: true
+- slug: ソプラノプラチナム
+  category_slug: 医療脱毛
+  name: ソプラノプラチナム
+  description: 医療脱毛 - ソプラノプラチナム
+  sort_order: 1
+  is_active: true
+- slug: 眉
+  category_slug: アートメイク
+  name: 眉
+  description: アートメイク - 眉
+  sort_order: 1
+  is_active: true
+- slug: ヘアライン
+  category_slug: アートメイク
+  name: ヘアライン
+  description: アートメイク - ヘアライン
+  sort_order: 1
+  is_active: true
+- slug: リップ
+  category_slug: アートメイク
+  name: リップ
+  description: アートメイク - リップ
+  sort_order: 1
+  is_active: true
+- slug: アイライン
+  category_slug: アートメイク
+  name: アイライン
+  description: アートメイク - アイライン
+  sort_order: 1
+  is_active: true
+- slug: アートメイク共通備考
+  category_slug: アートメイク
+  name: アートメイク共通備考
+  description: アートメイク - アートメイク共通備考
+  sort_order: 1
+  is_active: true
+- slug: 点滴
+  category_slug: 点滴注射
+  name: 点滴
+  description: 点滴・注射 - 点滴
+  sort_order: 1
+  is_active: true
+- slug: 注射
+  category_slug: 点滴注射
+  name: 注射
+  description: 点滴・注射 - 注射
+  sort_order: 1
+  is_active: true
+- slug: 点滴注射
+  category_slug: 点滴注射
+  name: 点滴・注射
+  description: 点滴・注射 - 点滴・注射
+  sort_order: 1
+  is_active: true
+- slug: ホホ下
+  category_slug: 脂肪吸引
+  name: ホホ下
+  description: 脂肪吸引 - ホホ下
+  sort_order: 1
+  is_active: true
+- slug: エラ下
+  category_slug: 脂肪吸引
+  name: エラ下
+  description: 脂肪吸引 - エラ下
+  sort_order: 1
+  is_active: true
+- slug: あご下
+  category_slug: 脂肪吸引
+  name: あご下
+  description: 脂肪吸引 - あご下
+  sort_order: 1
+  is_active: true
+- slug: バッカルファット
+  category_slug: 脂肪吸引
+  name: バッカルファット
+  description: 脂肪吸引 - バッカルファット
+  sort_order: 1
+  is_active: true
+- slug: メーラーファット
+  category_slug: 脂肪吸引
+  name: メーラーファット
+  description: 脂肪吸引 - メーラーファット
+  sort_order: 1
+  is_active: true
+- slug: ジョールファット
+  category_slug: 脂肪吸引
+  name: ジョールファット
+  description: 脂肪吸引 - ジョールファット
+  sort_order: 1
+  is_active: true
+- slug: 2部位セット
+  category_slug: 脂肪吸引
+  name: 2部位セット
+  description: 脂肪吸引 - 2部位セット
+  sort_order: 1
+  is_active: true
+- slug: 3部位セット
+  category_slug: 脂肪吸引
+  name: 3部位セット
+  description: 脂肪吸引 - 3部位セット
+  sort_order: 1
+  is_active: true
+- slug: 4部位セット
+  category_slug: 脂肪吸引
+  name: 4部位セット
+  description: 脂肪吸引 - 4部位セット
+  sort_order: 1
+  is_active: true
+- slug: 5部位セット
+  category_slug: 脂肪吸引
+  name: 5部位セット
+  description: 脂肪吸引 - 5部位セット
+  sort_order: 1
+  is_active: true
+- slug: 6部位セット
+  category_slug: 脂肪吸引
+  name: 6部位セット
+  description: 脂肪吸引 - 6部位セット
+  sort_order: 1
+  is_active: true
+- slug: fat-x-core
+  category_slug: 脂肪溶解注射
+  name: Fat X core
+  description: 脂肪溶解注射 - Fat X core
+  sort_order: 1
+  is_active: true
+- slug: カベリン
+  category_slug: 脂肪溶解注射
+  name: カベリン
+  description: 脂肪溶解注射 - カベリン
+  sort_order: 1
+  is_active: true
+- slug: リジュランヒーラー
+  category_slug: 肌育注射
+  name: リジュランヒーラー
+  description: 肌育注射 - リジュランヒーラー
+  sort_order: 1
+  is_active: true
+- slug: リズネ
+  category_slug: 肌育注射
+  name: リズネ
+  description: 肌育注射 - リズネ
+  sort_order: 1
+  is_active: true
+- slug: プルリアルデンシファイ
+  category_slug: 肌育注射
+  name: プルリアルデンシファイ
+  description: 肌育注射 - プルリアルデンシファイ
+  sort_order: 1
+  is_active: true
+- slug: プルリアルバイオスカルプチャー
+  category_slug: 肌育注射
+  name: プルリアルバイオスカルプチャー
+  description: 肌育注射 - プルリアルバイオスカルプチャー
+  sort_order: 1
+  is_active: true
+- slug: ジュベルック
+  category_slug: 肌育注射
+  name: ジュベルック
+  description: 肌育注射 - ジュベルック
+  sort_order: 1
+  is_active: true
+- slug: スネコスパフォルマ
+  category_slug: 肌育注射
+  name: スネコスパフォルマ
+  description: 肌育注射 - スネコスパフォルマ
+  sort_order: 1
+  is_active: true
+- slug: スキンバイブ
+  category_slug: 肌育注射
+  name: スキンバイブ
+  description: 肌育注射 - スキンバイブ
+  sort_order: 1
+  is_active: true
+- slug: 肌育注射共通備考
+  category_slug: 肌育注射
+  name: 肌育注射共通備考
+  description: 肌育注射 - 肌育注射共通備考
+  sort_order: 1
+  is_active: true
+- slug: 韓国社製ボトックス--ボツラックス
+  category_slug: ボトックス注射
+  name: 韓国社製ボトックス / ボツラックス
+  description: ボトックス注射 - 韓国社製ボトックス / ボツラックス
+  sort_order: 1
+  is_active: true
+- slug: アラガン社製ボトックス
+  category_slug: ボトックス注射
+  name: アラガン社製ボトックス
+  description: ボトックス注射 - アラガン社製ボトックス
+  sort_order: 1
+  is_active: true
+- slug: ボトックス共通備考
+  category_slug: ボトックス注射
+  name: ボトックス共通備考
+  description: ボトックス注射 - ボトックス共通備考
+  sort_order: 1
+  is_active: true
+- slug: ジュビダームビスタ
+  category_slug: ヒアルロン酸注入
+  name: ジュビダームビスタ
+  description: ヒアルロン酸注入 - ジュビダームビスタ
+  sort_order: 1
+  is_active: true
+- slug: 韓国製ヒアルニューラミス
+  category_slug: ヒアルロン酸注入
+  name: 韓国製ヒアル、ニューラミス
+  description: ヒアルロン酸注入 - 韓国製ヒアル、ニューラミス
+  sort_order: 1
+  is_active: true
+- slug: 1ccを複数箇所に打つ場合リップ涙袋など
+  category_slug: ヒアルロン酸注入
+  name: 1ccを複数箇所に打つ場合（リップ＋涙袋など）
+  description: ヒアルロン酸注入 - 1ccを複数箇所に打つ場合（リップ＋涙袋など）
+  sort_order: 1
+  is_active: true
+- slug: ヒアルロン酸溶解ハイラックス
+  category_slug: ヒアルロン酸注入
+  name: ヒアルロン酸溶解、ハイラックス
+  description: ヒアルロン酸注入 - ヒアルロン酸溶解、ハイラックス
+  sort_order: 1
+  is_active: true
+- slug: ヒアルロン酸共通備考
+  category_slug: ヒアルロン酸注入
+  name: ヒアルロン酸共通備考
+  description: ヒアルロン酸注入 - ヒアルロン酸共通備考
+  sort_order: 1
+  is_active: true
+- slug: ショッピングリフト
+  category_slug: 糸リフト
+  name: ショッピングリフト
+  description: 糸リフト - ショッピングリフト
+  sort_order: 1
+  is_active: true
+- slug: 糸リフト麻酔込み
+  category_slug: 糸リフト
+  name: 糸リフト（麻酔込み）
+  description: 糸リフト - 糸リフト（麻酔込み）
+  sort_order: 1
+  is_active: true
+- slug: 他院抜糸
+  category_slug: 他院抜糸
+  name: 他院抜糸
+  description: 他院抜糸 - 他院抜糸
+  sort_order: 1
+  is_active: true
+- slug: スキンケア共通
+  category_slug: 麻酔
+  name: スキンケア共通
+  description: 麻酔 - スキンケア共通
+  sort_order: 1
+  is_active: true
+- slug: 表皮麻酔
+  category_slug: 麻酔
+  name: 表皮麻酔
+  description: 麻酔 - 表皮麻酔
+  sort_order: 1
+  is_active: true
+- slug: 笑気麻酔
+  category_slug: 麻酔
+  name: 笑気麻酔
+  description: 麻酔 - 笑気麻酔
+  sort_order: 1
+  is_active: true
+- slug: 笑気麻酔-外科
+  category_slug: 麻酔
+  name: 笑気麻酔　外科
+  description: 麻酔 - 笑気麻酔　外科
+  sort_order: 1
+  is_active: true
+- slug: ブロック麻酔
+  category_slug: 麻酔
+  name: ブロック麻酔
+  description: 麻酔 - ブロック麻酔
+  sort_order: 1
+  is_active: true
+- slug: 静脈麻酔
+  category_slug: 麻酔
+  name: 静脈麻酔
+  description: 麻酔 - 静脈麻酔
+  sort_order: 1
+  is_active: true
+- slug: 静脈麻酔-脂肪吸引の場合
+  category_slug: 麻酔
+  name: 静脈麻酔　脂肪吸引の場合
+  description: 麻酔 - 静脈麻酔　脂肪吸引の場合
+  sort_order: 1
+  is_active: true
+- slug: ダイエット薬
+  category_slug: 医薬品
+  name: ダイエット薬
+  description: 医薬品 - ダイエット薬
+  sort_order: 1
+  is_active: true
+- slug: 外用薬
+  category_slug: 医薬品
+  name: 外用薬
+  description: 医薬品 - 外用薬
+  sort_order: 1
+  is_active: true
+- slug: 美容内服薬
+  category_slug: 医薬品
+  name: 美容内服薬
+  description: 医薬品 - 美容内服薬
+  sort_order: 1
+  is_active: true
+- slug: ed薬
+  category_slug: 医薬品
+  name: ED薬
+  description: 医薬品 - ED薬
+  sort_order: 1
+  is_active: true
+- slug: 緊急避妊薬
+  category_slug: 医薬品
+  name: 緊急避妊薬
+  description: 医薬品 - 緊急避妊薬
+  sort_order: 1
+  is_active: true
+- slug: 低用量ピル
+  category_slug: 医薬品
+  name: 低用量ピル
+  description: 医薬品 - 低用量ピル
+  sort_order: 1
+  is_active: true
+- slug: プラスリストア
+  category_slug: ドクターズコスメ
+  name: プラスリストア
+  description: ドクターズコスメ - プラスリストア
+  sort_order: 1
+  is_active: true
+- slug: 野田皮膚科ベーシックケア
+  category_slug: ドクターズコスメ
+  name: 野田皮膚科ベーシックケア
+  description: ドクターズコスメ - 野田皮膚科ベーシックケア
+  sort_order: 1
+  is_active: true
+- slug: アゼライン酸
+  category_slug: ドクターズコスメ
+  name: アゼライン酸
+  description: ドクターズコスメ - アゼライン酸
+  sort_order: 1
+  is_active: true
+- slug: ローマピンク
+  category_slug: ローマピンク
+  name: ローマピンク
+  description: ローマピンクの治療法
+  sort_order: 1
+  is_active: true
+- slug: ローマピンク備考
+  category_slug: ローマピンク
+  name: ローマピンク備考
+  description: ローマピンク - ローマピンク備考
+  sort_order: 1
+  is_active: true
+- slug: ldm
+  category_slug: ldm
+  name: LDM
+  description: LDMの治療法
+  sort_order: 1
   is_active: true

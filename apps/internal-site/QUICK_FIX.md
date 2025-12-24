@@ -31,3 +31,5 @@ AstroのAPIルートのファイル名を確認してください。`src/pages/a
 
 もし認識されない場合は、`src/pages/api/pricing.ts`にリネームしてみてください。
 
+
+

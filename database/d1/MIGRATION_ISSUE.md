@@ -18,7 +18,7 @@ nvm install 20
 nvm use 20
 
 # マイグレーション実行
-./database/d1/migrate.sh internal stg
+./database/d1/migrate.sh internal prod
 ```
 
 #### voltaを使用している場合
@@ -27,7 +27,7 @@ nvm use 20
 volta install node@20
 
 # マイグレーション実行
-./database/d1/migrate.sh internal stg
+./database/d1/migrate.sh internal prod
 ```
 
 #### 直接インストールしている場合
@@ -39,7 +39,7 @@ volta install node@20
 # Node.js v20環境で直接実行
 npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod \
   --config wrangler.internal.toml \
-  --remote --preview
+  --remote
 ```
 
 ### 方法3: CI/CDで実行（推奨）
@@ -53,11 +53,6 @@ GitHub Actions等のCI環境で実行する場合、Node.js v20が自動的に�
 ### Staging (Preview)
 
 ```bash
-# internal staging
-npx wrangler@4.56.0 d1 migrations apply ledian-internal-prod \
-  --config wrangler.internal.toml \
-  --remote --preview
-
 # public staging
 npx wrangler@4.56.0 d1 migrations apply ledian-public-prod \
   --config wrangler.toml \
@@ -81,10 +76,10 @@ npx wrangler@4.56.0 d1 migrations apply ledian-public-prod \
 ## 🔍 マイグレーション状態確認
 
 ```bash
-# 適用済みマイグレーション一覧
+# 適用済みマイグレーション一覧（internal production）
 npx wrangler@4.56.0 d1 migrations list ledian-internal-prod \
   --config wrangler.internal.toml \
-  --remote --preview
+  --remote
 ```
 
 ## ⚡ 次のステップ
@@ -92,4 +87,5 @@ npx wrangler@4.56.0 d1 migrations list ledian-internal-prod \
 1. Node.jsをv20以上にアップグレード
 2. マイグレーションを実行
 3. 実行結果を確認
+
 

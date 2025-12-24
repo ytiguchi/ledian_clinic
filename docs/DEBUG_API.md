@@ -42,7 +42,7 @@ npm run build
 ### 3. wrangler pages dev で起動
 
 ```bash
-wrangler pages dev dist --config ../../wrangler.internal.toml --local --port 8788
+wrangler pages dev dist --local --port 8788
 ```
 
 ### 4. API動作確認
@@ -105,4 +105,5 @@ curl http://localhost:8788/api/pricing
 
 - ブラウザのコンソールを確認
 - wranglerのログを確認
+
 

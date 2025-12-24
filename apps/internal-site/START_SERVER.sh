@@ -8,8 +8,17 @@ cd "$(dirname "$0")"
 echo "🚀 Starting local development server..."
 
 # Node.js v20を使用
-source ~/.nvm/nvm.sh 2>/dev/null || true
-nvm use 20 2>/dev/null || echo "Warning: nvm not found, using system Node.js"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" 2>/dev/null || true
+
+if command -v nvm &> /dev/null || [ -s "$NVM_DIR/nvm.sh" ]; then
+  nvm use 20 2>/dev/null || echo "Warning: Could not switch to Node.js v20"
+else
+  echo "Warning: nvm not found, using system Node.js"
+fi
+
+# Node.jsバージョン確認
+echo "📌 Node.js version: $(node --version)"
 
 # ビルド
 echo "📦 Building..."
@@ -27,4 +36,6 @@ echo "Press Ctrl+C to stop the server"
 echo ""
 
 wrangler pages dev dist --local --port 8788
+
+
 

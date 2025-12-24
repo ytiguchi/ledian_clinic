@@ -1,0 +1,26 @@
+-- 薬剤データ（medications, medication_plans）
+-- Generated from seed_data.json
+-- 薬剤系のサブカテゴリをmedicationsテーブルに、その下の治療データをmedication_plansテーブルに変換
+
+-- 薬剤マスター（medications）
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('a17c979f-a655-4bac-976e-2bcfca92e3f4', 'リジュランヒーラー', 'リジュランヒーラー', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('bc3c1a17-5724-486d-b28b-57b3d6f70fb9', 'プルリアルデンシファイ', 'プルリアルデンシファイ', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('3125249b-a562-4588-99a3-42e86ba3768a', 'プルリアルバイオスカルプチャー', 'プルリアルバイオスカルプチャー', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('52d099c3-fedd-4097-84e4-27e532a3694e', 'ジュベルック', 'ジュベルック', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('9d20629c-787b-4075-9ebe-2bfe8e3bdcdc', 'スネコスパフォルマ', 'スネコスパフォルマ', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('7261aaad-ee14-4f31-a214-891578e520ee', 'スキンバイブ', 'スキンバイブ', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('b3507cd5-acc1-481c-9df5-f5d8aaf4311b', 'ブロック注射＋笑気麻酔込？', 'ブロック注射笑気麻酔込', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('b532902b-8a09-430d-9b2b-e448875add38', 'ジュビダームビスタ', 'ジュビダームビスタ', 'cc', NULL, 1);
+INSERT INTO medications (id, name, slug, unit, description, is_active) VALUES ('f003c451-4da3-4abf-906f-decdd1873934', '韓国製、ニューラミス', '韓国製ニューラミス', 'cc', NULL, 1);
+
+-- 薬剤プラン（medication_plans）
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('5e9a03ce-6d82-4d66-ac99-72904a69d2dc', 'a17c979f-a655-4bac-976e-2bcfca92e3f4', '4cc', NULL, 60000, 66000, NULL, 53.3, 28000, 4000, 32000, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('ff5ffff8-5fa6-4369-b9b4-7bcb8944135a', 'bc3c1a17-5724-486d-b28b-57b3d6f70fb9', '4cc', NULL, 80000, 88000, NULL, 60.0, 44000, 4000, 48000, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('dd8928ab-2002-40a7-98ee-07fc7e264d83', '3125249b-a562-4588-99a3-42e86ba3768a', '首用', NULL, 50000, 55000, NULL, 44.0, 18000, 4000, 22000, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('004efc17-ee7c-4e8a-8efb-f4740c6a33ea', '52d099c3-fedd-4097-84e4-27e532a3694e', '4cc', NULL, 50000, 55000, NULL, 38.0, 15000, 4000, 19000, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('69577b1c-b412-49a1-99fb-046f8ef2cf1a', '9d20629c-787b-4075-9ebe-2bfe8e3bdcdc', '3cc', NULL, 40000, 44000, NULL, 51.3, 16500, 4000, 20500, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('60381868-5ccc-49a9-9f20-30cf8959f858', '7261aaad-ee14-4f31-a214-891578e520ee', '1cc', NULL, 50000, 55000, NULL, NULL, NULL, NULL, NULL, NULL, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('dc22bc3b-4eb8-4b14-8ed0-65b819ff989f', 'b532902b-8a09-430d-9b2b-e448875add38', '1cc', NULL, 50000, 55000, NULL, NULL, NULL, NULL, NULL, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('00114271-df4a-4001-acb4-9d559d358cd5', 'b532902b-8a09-430d-9b2b-e448875add38', '1cc', NULL, 50000, 55000, NULL, NULL, NULL, NULL, NULL, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('470c9640-a64c-4982-a9b2-ea076f8549bb', 'b532902b-8a09-430d-9b2b-e448875add38', '1cc', NULL, 50000, 55000, NULL, NULL, NULL, NULL, NULL, 30, 1, 1);
+INSERT INTO medication_plans (id, medication_id, quantity, sessions, price, price_taxed, campaign_price, cost_rate, supply_cost, staff_cost, total_cost, staff_discount_rate, sort_order, is_active) VALUES ('7b36d316-f0fe-44e6-8546-43370f8e6b53', 'f003c451-4da3-4abf-906f-decdd1873934', '1cc', NULL, 30000, 33000, NULL, NULL, NULL, NULL, NULL, 60, 1, 1);

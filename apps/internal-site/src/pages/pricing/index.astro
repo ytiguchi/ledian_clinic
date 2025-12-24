@@ -3,50 +3,80 @@ import Layout from '../../components/Layout.astro';
 ---
 
 <Layout>
-  <div class="space-y-6">
-    <div class="flex justify-between items-center">
-      <h2 class="text-3xl font-bold">料金管理</h2>
-      <a href="/pricing/new" class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-light transition">
-        + 新規プラン追加
+  <div class="pricing-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">料金管理</h1>
+        <p class="page-subtitle">施術メニューの料金を管理します</p>
+      </div>
+      <a href="/pricing/new" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        新規プラン追加
       </a>
     </div>
 
-    <!-- Search & Filter -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <input
-          type="text"
-          placeholder="施術名で検索..."
-          class="px-4 py-2 border rounded-lg"
-          id="searchInput"
-        />
-        <select class="px-4 py-2 border rounded-lg" id="categoryFilter">
-          <option value="">すべてのカテゴリ</option>
-        </select>
-        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition">
-          検索
-        </button>
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-grid">
+        <div class="filter-item filter-search">
+          <label class="label">検索</label>
+          <input
+            type="text"
+            placeholder="施術名・プラン名・カテゴリで検索..."
+            class="input"
+            id="searchInput"
+          />
+        </div>
+        <div class="filter-item">
+          <label class="label">カテゴリ</label>
+          <select class="select" id="categoryFilter">
+            <option value="">すべてのカテゴリ</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label class="label">サブカテゴリ</label>
+          <select class="select" id="subcategoryFilter">
+            <option value="">すべてのサブカテゴリ</option>
+          </select>
+        </div>
+        <div class="filter-item filter-actions">
+          <button class="btn btn-secondary" id="clearBtn" title="検索条件をクリア">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            クリア
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Price Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="w-full">
-        <thead class="bg-gray-50">
+    <div class="table-container">
+      <table class="table">
+        <thead>
           <tr>
-            <th class="px-4 py-3 text-left font-semibold">カテゴリ</th>
-            <th class="px-4 py-3 text-left font-semibold">施術名</th>
-            <th class="px-4 py-3 text-left font-semibold">プラン</th>
-            <th class="px-4 py-3 text-right font-semibold">税抜価格</th>
-            <th class="px-4 py-3 text-right font-semibold">税込価格</th>
-            <th class="px-4 py-3 text-right font-semibold">キャンペーン価格</th>
-            <th class="px-4 py-3 text-center font-semibold">操作</th>
+            <th>カテゴリ</th>
+            <th>サブカテゴリ</th>
+            <th>施術</th>
+            <th>プラン名</th>
+            <th>種別</th>
+            <th class="text-center">回数</th>
+            <th class="text-right">税抜価格</th>
+            <th class="text-right">税込価格</th>
+            <th class="text-right">原価率</th>
+            <th class="text-right">原価合計</th>
+            <th class="text-center">操作</th>
           </tr>
         </thead>
         <tbody id="priceTableBody">
           <tr>
-            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-              データを読み込み中...
+            <td colspan="11">
+              <div class="loading">読み込み中...</div>
             </td>
           </tr>
         </tbody>
@@ -55,121 +85,558 @@ import Layout from '../../components/Layout.astro';
   </div>
 </Layout>
 
-<script>
-  interface PricePlan {
-    id: string;
-    plan_name: string;
-    plan_type: string;
-    sessions: number | null;
-    price: number;
-    price_taxed: number;
-    campaign_price: number | null;
-    campaign_price_taxed: number | null;
-    category_name: string;
-    subcategory_name: string;
-    treatment_name: string;
+<style>
+  .pricing-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
   }
+
+  /* Filter Grid */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+  }
+
+  .filter-search {
+    grid-column: span 1;
+  }
+
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .filter-actions {
+    justify-content: flex-end;
+  }
+
+  /* Table Styles */
+  .table-container {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  /* Price Cell */
+  .price-regular {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .price-campaign {
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .price-none {
+    color: var(--color-text-muted);
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .action-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: none;
+  }
+
+  .action-btn-edit {
+    background: var(--color-accent-subtle);
+    color: var(--color-accent-dark);
+  }
+
+  .action-btn-edit:hover {
+    background: var(--color-accent);
+    color: var(--color-primary);
+  }
+
+  .action-btn-delete {
+    background: var(--color-error-light);
+    color: #b91c1c;
+  }
+
+  .action-btn-delete:hover {
+    background: var(--color-error);
+    color: white;
+  }
+
+  /* Plan Info */
+  .plan-name {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  /* Category Info */
+  .category-cell {
+    background: var(--color-bg-subtle);
+    border-right: 2px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  .category-info {
+    padding: 0.5rem 0;
+  }
+
+  .category-name {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.9375rem;
+  }
+
+  .treatment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .subcategory-name {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 500;
+  }
+
+  .treatment-name {
+    font-weight: 500;
+    color: var(--color-text);
+  }
+
+  /* Plan Type Badge */
+  .plan-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .plan-type-single {
+    background: var(--color-primary-subtle);
+    color: var(--color-primary-dark);
+  }
+
+  .plan-type-course {
+    background: var(--color-accent-subtle);
+    color: var(--color-accent-dark);
+  }
+
+  .plan-type-trial {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  .plan-type-monitor {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .plan-type-campaign {
+    background: #fce7f3;
+    color: #9f1239;
+  }
+
+  .text-muted {
+    color: var(--color-text-muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .filter-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .filter-search {
+      grid-column: span 2;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .filter-grid {
+      grid-template-columns: 1fr;
+    }
+    .filter-search {
+      grid-column: span 1;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .table {
+      min-width: 800px;
+    }
+  }
+</style>
+
+<script type="module">
+  import type {
+    CategorySummary,
+    SubcategorySummary,
+    MedicationPlan,
+    PricePlan,
+    CategoriesResponse,
+    SubcategoriesResponse,
+    PricingResponse,
+    MedicationPlansResponse
+  } from '../../types/api';
+
+  type FetchResult<T> =
+    | { ok: true; data: T }
+    | { ok: false; error: string };
+
+  const planTypeLabels: Record<string, string> = {
+    'single': '単発',
+    'course': 'コース',
+    'trial': 'お試し',
+    'monitor': 'モニター',
+    'campaign': 'キャンペーン'
+  };
 
   let plans: PricePlan[] = [];
-  let categories: Array<{ id: string; name: string }> = [];
+  let medicationPlans: MedicationPlan[] = [];
+  let categories: CategorySummary[] = [];
+  let subcategories: SubcategorySummary[] = [];
   let searchQuery = '';
   let selectedCategoryId = '';
+  let selectedSubcategoryId = '';
+  let searchTimeout: number | null = null;
+  let isLoading = false;
 
-  // データ取得
-  async function loadData() {
+  async function fetchJson<T>(input: string, init?: RequestInit): Promise<FetchResult<T>> {
     try {
-      // カテゴリ一覧取得
-      const catRes = await fetch('/api/categories');
-      if (!catRes.ok) {
-        const errorData = await catRes.json().catch(() => ({ message: `HTTP ${catRes.status}: ${catRes.statusText}` }));
-        console.error('カテゴリAPI エラー:', errorData);
-        throw new Error(errorData.message || errorData.error || 'カテゴリの読み込みに失敗しました');
+      const res = await fetch(input, init);
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+      if (!res.ok) {
+        const message = data?.message || data?.error || `HTTP ${res.status}: ${res.statusText}`;
+        return { ok: false, error: message };
       }
-      const catData = await catRes.json();
-      if (catData.error) {
-        console.error('カテゴリAPI エラー:', catData);
-        throw new Error(catData.message || catData.error || 'カテゴリの読み込みに失敗しました');
+      if (data?.error) {
+        return { ok: false, error: data.message || data.error };
       }
-      categories = catData.categories || [];
-      
-      // カテゴリ選択肢を更新
-      const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
-      if (categoryFilter) {
-        categoryFilter.innerHTML = '<option value="">すべてのカテゴリ</option>' +
-          categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
-      }
-
-      // 料金プラン取得
-      await loadPricing();
+      return { ok: true, data };
     } catch (error) {
-      console.error('データ読み込みエラー:', error);
-      showError('データの読み込みに失敗しました');
+      return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async function loadPricing() {
-    try {
-      const params = new URLSearchParams();
-      if (selectedCategoryId) params.append('category_id', selectedCategoryId);
-      if (searchQuery) params.append('search', searchQuery);
-
-      const res = await fetch(`/api/pricing?${params.toString()}`);
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ message: `HTTP ${res.status}: ${res.statusText}` }));
-        console.error('API エラー:', errorData);
-        showError(`料金データの読み込みに失敗しました: ${errorData.message || errorData.error || 'Unknown error'}`);
-        return;
-      }
-      const data = await res.json();
-      if (data.error) {
-        console.error('API エラー:', data);
-        showError(`料金データの読み込みに失敗しました: ${data.message || data.error}`);
-        return;
-      }
-      plans = data.plans || [];
-      renderTable();
-    } catch (error) {
-      console.error('料金データ読み込みエラー:', error);
-      showError('料金データの読み込みに失敗しました');
+  function setLoading(loading: boolean) {
+    isLoading = loading;
+    if (loading) {
+      showLoading();
     }
+  }
+
+  function showLoading() {
+    const tbody = document.getElementById('priceTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11">
+          <div class="loading">読み込み中...</div>
+        </td>
+      </tr>
+    `;
+  }
+
+  function renderCategoryOptions() {
+    const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+    if (!categoryFilter) return;
+    categoryFilter.innerHTML = '<option value="">すべてのカテゴリ</option>' +
+      categories.map(cat => `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');
+  }
+
+  function renderSubcategoryOptions() {
+    const subcategoryFilter = document.getElementById('subcategoryFilter') as HTMLSelectElement;
+    if (!subcategoryFilter) return;
+    subcategoryFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>' +
+      subcategories.map(sub => `<option value="${sub.id}">${escapeHtml(sub.category_name)} - ${escapeHtml(sub.name)}</option>`).join('');
+  }
+
+  async function loadCategories() {
+    const result = await fetchJson<CategoriesResponse>('/api/categories');
+    if (!result.ok) {
+      categories = [];
+      renderCategoryOptions();
+      showError(`カテゴリの読み込みに失敗しました: ${result.error}`);
+      return;
+    }
+    categories = result.data.categories || [];
+    renderCategoryOptions();
+  }
+
+  async function loadSubcategories(categoryId?: string) {
+    const targetCategoryId = categoryId || selectedCategoryId;
+    const params = new URLSearchParams();
+    if (targetCategoryId && targetCategoryId !== '') {
+      params.append('category_id', targetCategoryId);
+    }
+    const result = await fetchJson<SubcategoriesResponse>(
+      `/api/subcategories?${params.toString()}`
+    );
+    if (!result.ok) {
+      subcategories = [];
+      renderSubcategoryOptions();
+      showError(`サブカテゴリの読み込みに失敗しました: ${result.error}`);
+      return;
+    }
+    subcategories = result.data.subcategories || [];
+    renderSubcategoryOptions();
+  }
+
+  async function fetchPricing(): Promise<FetchResult<PricePlan[]>> {
+    const params = new URLSearchParams();
+    if (selectedCategoryId && selectedCategoryId !== '') {
+      params.append('category_id', selectedCategoryId);
+    }
+    if (selectedSubcategoryId && selectedSubcategoryId !== '') {
+      params.append('subcategory_id', selectedSubcategoryId);
+    }
+    if (searchQuery && searchQuery.trim() !== '') {
+      params.append('search', searchQuery.trim());
+    }
+    const result = await fetchJson<PricingResponse>(`/api/pricing?${params.toString()}`);
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+    return { ok: true, data: result.data.plans || [] };
+  }
+
+  async function fetchMedicationPlans(): Promise<FetchResult<MedicationPlan[]>> {
+    const params = new URLSearchParams();
+    if (searchQuery && searchQuery.trim() !== '') {
+      params.append('search', searchQuery.trim());
+    }
+    const result = await fetchJson<MedicationPlansResponse>(`/api/medication-plans?${params.toString()}`);
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+    return { ok: true, data: result.data.plans || [] };
+  }
+
+  async function refreshData() {
+    const [pricingResult, medicationResult] = await Promise.all([
+      fetchPricing(),
+      fetchMedicationPlans()
+    ]);
+
+    const errors: string[] = [];
+
+    if (pricingResult.ok) {
+      plans = pricingResult.data;
+    } else {
+      plans = [];
+      errors.push(`料金データ: ${pricingResult.error}`);
+    }
+
+    if (medicationResult.ok) {
+      medicationPlans = medicationResult.data;
+    } else {
+      medicationPlans = [];
+      errors.push(`薬剤料金: ${medicationResult.error}`);
+    }
+
+    renderTable();
+
+    if (errors.length > 0 && plans.length === 0 && medicationPlans.length === 0) {
+      showError(`データの読み込みに失敗しました: ${errors.join(' / ')}`);
+    }
+  }
+
+  function clearFilters() {
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+    const subcategoryFilter = document.getElementById('subcategoryFilter') as HTMLSelectElement;
+    
+    if (searchInput) searchInput.value = '';
+    if (categoryFilter) categoryFilter.value = '';
+    if (subcategoryFilter) subcategoryFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+    
+    searchQuery = '';
+    selectedCategoryId = '';
+    selectedSubcategoryId = '';
+    subcategories = [];
+    
+    setLoading(true);
+    loadSubcategories()
+      .then(refreshData)
+      .finally(() => setLoading(false));
   }
 
   function renderTable() {
     const tbody = document.getElementById('priceTableBody');
     if (!tbody) return;
 
-    if (plans.length === 0) {
+    if (plans.length === 0 && medicationPlans.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-            データが見つかりませんでした
+          <td colspan="11">
+            <div class="empty-state">
+              <div class="empty-state-icon">📋</div>
+              <div class="empty-state-title">データが見つかりませんでした</div>
+              <div class="empty-state-desc">検索条件を変更してください</div>
+            </div>
           </td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = plans.map(plan => `
-      <tr class="border-b hover:bg-gray-50">
-        <td class="px-4 py-3">${escapeHtml(plan.category_name)}</td>
-        <td class="px-4 py-3">${escapeHtml(plan.treatment_name)}</td>
-        <td class="px-4 py-3">
-          ${escapeHtml(plan.plan_name)}
-          ${plan.sessions ? ` (${plan.sessions}回)` : ''}
-        </td>
-        <td class="px-4 py-3 text-right">¥${plan.price.toLocaleString()}</td>
-        <td class="px-4 py-3 text-right">¥${plan.price_taxed.toLocaleString()}</td>
-        <td class="px-4 py-3 text-right">
-          ${plan.campaign_price_taxed 
-            ? `<span class="text-accent font-semibold">¥${plan.campaign_price_taxed.toLocaleString()}</span>` 
-            : '<span class="text-gray-400">-</span>'}
-        </td>
-        <td class="px-4 py-3 text-center">
-          <a href="/pricing/${plan.id}/edit" class="text-accent hover:underline mr-3">編集</a>
-          <button onclick="deletePlan('${plan.id}')" class="text-red-500 hover:underline">削除</button>
-        </td>
-      </tr>
-    `).join('');
+    // カテゴリでグループ化
+    const groupedPlans = plans.reduce((acc, plan) => {
+      const categoryId = plan.category_id;
+      if (!acc[categoryId]) {
+        acc[categoryId] = {
+          categoryName: plan.category_name,
+          plans: []
+        };
+      }
+      acc[categoryId].plans.push(plan);
+      return acc;
+    }, {} as Record<string, { categoryName: string; plans: PricePlan[] }>);
+
+    // カテゴリごとにテーブル行を生成
+    let html = '';
+    
+    // 薬剤料金を先に表示
+    if (medicationPlans.length > 0) {
+      medicationPlans.forEach((mp) => {
+        html += `
+          <tr class="medication-row">
+            <td>
+              <div class="category-info">
+                <span class="category-name">薬剤料金</span>
+              </div>
+            </td>
+            <td>
+              <div class="treatment-info">
+                <span class="subcategory-name">-</span>
+              </div>
+            </td>
+            <td>
+              <div class="treatment-info">
+                <span class="treatment-name">${escapeHtml(mp.medication_name)}</span>
+              </div>
+            </td>
+            <td>
+              <span class="plan-name">${escapeHtml(mp.quantity)}${(() => {
+                // quantityに既に単位（cc、mg、ml、単位）が含まれている場合は単位を追加しない
+                if (!mp.quantity) return '';
+                const hasUnit = /(cc|mg|ml|単位)/.test(mp.quantity);
+                return hasUnit ? '' : (mp.medication_unit || 'cc');
+              })()}</span>
+            </td>
+            <td class="text-center">
+              <span class="plan-type-badge plan-type-single">薬剤</span>
+            </td>
+            <td class="text-center">
+              ${mp.sessions ? `<span>${mp.sessions}回</span>` : '<span class="text-muted">-</span>'}
+            </td>
+            <td class="text-right">
+              <span class="price-regular">¥${mp.price.toLocaleString()}</span>
+            </td>
+            <td class="text-right">
+              <span class="price-regular">¥${mp.price_taxed.toLocaleString()}</span>
+            </td>
+            <td class="text-right">
+              <span class="text-muted">-</span>
+            </td>
+            <td class="text-right">
+              <span class="text-muted">-</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <span class="text-muted">-</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+    }
+    
+    // 通常の料金プランを表示
+    Object.keys(groupedPlans).forEach((categoryId) => {
+      const group = groupedPlans[categoryId];
+      
+      group.plans.forEach((plan, planIndex) => {
+        const isFirstInCategory = planIndex === 0;
+        const rowspan = group.plans.length;
+        
+        html += '<tr>';
+        
+        // カテゴリ名（最初の行のみ、rowspanで結合）
+        if (isFirstInCategory) {
+          html += `<td rowspan="${rowspan}" class="category-cell">
+            <div class="category-info">
+              <span class="category-name">${escapeHtml(group.categoryName)}</span>
+            </div>
+          </td>`;
+        }
+        
+        // サブカテゴリ（治療法グループ）
+        html += `
+          <td>
+            <div class="treatment-info">
+              <span class="subcategory-name">${escapeHtml(plan.subcategory_name)}</span>
+            </div>
+          </td>
+          <td>
+            <div class="treatment-info">
+              <span class="treatment-name">${escapeHtml(plan.treatment_name || '')}</span>
+            </div>
+          </td>
+          <td>
+            <span class="plan-name">${escapeHtml(plan.plan_name)}</span>
+          </td>
+          <td class="text-center">
+            <span class="plan-type-badge plan-type-${plan.plan_type}">${planTypeLabels[plan.plan_type] || plan.plan_type}</span>
+          </td>
+          <td class="text-center">
+            ${plan.sessions ? `<span>${plan.sessions}回</span>` : '<span class="text-muted">-</span>'}
+          </td>
+          <td class="text-right">
+            <span class="price-regular">¥${plan.price.toLocaleString()}</span>
+          </td>
+          <td class="text-right">
+            <span class="price-regular">¥${plan.price_taxed.toLocaleString()}</span>
+          </td>
+          <td class="text-right">
+            ${plan.cost_rate !== null && plan.cost_rate !== undefined ? `<span>${typeof plan.cost_rate === 'number' ? plan.cost_rate.toFixed(1) : plan.cost_rate}%</span>` : '<span class="text-muted">-</span>'}
+          </td>
+          <td class="text-right">
+            ${plan.total_cost !== null && plan.total_cost !== undefined ? `<span>¥${plan.total_cost.toLocaleString()}</span>` : '<span class="text-muted">-</span>'}
+          </td>
+          <td>
+            <div class="action-buttons">
+              <a href="/pricing/${plan.id}/edit" class="action-btn action-btn-edit">編集</a>
+              <button onclick="deletePlan('${plan.id}')" class="action-btn action-btn-delete">削除</button>
+            </div>
+          </td>
+        </tr>`;
+      });
+    });
+
+    tbody.innerHTML = html;
   }
 
   function escapeHtml(text: string): string {
@@ -183,8 +650,11 @@ import Layout from '../../components/Layout.astro';
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="px-4 py-8 text-center text-red-500">
-            ${escapeHtml(message)}
+          <td colspan="11">
+            <div class="empty-state" style="color: var(--color-error)">
+              <div class="empty-state-icon">⚠️</div>
+              <div class="empty-state-title">${escapeHtml(message)}</div>
+            </div>
           </td>
         </tr>
       `;
@@ -207,35 +677,68 @@ import Layout from '../../components/Layout.astro';
     }
   }
 
-  // イベントリスナー
   document.addEventListener('DOMContentLoaded', () => {
-    loadData();
+    setLoading(true);
+    loadCategories()
+      .then(() => loadSubcategories())
+      .then(() => refreshData())
+      .finally(() => setLoading(false));
 
     const searchInput = document.getElementById('searchInput') as HTMLInputElement;
     const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
-    const searchButton = document.querySelector('button') as HTMLButtonElement;
+    const subcategoryFilter = document.getElementById('subcategoryFilter') as HTMLSelectElement;
+    const clearButton = document.getElementById('clearBtn') as HTMLButtonElement;
+
+    // リアルタイム検索（入力中に検索）
+    searchInput?.addEventListener('input', (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      searchQuery = value;
+      
+      // デバウンス処理（500ms後に検索実行）
+      if (searchTimeout !== null) {
+        clearTimeout(searchTimeout);
+      }
+      searchTimeout = window.setTimeout(() => {
+        setLoading(true);
+        refreshData().finally(() => setLoading(false));
+      }, 500);
+    });
 
     searchInput?.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
+        if (searchTimeout !== null) {
+          clearTimeout(searchTimeout);
+        }
         searchQuery = searchInput.value;
-        loadPricing();
+        setLoading(true);
+        refreshData().finally(() => setLoading(false));
       }
     });
 
-    categoryFilter?.addEventListener('change', () => {
-      selectedCategoryId = categoryFilter.value;
-      loadPricing();
+    categoryFilter?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLSelectElement).value;
+      selectedCategoryId = value;
+      selectedSubcategoryId = ''; // カテゴリ変更時はサブカテゴリをリセット
+      if (subcategoryFilter) {
+        subcategoryFilter.value = '';
+        subcategoryFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+      }
+      setLoading(true);
+      loadSubcategories(selectedCategoryId)
+        .then(() => refreshData())
+        .finally(() => setLoading(false));
     });
 
-    searchButton?.addEventListener('click', () => {
-      if (searchInput) {
-        searchQuery = searchInput.value;
-        loadPricing();
-      }
+    subcategoryFilter?.addEventListener('change', () => {
+      selectedSubcategoryId = subcategoryFilter.value;
+      setLoading(true);
+      refreshData().finally(() => setLoading(false));
+    });
+
+    clearButton?.addEventListener('click', () => {
+      clearFilters();
     });
   });
 
-  // グローバル関数として公開（削除ボタン用）
   (window as any).deletePlan = deletePlan;
 </script>
-

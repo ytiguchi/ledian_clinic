@@ -1,0 +1,926 @@
+---
+import Layout from '../../../components/Layout.astro';
+
+const id = Astro.params.id;
+export const prerender = false;
+---
+
+<Layout>
+  <div class="max-w-5xl mx-auto space-y-6">
+    <div>
+      <a href="/treatments" class="text-accent hover:underline">← 施術管理に戻る</a>
+      <h2 class="text-3xl font-bold mt-4">施術詳細情報編集</h2>
+    </div>
+
+    <div id="loadingMessage" class="bg-white rounded-lg shadow p-8 text-center">
+      <p class="text-gray-500">データを読み込み中...</p>
+    </div>
+
+    <form class="bg-white rounded-lg shadow p-6 space-y-8 hidden" id="treatmentDetailsForm">
+      <input type="hidden" id="treatmentId" />
+
+      <!-- 施術基本情報（読み取り専用） -->
+      <div class="bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-semibold mb-2">施術基本情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <span class="text-gray-600">カテゴリ:</span>
+            <span id="treatmentCategory" class="ml-2 font-medium"></span>
+          </div>
+          <div>
+            <span class="text-gray-600">サブカテゴリ:</span>
+            <span id="treatmentSubcategory" class="ml-2 font-medium"></span>
+          </div>
+          <div>
+            <span class="text-gray-600">施術名:</span>
+            <span id="treatmentName" class="ml-2 font-medium"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 基本テキスト -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">基本テキスト</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">キャッチコピー（日本語）</label>
+            <input
+              type="text"
+              id="tagline"
+              placeholder="例: 切らずにリフトアップ"
+              maxlength="100"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">キャッチコピー（英語）</label>
+            <input
+              type="text"
+              id="taglineEn"
+              placeholder="例: Cut-free lifting"
+              maxlength="100"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">概要説明（300字以内）</label>
+            <textarea
+              id="summary"
+              rows="3"
+              placeholder="施術の概要を簡潔に記入してください"
+              class="w-full px-4 py-2 border rounded-lg"
+            ></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">詳細説明（Markdown対応）</label>
+            <textarea
+              id="description"
+              rows="8"
+              placeholder="施術の詳細な説明を記入してください（Markdown形式で記入可能）"
+              class="w-full px-4 py-2 border rounded-lg font-mono text-sm"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- スペック情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">スペック情報</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">施術時間（最小・分）</label>
+            <input
+              type="number"
+              id="durationMin"
+              min="1"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">施術時間（最大・分）</label>
+            <input
+              type="number"
+              id="durationMax"
+              min="1"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">施術時間表示テキスト</label>
+            <input
+              type="text"
+              id="durationText"
+              placeholder="例: 約30分"
+              maxlength="50"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">ダウンタイム（日数）</label>
+            <input
+              type="number"
+              id="downtimeDays"
+              min="0"
+              value="0"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">ダウンタイム表示テキスト</label>
+            <input
+              type="text"
+              id="downtimeText"
+              placeholder="例: なし"
+              maxlength="50"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">痛みレベル（1-5）</label>
+            <select id="painLevel" class="w-full px-4 py-2 border rounded-lg">
+              <option value="">選択してください</option>
+              <option value="1">1（ほとんど痛みなし）</option>
+              <option value="2">2（軽い痛み）</option>
+              <option value="3">3（普通）</option>
+              <option value="4">4（やや強い痛み）</option>
+              <option value="5">5（強い痛み）</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">効果持続期間（月）</label>
+            <input
+              type="number"
+              id="effectDurationMonths"
+              min="1"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">効果持続表示テキスト</label>
+            <input
+              type="text"
+              id="effectDurationText"
+              placeholder="例: 約6ヶ月"
+              maxlength="50"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">推奨回数</label>
+            <input
+              type="number"
+              id="recommendedSessions"
+              min="1"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">推奨間隔（週）</label>
+            <input
+              type="number"
+              id="sessionIntervalWeeks"
+              min="1"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">推奨間隔表示テキスト</label>
+            <input
+              type="text"
+              id="sessionIntervalText"
+              placeholder="例: 4週間ごと"
+              maxlength="50"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">人気ランキング</label>
+            <input
+              type="number"
+              id="popularityRank"
+              min="1"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+            <p class="text-xs text-gray-500 mt-1">1が最も人気（ランキング表示用）</p>
+          </div>
+        </div>
+        <div class="mt-4 flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="isFeatured" class="w-4 h-4" />
+            <span class="text-sm font-medium">注目施術として表示</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="isNew" class="w-4 h-4" />
+            <span class="text-sm font-medium">NEWバッジを表示</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- メディア -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">メディア</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">ヒーロー画像URL</label>
+            <input
+              type="url"
+              id="heroImageUrl"
+              placeholder="https://example.com/image.jpg"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">サムネイル画像URL</label>
+            <input
+              type="url"
+              id="thumbnailUrl"
+              placeholder="https://example.com/thumbnail.jpg"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">動画URL（YouTube等）</label>
+            <input
+              type="url"
+              id="videoUrl"
+              placeholder="https://www.youtube.com/watch?v=..."
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO情報 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">SEO情報</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">メタタイトル（100字以内）</label>
+            <input
+              type="text"
+              id="metaTitle"
+              maxlength="100"
+              class="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">メタ説明（200字以内）</label>
+            <textarea
+              id="metaDescription"
+              rows="2"
+              maxlength="200"
+              class="w-full px-4 py-2 border rounded-lg"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 施術フロー -->
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">施術フロー</h3>
+          <button
+            type="button"
+            onclick="addFlowStep()"
+            class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition text-sm"
+          >
+            + ステップ追加
+          </button>
+        </div>
+        <div id="flowSteps" class="space-y-4">
+          <p class="text-sm text-gray-500">ステップを追加してください</p>
+        </div>
+      </div>
+
+      <!-- 注意事項 -->
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">注意事項</h3>
+          <button
+            type="button"
+            onclick="addCaution()"
+            class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition text-sm"
+          >
+            + 注意事項追加
+          </button>
+        </div>
+        <div id="cautions" class="space-y-4">
+          <p class="text-sm text-gray-500">注意事項を追加してください</p>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">よくある質問（FAQ）</h3>
+          <button
+            type="button"
+            onclick="addFaq()"
+            class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition text-sm"
+          >
+            + FAQ追加
+          </button>
+        </div>
+        <div id="faqs" class="space-y-4">
+          <p class="text-sm text-gray-500">FAQを追加してください</p>
+        </div>
+      </div>
+
+      <!-- タグ -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">タグ</h3>
+        <div id="tagsSection" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">お悩みタグ</label>
+            <div id="concernTags" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">効果タグ</label>
+            <div id="effectTags" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">施術部位タグ</label>
+            <div id="bodyPartTags" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">特徴タグ</label>
+            <div id="featureTags" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 保存ボタン -->
+      <div class="flex justify-end gap-4 pt-4 border-t">
+        <button
+          type="button"
+          onclick="window.location.href='/treatments'"
+          class="px-6 py-2 border rounded-lg hover:bg-gray-50 transition"
+        >
+          キャンセル
+        </button>
+        <button
+          type="submit"
+          class="px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition"
+        >
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<script>
+  // treatment IDをURLから取得
+  const pathParts = window.location.pathname.split('/').filter(p => p);
+  const treatmentId = pathParts[pathParts.length - 1] === 'edit' 
+    ? pathParts[pathParts.length - 2] 
+    : pathParts[pathParts.length - 1];
+
+  // データ読み込み
+  async function loadData() {
+    try {
+      const loadingMsg = document.getElementById('loadingMessage');
+      const form = document.getElementById('treatmentDetailsForm');
+      
+      // 施術基本情報を読み込み
+      const treatmentRes = await fetch(`/api/treatments/${treatmentId}`);
+      if (!treatmentRes.ok) throw new Error('施術情報の取得に失敗しました');
+      const treatmentData = await treatmentRes.json();
+      const treatment = treatmentData.treatment;
+      
+      // 基本情報を表示
+      document.getElementById('treatmentName')!.textContent = treatment.name;
+      document.getElementById('treatmentCategory')!.textContent = treatment.category_name;
+      document.getElementById('treatmentSubcategory')!.textContent = treatment.subcategory_name;
+      document.getElementById('treatmentId')!.setAttribute('data-id', treatment.id);
+      
+      // 詳細情報を読み込み
+      const detailsRes = await fetch(`/api/treatments/${treatmentId}/details`);
+      if (detailsRes.ok) {
+        const detailsData = await detailsRes.json();
+        if (detailsData.details) {
+          populateDetailsForm(detailsData.details);
+        }
+      }
+      
+      // フロー、注意事項、FAQ、タグを読み込み
+      await Promise.all([
+        loadFlows(),
+        loadCautions(),
+        loadFaqs(),
+        loadTags(),
+        loadTagMasters()
+      ]);
+      
+      if (loadingMsg) loadingMsg.classList.add('hidden');
+      if (form) form.classList.remove('hidden');
+    } catch (error) {
+      console.error('データ読み込みエラー:', error);
+      const loadingMsg = document.getElementById('loadingMessage');
+      if (loadingMsg) {
+        loadingMsg.innerHTML = `<p class="text-red-500">データの読み込みに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
+      }
+    }
+  }
+
+  function populateDetailsForm(details: any) {
+    (document.getElementById('tagline') as HTMLInputElement).value = details.tagline || '';
+    (document.getElementById('taglineEn') as HTMLInputElement).value = details.tagline_en || '';
+    (document.getElementById('summary') as HTMLTextAreaElement).value = details.summary || '';
+    (document.getElementById('description') as HTMLTextAreaElement).value = details.description || '';
+    (document.getElementById('durationMin') as HTMLInputElement).value = details.duration_min || '';
+    (document.getElementById('durationMax') as HTMLInputElement).value = details.duration_max || '';
+    (document.getElementById('durationText') as HTMLInputElement).value = details.duration_text || '';
+    (document.getElementById('downtimeDays') as HTMLInputElement).value = details.downtime_days || '0';
+    (document.getElementById('downtimeText') as HTMLInputElement).value = details.downtime_text || '';
+    (document.getElementById('painLevel') as HTMLSelectElement).value = details.pain_level || '';
+    (document.getElementById('effectDurationMonths') as HTMLInputElement).value = details.effect_duration_months || '';
+    (document.getElementById('effectDurationText') as HTMLInputElement).value = details.effect_duration_text || '';
+    (document.getElementById('recommendedSessions') as HTMLInputElement).value = details.recommended_sessions || '';
+    (document.getElementById('sessionIntervalWeeks') as HTMLInputElement).value = details.session_interval_weeks || '';
+    (document.getElementById('sessionIntervalText') as HTMLInputElement).value = details.session_interval_text || '';
+    (document.getElementById('popularityRank') as HTMLInputElement).value = details.popularity_rank || '';
+    (document.getElementById('isFeatured') as HTMLInputElement).checked = details.is_featured;
+    (document.getElementById('isNew') as HTMLInputElement).checked = details.is_new;
+    (document.getElementById('heroImageUrl') as HTMLInputElement).value = details.hero_image_url || '';
+    (document.getElementById('thumbnailUrl') as HTMLInputElement).value = details.thumbnail_url || '';
+    (document.getElementById('videoUrl') as HTMLInputElement).value = details.video_url || '';
+    (document.getElementById('metaTitle') as HTMLInputElement).value = details.meta_title || '';
+    (document.getElementById('metaDescription') as HTMLTextAreaElement).value = details.meta_description || '';
+  }
+
+  async function loadFlows() {
+    try {
+      const res = await fetch(`/api/treatments/${treatmentId}/flows`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const flows = data.flows || [];
+      renderFlows(flows);
+    } catch (error) {
+      console.error('フロー読み込みエラー:', error);
+    }
+  }
+
+  async function loadCautions() {
+    try {
+      const res = await fetch(`/api/treatments/${treatmentId}/cautions`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const cautions = data.cautions || [];
+      renderCautions(cautions);
+    } catch (error) {
+      console.error('注意事項読み込みエラー:', error);
+    }
+  }
+
+  async function loadFaqs() {
+    try {
+      const res = await fetch(`/api/treatments/${treatmentId}/faqs`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const faqs = data.faqs || [];
+      renderFaqs(faqs);
+    } catch (error) {
+      console.error('FAQ読み込みエラー:', error);
+    }
+  }
+
+  async function loadTags() {
+    try {
+      const res = await fetch(`/api/treatments/${treatmentId}/tags`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const treatmentTags = data.tags || [];
+      renderTreatmentTags(treatmentTags);
+    } catch (error) {
+      console.error('タグ読み込みエラー:', error);
+    }
+  }
+
+  let tagMasters: any[] = [];
+  async function loadTagMasters() {
+    try {
+      const res = await fetch('/api/tags');
+      if (!res.ok) return;
+      const data = await res.json();
+      tagMasters = data.tags || [];
+      renderTagMasters();
+    } catch (error) {
+      console.error('タグマスター読み込みエラー:', error);
+    }
+  }
+
+  let flowSteps: any[] = [];
+  let cautions: any[] = [];
+  let faqs: any[] = [];
+  let selectedTagIds: Set<string> = new Set();
+
+  function renderFlows(flows: any[]) {
+    flowSteps = flows;
+    const container = document.getElementById('flowSteps');
+    if (!container) return;
+    
+    if (flows.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-500">ステップを追加してください</p>';
+      return;
+    }
+    
+    container.innerHTML = flows.map((flow, index) => `
+      <div class="border rounded-lg p-4" data-index="${index}">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">ステップ番号</label>
+            <input
+              type="number"
+              value="${flow.step_number}"
+              onchange="updateFlowStep(${index}, 'step_number', this.value)"
+              min="1"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">タイトル</label>
+            <input
+              type="text"
+              value="${escapeHtml(flow.title)}"
+              onchange="updateFlowStep(${index}, 'title', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">所要時間（分）</label>
+            <input
+              type="number"
+              value="${flow.duration_minutes || ''}"
+              onchange="updateFlowStep(${index}, 'duration_minutes', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">アイコン</label>
+            <input
+              type="text"
+              value="${flow.icon || ''}"
+              onchange="updateFlowStep(${index}, 'icon', this.value)"
+              placeholder="例: 📋"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div class="md:col-span-4">
+            <label class="block text-sm font-medium mb-1">説明</label>
+            <textarea
+              onchange="updateFlowStep(${index}, 'description', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+              rows="2"
+            >${escapeHtml(flow.description || '')}</textarea>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="removeFlowStep(${index})"
+          class="mt-2 px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded"
+        >
+          削除
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function renderCautions(cautionsList: any[]) {
+    cautions = cautionsList;
+    const container = document.getElementById('cautions');
+    if (!container) return;
+    
+    if (cautionsList.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-500">注意事項を追加してください</p>';
+      return;
+    }
+    
+    container.innerHTML = cautionsList.map((caution, index) => `
+      <div class="border rounded-lg p-4" data-index="${index}">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">タイプ</label>
+            <select
+              onchange="updateCaution(${index}, 'caution_type', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+            >
+              <option value="contraindication" ${caution.caution_type === 'contraindication' ? 'selected' : ''}>禁忌</option>
+              <option value="before" ${caution.caution_type === 'before' ? 'selected' : ''}>施術前の注意</option>
+              <option value="after" ${caution.caution_type === 'after' ? 'selected' : ''}>施術後の注意</option>
+              <option value="risk" ${caution.caution_type === 'risk' ? 'selected' : ''}>リスク・副作用</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">並び順</label>
+            <input
+              type="number"
+              value="${caution.sort_order}"
+              onchange="updateCaution(${index}, 'sort_order', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+            />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">内容</label>
+            <textarea
+              onchange="updateCaution(${index}, 'content', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+              rows="2"
+              required
+            >${escapeHtml(caution.content)}</textarea>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="removeCaution(${index})"
+          class="mt-2 px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded"
+        >
+          削除
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function renderFaqs(faqsList: any[]) {
+    faqs = faqsList;
+    const container = document.getElementById('faqs');
+    if (!container) return;
+    
+    if (faqsList.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-500">FAQを追加してください</p>';
+      return;
+    }
+    
+    container.innerHTML = faqsList.map((faq, index) => `
+      <div class="border rounded-lg p-4" data-index="${index}">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">質問</label>
+            <textarea
+              onchange="updateFaq(${index}, 'question', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+              rows="2"
+              required
+            >${escapeHtml(faq.question)}</textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">回答</label>
+            <textarea
+              onchange="updateFaq(${index}, 'answer', this.value)"
+              class="w-full px-3 py-2 border rounded-lg"
+              rows="3"
+              required
+            >${escapeHtml(faq.answer)}</textarea>
+          </div>
+          <div class="flex justify-between items-center">
+            <div>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  ${faq.is_published ? 'checked' : ''}
+                  onchange="updateFaq(${index}, 'is_published', this.checked)"
+                  class="w-4 h-4"
+                />
+                <span class="text-sm">公開する</span>
+              </label>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm">並び順:</label>
+              <input
+                type="number"
+                value="${faq.sort_order}"
+                onchange="updateFaq(${index}, 'sort_order', this.value)"
+                class="w-20 px-2 py-1 border rounded-lg"
+              />
+            </div>
+            <button
+              type="button"
+              onclick="removeFaq(${index})"
+              class="px-3 py-1 text-sm text-red-500 hover:bg-red-50 rounded"
+            >
+              削除
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderTreatmentTags(treatmentTags: any[]) {
+    selectedTagIds = new Set(treatmentTags.map(tt => tt.tag_id));
+    renderTagMasters();
+  }
+
+  function renderTagMasters() {
+    const types = ['concern', 'effect', 'body_part', 'feature'];
+    const typeLabels: Record<string, string> = {
+      concern: 'お悩み',
+      effect: '効果',
+      body_part: '施術部位',
+      feature: '特徴'
+    };
+    
+    types.forEach(type => {
+      const container = document.getElementById(`${type}Tags`);
+      if (!container) return;
+      
+      const tags = tagMasters.filter(t => t.tag_type === type);
+      if (tags.length === 0) {
+        container.innerHTML = '<p class="text-sm text-gray-500">タグが登録されていません</p>';
+        return;
+      }
+      
+      container.innerHTML = tags.map(tag => {
+        const isSelected = selectedTagIds.has(tag.id);
+        return `
+          <label class="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 ${isSelected ? 'bg-accent text-white border-accent' : ''}">
+            <input
+              type="checkbox"
+              ${isSelected ? 'checked' : ''}
+              onchange="toggleTag('${tag.id}', this.checked)"
+              class="w-4 h-4"
+            />
+            <span>${tag.icon || ''} ${escapeHtml(tag.name)}</span>
+          </label>
+        `;
+      }).join('');
+    });
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // フロー操作
+  (window as any).addFlowStep = function() {
+    const nextStep = flowSteps.length > 0 ? Math.max(...flowSteps.map(f => f.step_number)) + 1 : 1;
+    flowSteps.push({
+      step_number: nextStep,
+      title: '',
+      description: '',
+      duration_minutes: null,
+      icon: ''
+    });
+    renderFlows(flowSteps);
+  };
+
+  (window as any).updateFlowStep = function(index: number, field: string, value: any) {
+    if (flowSteps[index]) {
+      flowSteps[index][field] = value;
+    }
+  };
+
+  (window as any).removeFlowStep = function(index: number) {
+    flowSteps.splice(index, 1);
+    renderFlows(flowSteps);
+  };
+
+  // 注意事項操作
+  (window as any).addCaution = function() {
+    cautions.push({
+      caution_type: 'before',
+      content: '',
+      sort_order: cautions.length
+    });
+    renderCautions(cautions);
+  };
+
+  (window as any).updateCaution = function(index: number, field: string, value: any) {
+    if (cautions[index]) {
+      cautions[index][field] = value;
+    }
+  };
+
+  (window as any).removeCaution = function(index: number) {
+    cautions.splice(index, 1);
+    renderCautions(cautions);
+  };
+
+  // FAQ操作
+  (window as any).addFaq = function() {
+    faqs.push({
+      question: '',
+      answer: '',
+      sort_order: faqs.length,
+      is_published: true
+    });
+    renderFaqs(faqs);
+  };
+
+  (window as any).updateFaq = function(index: number, field: string, value: any) {
+    if (faqs[index]) {
+      faqs[index][field] = value;
+    }
+  };
+
+  (window as any).removeFaq = function(index: number) {
+    faqs.splice(index, 1);
+    renderFaqs(faqs);
+  };
+
+  // タグ操作
+  (window as any).toggleTag = function(tagId: string, checked: boolean) {
+    if (checked) {
+      selectedTagIds.add(tagId);
+    } else {
+      selectedTagIds.delete(tagId);
+    }
+    renderTagMasters();
+  };
+
+  // フォーム送信
+  const form = document.getElementById('treatmentDetailsForm') as HTMLFormElement;
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const id = document.getElementById('treatmentId')?.getAttribute('data-id');
+      if (!id) {
+        alert('施術IDが取得できません');
+        return;
+      }
+      
+      try {
+        // 詳細情報を保存
+        const detailsData = {
+          tagline: (document.getElementById('tagline') as HTMLInputElement).value,
+          tagline_en: (document.getElementById('taglineEn') as HTMLInputElement).value,
+          summary: (document.getElementById('summary') as HTMLTextAreaElement).value,
+          description: (document.getElementById('description') as HTMLTextAreaElement).value,
+          duration_min: parseInt((document.getElementById('durationMin') as HTMLInputElement).value) || null,
+          duration_max: parseInt((document.getElementById('durationMax') as HTMLInputElement).value) || null,
+          duration_text: (document.getElementById('durationText') as HTMLInputElement).value,
+          downtime_days: parseInt((document.getElementById('downtimeDays') as HTMLInputElement).value) || 0,
+          downtime_text: (document.getElementById('downtimeText') as HTMLInputElement).value,
+          pain_level: parseInt((document.getElementById('painLevel') as HTMLSelectElement).value) || null,
+          effect_duration_months: parseInt((document.getElementById('effectDurationMonths') as HTMLInputElement).value) || null,
+          effect_duration_text: (document.getElementById('effectDurationText') as HTMLInputElement).value,
+          recommended_sessions: parseInt((document.getElementById('recommendedSessions') as HTMLInputElement).value) || null,
+          session_interval_weeks: parseInt((document.getElementById('sessionIntervalWeeks') as HTMLInputElement).value) || null,
+          session_interval_text: (document.getElementById('sessionIntervalText') as HTMLInputElement).value,
+          popularity_rank: parseInt((document.getElementById('popularityRank') as HTMLInputElement).value) || null,
+          is_featured: (document.getElementById('isFeatured') as HTMLInputElement).checked,
+          is_new: (document.getElementById('isNew') as HTMLInputElement).checked,
+          hero_image_url: (document.getElementById('heroImageUrl') as HTMLInputElement).value,
+          thumbnail_url: (document.getElementById('thumbnailUrl') as HTMLInputElement).value,
+          video_url: (document.getElementById('videoUrl') as HTMLInputElement).value,
+          meta_title: (document.getElementById('metaTitle') as HTMLInputElement).value,
+          meta_description: (document.getElementById('metaDescription') as HTMLTextAreaElement).value,
+        };
+        
+        await fetch(`/api/treatments/${id}/details`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(detailsData)
+        });
+        
+        // フロー、注意事項、FAQ、タグを保存
+        await Promise.all([
+          fetch(`/api/treatments/${id}/flows`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flows: flowSteps })
+          }),
+          fetch(`/api/treatments/${id}/cautions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cautions })
+          }),
+          fetch(`/api/treatments/${id}/faqs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ faqs })
+          }),
+          fetch(`/api/treatments/${id}/tags`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              tags: Array.from(selectedTagIds).map((tagId, index) => ({
+                tag_id: tagId,
+                is_primary: false,
+                sort_order: index
+              }))
+            })
+          })
+        ]);
+        
+        alert('保存しました');
+        window.location.reload();
+      } catch (error) {
+        console.error('保存エラー:', error);
+        alert('保存に失敗しました: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      }
+    });
+  }
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    const idElement = document.getElementById('treatmentId');
+    if (idElement) {
+      idElement.setAttribute('data-id', treatmentId);
+    }
+    loadData();
+  });
+</script>
+

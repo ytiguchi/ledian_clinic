@@ -6,6 +6,7 @@ package-lock.json
 dist/
 .output/
 .astro/
+outputs/
 
 # Environment variables
 .env
@@ -50,4 +51,5 @@ ENV/
 *.tmp
 *.temp
 .cache/
+
 
