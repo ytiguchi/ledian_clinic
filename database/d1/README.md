@@ -1,10 +1,35 @@
 # D1 マイグレーション管理
 
+## 現行スキーマ
+
+以下のマイグレーションが現行の本番スキーマです：
+
+- `010_new_schema.sql` - 4階層構造メインスキーマ
+- `011_service_content.sql` - WEBスクレイピングコンテンツ
+
+### 4階層構造
+
+```
+Category (カテゴリ)
+  └── Subcategory (サブカテゴリ/機器)
+        └── Treatment (施術メニュー)
+              └── TreatmentPlan (料金プラン)
+```
+
+### 関連テーブル
+
+- `before_afters` - 症例写真
+- `training_modules` - 研修コンテンツ
+- `treatment_protocols` - 施術プロトコル
+- `service_contents` - WEBコンテンツ (スクレイピング)
+
 ## 📁 マイグレーションファイル
 
-- `001_init.sql` - 初期スキーマ（categories, subcategories, treatments, treatment_plans等）
-- `002_add_before_afters.sql` - 症例写真テーブル追加
-- `003_add_campaigns.sql` - キャンペーンテーブル追加
+| ファイル | 状態 | 説明 |
+|---------|------|------|
+| 001-009 | 旧版 | 010で置き換え済み (履歴として保持) |
+| 010_new_schema.sql | 現行 | 4階層メインスキーマ |
+| 011_service_content.sql | 現行 | サービスコンテンツテーブル |
 
 ## 🚀 マイグレーション実行方法
 

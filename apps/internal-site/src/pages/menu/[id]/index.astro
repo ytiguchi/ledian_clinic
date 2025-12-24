@@ -1,0 +1,1545 @@
+---
+import Layout from '../../../components/Layout.astro';
+---
+
+<Layout>
+  <div class="product-detail-page">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb" id="breadcrumb">
+      <a href="/menu" class="breadcrumb-link">施術一覧</a>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-current" id="categoryName">...</span>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-current" id="subcategoryName">...</span>
+    </nav>
+
+    <!-- Header -->
+    <header class="product-header" id="productHeader">
+      <div class="header-content">
+        <h1 class="product-title" id="productTitle">読み込み中...</h1>
+        <p class="product-description" id="productDescription"></p>
+        <div class="product-meta" id="productMeta"></div>
+      </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="about">
+        <span class="tab-icon">ℹ️</span>
+        概要
+      </button>
+      <button class="tab-btn" data-tab="pricing">
+        <span class="tab-icon">💰</span>
+        料金プラン
+      </button>
+      <button class="tab-btn" data-tab="training">
+        <span class="tab-icon">📚</span>
+        カウンセリング資料
+      </button>
+      <button class="tab-btn" data-tab="protocol">
+        <span class="tab-icon">📋</span>
+        施術プロトコル
+      </button>
+      <button class="tab-btn" data-tab="cases">
+        <span class="tab-icon">📸</span>
+        症例写真
+      </button>
+    </nav>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- About Tab -->
+      <section class="tab-panel active" id="aboutPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">施術概要</h2>
+          <p class="panel-subtitle">WEBからスクレイピングした商品情報</p>
+        </div>
+        <div class="about-content" id="aboutContent">
+          <div class="loading-state">読み込み中...</div>
+        </div>
+      </section>
+
+      <!-- Pricing Tab -->
+      <section class="tab-panel" id="pricingPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">料金プラン一覧</h2>
+          <p class="panel-subtitle">このサブカテゴリの施術と料金</p>
+        </div>
+        <div class="pricing-content" id="pricingContent">
+          <div class="loading-state">読み込み中...</div>
+        </div>
+      </section>
+
+      <!-- Training Tab -->
+      <section class="tab-panel" id="trainingPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">カウンセリング資料</h2>
+          <p class="panel-subtitle">スタッフ向け学習資料</p>
+        </div>
+        <div class="training-content" id="trainingContent">
+          <div class="loading-state">読み込み中...</div>
+        </div>
+      </section>
+
+      <!-- Protocol Tab -->
+      <section class="tab-panel" id="protocolPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">施術プロトコル</h2>
+          <p class="panel-subtitle">標準手順書と注意事項</p>
+        </div>
+        <div class="protocol-content" id="protocolContent">
+          <div class="loading-state">読み込み中...</div>
+        </div>
+      </section>
+
+      <!-- Cases Tab -->
+      <section class="tab-panel" id="casesPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">症例写真</h2>
+          <p class="panel-subtitle">Before / After ギャラリー</p>
+        </div>
+        <div class="cases-content" id="casesContent">
+          <div class="loading-state">読み込み中...</div>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  .product-detail-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: var(--radius-lg);
+    border: 1px solid #e2e8f0;
+  }
+
+  .breadcrumb-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+  }
+
+  .breadcrumb-link:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+  }
+
+  .breadcrumb-separator {
+    color: #cbd5e1;
+    font-weight: 300;
+  }
+
+  .breadcrumb-current {
+    color: #475569;
+    font-weight: 500;
+  }
+
+  /* Header */
+  .product-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border-radius: var(--radius-xl);
+    padding: 3rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+  }
+
+  .product-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -25%;
+    width: 70%;
+    height: 200%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.15) 0%, transparent 60%);
+    pointer-events: none;
+    animation: shimmer 8s ease-in-out infinite;
+  }
+
+  .product-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 40%;
+    height: 150%;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    50% { transform: translateX(5%) rotate(2deg); }
+  }
+
+  .header-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .product-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin: 0 0 0.75rem 0;
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .product-description {
+    font-size: 1.0625rem;
+    margin: 0 0 1.25rem 0;
+    opacity: 0.95;
+    max-width: 650px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .product-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.2);
+    border-radius: var(--radius-full);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+  }
+
+  .meta-item:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+  }
+
+  /* Tab Navigation */
+  .tab-nav {
+    display: flex;
+    gap: 0.375rem;
+    padding: 0.5rem;
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+  }
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .tab-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 3px;
+    transition: transform var(--transition-base);
+  }
+
+  .tab-btn:hover {
+    background: #f8fafc;
+    color: #334155;
+  }
+
+  .tab-btn:hover::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .tab-btn.active::after {
+    display: none;
+  }
+
+  .tab-icon {
+    font-size: 1.25rem;
+  }
+
+  /* Tab Content */
+  .tab-panel {
+    display: none;
+    animation: slideUp 0.4s ease;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel-header {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .panel-title {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.375rem 0;
+    letter-spacing: -0.02em;
+  }
+
+  .panel-subtitle {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
+  }
+
+  /* Pricing Content */
+  .treatment-group {
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+
+  .treatment-group:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.08);
+  }
+
+  .treatment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 1px solid #f1f5f9;
+    gap: 1rem;
+  }
+
+  .treatment-name {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .treatment-desc {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin: 0.375rem 0 0 0;
+    line-height: 1.5;
+  }
+
+  .plan-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.375rem 0.875rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  }
+
+  .plan-list {
+    display: grid;
+    gap: 0;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 1.5rem;
+    padding: 1.125rem 1.5rem;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background var(--transition-fast);
+  }
+
+  .plan-row:hover {
+    background: #fafbfc;
+  }
+
+  .plan-row:last-child {
+    border-bottom: none;
+  }
+
+  .plan-name {
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.9375rem;
+  }
+
+  .plan-sessions {
+    font-size: 0.8125rem;
+    color: #64748b;
+    text-align: center;
+    min-width: 70px;
+    padding: 0.25rem 0.75rem;
+    background: #f1f5f9;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+  }
+
+  .plan-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #667eea;
+    text-align: right;
+    min-width: 120px;
+    letter-spacing: -0.02em;
+  }
+
+  .plan-price-taxed {
+    display: block;
+    font-size: 0.6875rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-top: 0.125rem;
+  }
+
+  .plan-notes {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: right;
+    min-width: 100px;
+    max-width: 200px;
+    line-height: 1.4;
+  }
+
+  /* Training Content */
+  .training-modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .training-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    padding: 1.75rem;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .training-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .training-card:hover {
+    border-color: #a7f3d0;
+    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.12);
+    transform: translateY(-4px);
+  }
+
+  .training-card:hover::before {
+    opacity: 1;
+  }
+
+  .training-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.625rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .training-desc {
+    font-size: 0.9375rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin: 0 0 1.25rem 0;
+  }
+
+  .training-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+    flex-wrap: wrap;
+  }
+
+  .training-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: #f8fafc;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+  }
+
+  .difficulty-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .difficulty-basic {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
+  }
+
+  .difficulty-intermediate {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+  }
+
+  .difficulty-advanced {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #991b1b;
+  }
+
+  /* Protocol Content */
+  .protocol-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .protocol-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    padding: 1.75rem;
+    position: relative;
+    transition: all var(--transition-base);
+  }
+
+  .protocol-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .protocol-card:hover {
+    border-color: #c4b5fd;
+    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.1);
+    transform: translateY(-4px);
+  }
+
+  .protocol-card:hover::before {
+    opacity: 1;
+  }
+
+  .protocol-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .protocol-title {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .protocol-version {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.375rem 0.625rem;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: var(--radius-full);
+    color: #64748b;
+    flex-shrink: 0;
+  }
+
+  .protocol-desc {
+    font-size: 0.9375rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .protocol-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .protocol-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .protocol-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .protocol-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .protocol-btn-secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #e0e7ff;
+  }
+
+  .protocol-btn-secondary:hover {
+    background: #f0f4ff;
+    border-color: #667eea;
+  }
+
+  /* Cases Content */
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .case-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  }
+
+  .case-card:hover {
+    border-color: #fda4af;
+    box-shadow: 0 15px 50px rgba(244, 63, 94, 0.12);
+    transform: translateY(-6px);
+  }
+
+  .case-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    background: #f1f5f9;
+  }
+
+  .case-image-wrapper {
+    position: relative;
+    aspect-ratio: 4/3;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+
+  .case-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+  }
+
+  .case-card:hover .case-image {
+    transform: scale(1.03);
+  }
+
+  .case-label {
+    position: absolute;
+    bottom: 0.625rem;
+    left: 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-md);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    backdrop-filter: blur(4px);
+  }
+
+  .case-label-before {
+    background: rgba(30, 41, 59, 0.85);
+    color: white;
+  }
+
+  .case-label-after {
+    background: linear-gradient(135deg, #f43f5e 0%, #ec4899 100%);
+    color: white;
+    box-shadow: 0 2px 10px rgba(244, 63, 94, 0.3);
+  }
+
+  .case-info {
+    padding: 1.25rem;
+  }
+
+  .case-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.75rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .case-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+  }
+
+  .case-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    background: #f8fafc;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+  }
+
+  /* About Content */
+  .about-section {
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .about-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .about-section-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--radius-md);
+    font-size: 1.25rem;
+  }
+
+  .about-section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .about-section-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+
+  .about-section-body {
+    padding: 1.5rem;
+  }
+
+  /* Features Grid */
+  .features-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .feature-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid #667eea;
+    transition: all 0.2s ease;
+  }
+
+  .feature-card:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+  }
+
+  .feature-number {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 50%;
+  }
+
+  .feature-content {
+    flex: 1;
+  }
+
+  .feature-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .feature-desc {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  /* Recommendations List */
+  .recommendations-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+
+  .recommendation-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.625rem 1rem;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    color: #15803d;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #bbf7d0;
+  }
+
+  .recommendation-icon {
+    font-size: 0.875rem;
+  }
+
+  /* Overview Table */
+  .overview-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .overview-table tr {
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .overview-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .overview-table th {
+    text-align: left;
+    padding: 1rem;
+    width: 140px;
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .overview-table td {
+    padding: 1rem;
+    color: #1e293b;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+
+  /* Source Link */
+  .source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    color: #0369a1;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #bae6fd;
+    transition: all 0.2s ease;
+  }
+
+  .source-link:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    transform: translateY(-1px);
+  }
+
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 5rem 3rem;
+    background: linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%);
+    border-radius: var(--radius-xl);
+    border: 2px dashed #e2e8f0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .empty-state::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(102, 126, 234, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    filter: grayscale(0.2);
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .empty-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #334155;
+    margin: 0 0 0.625rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .empty-desc {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  .empty-action {
+    margin-top: 2rem;
+  }
+
+  .add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .add-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  }
+
+  .add-btn span {
+    font-size: 1.25rem;
+    font-weight: 300;
+  }
+
+  /* Loading State */
+  .loading-state {
+    text-align: center;
+    padding: 4rem;
+    color: #94a3b8;
+    font-size: 0.9375rem;
+  }
+
+  .loading-state::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    margin-left: 0.75rem;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .breadcrumb {
+      padding: 0.625rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+
+    .product-header {
+      padding: 2rem 1.5rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .product-title {
+      font-size: 1.625rem;
+    }
+
+    .product-description {
+      font-size: 0.9375rem;
+    }
+
+    .product-meta {
+      gap: 0.5rem;
+    }
+
+    .meta-item {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    .tab-nav {
+      padding: 0.375rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .tab-btn {
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .tab-icon {
+      font-size: 1rem;
+    }
+
+    .panel-header {
+      margin-bottom: 1.25rem;
+    }
+
+    .panel-title {
+      font-size: 1.125rem;
+    }
+
+    .treatment-header {
+      padding: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .plan-row {
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      padding: 1rem;
+    }
+
+    .plan-sessions, .plan-notes {
+      display: none;
+    }
+
+    .plan-price {
+      font-size: 1.125rem;
+    }
+
+    .training-modules,
+    .protocol-list {
+      grid-template-columns: 1fr;
+    }
+
+    .training-card,
+    .protocol-card {
+      padding: 1.25rem;
+    }
+
+    .cases-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .empty-state {
+      padding: 3rem 1.5rem;
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .tab-btn span:not(.tab-icon) {
+      display: none;
+    }
+
+    .tab-btn {
+      padding: 0.75rem;
+    }
+
+    .tab-icon {
+      margin: 0;
+    }
+  }
+</style>
+
+<script>
+  const subcategoryId = window.location.pathname.split('/')[2];
+  let data = null;
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function formatPrice(price) {
+    if (price === null || price === undefined) return '-';
+    return `¥${price.toLocaleString()}`;
+  }
+
+  async function init() {
+    try {
+      const response = await fetch(`/api/menu/${subcategoryId}`);
+      if (!response.ok) {
+        throw new Error('Failed to load data');
+      }
+      data = await response.json();
+      renderPage();
+      setupTabs();
+    } catch (error) {
+      console.error('Error loading data:', error);
+      document.getElementById('productTitle').textContent = 'エラー';
+      document.getElementById('productDescription').textContent = 'データの読み込みに失敗しました';
+    }
+  }
+
+  function renderPage() {
+    const { subcategory, treatments, beforeAfters, trainingModules, protocols, serviceContent } = data;
+
+    // Update header
+    document.getElementById('categoryName').textContent = subcategory.category.name;
+    document.getElementById('subcategoryName').textContent = subcategory.name;
+    document.getElementById('productTitle').textContent = serviceContent?.nameJa || subcategory.name;
+    document.getElementById('productDescription').textContent = serviceContent?.aboutDescription || subcategory.description || '';
+
+    // Meta info
+    const totalPlans = treatments.reduce((sum, t) => sum + (t.plans?.length || 0), 0);
+    document.getElementById('productMeta').innerHTML = `
+      <span class="meta-item">📋 ${treatments.length} 施術</span>
+      <span class="meta-item">💰 ${totalPlans} プラン</span>
+      ${subcategory.device_name ? `<span class="meta-item">🔧 ${escapeHtml(subcategory.device_name)}</span>` : ''}
+      <span class="meta-item">📸 ${beforeAfters.length} 症例</span>
+      <span class="meta-item">📚 ${trainingModules.length} 資料</span>
+      ${serviceContent ? '<span class="meta-item">🌐 WEBコンテンツあり</span>' : ''}
+    `;
+
+    // Render tabs
+    renderAbout(serviceContent);
+    renderPricing(treatments);
+    renderTraining(trainingModules);
+    renderProtocols(protocols);
+    renderCases(beforeAfters);
+  }
+
+  function renderAbout(serviceContent) {
+    const container = document.getElementById('aboutContent');
+    
+    if (!serviceContent) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">ℹ️</div>
+          <h3 class="empty-title">WEBコンテンツがありません</h3>
+          <p class="empty-desc">この施術のWEBからスクレイピングしたコンテンツはまだ紐付けされていません</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+
+    // Features Section
+    if (serviceContent.features && serviceContent.features.length > 0) {
+      html += `
+        <div class="about-section">
+          <div class="about-section-header">
+            <div class="about-section-icon">✨</div>
+            <div>
+              <h3 class="about-section-title">特徴・こだわり</h3>
+              <p class="about-section-subtitle">FEATURES</p>
+            </div>
+          </div>
+          <div class="about-section-body">
+            <div class="features-grid">
+              ${serviceContent.features.map((f, i) => `
+                <div class="feature-card">
+                  <div class="feature-number">${i + 1}</div>
+                  <div class="feature-content">
+                    <h4 class="feature-title">${escapeHtml(f.title)}</h4>
+                    ${f.description ? `<p class="feature-desc">${escapeHtml(f.description)}</p>` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Recommendations Section
+    if (serviceContent.recommendations && serviceContent.recommendations.length > 0) {
+      html += `
+        <div class="about-section">
+          <div class="about-section-header">
+            <div class="about-section-icon">👤</div>
+            <div>
+              <h3 class="about-section-title">おすすめの方・適応症状</h3>
+              <p class="about-section-subtitle">RECOMMEND</p>
+            </div>
+          </div>
+          <div class="about-section-body">
+            <div class="recommendations-list">
+              ${serviceContent.recommendations.map(r => `
+                <span class="recommendation-tag">
+                  <span class="recommendation-icon">✓</span>
+                  ${escapeHtml(r.text)}
+                </span>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Overview Section
+    if (serviceContent.overview) {
+      const ov = serviceContent.overview;
+      const rows = [
+        ov.duration ? ['施術時間', ov.duration] : null,
+        ov.downtime ? ['ダウンタイム', ov.downtime] : null,
+        ov.frequency ? ['施術頻度', ov.frequency] : null,
+        ov.makeup ? ['メイク', ov.makeup] : null,
+        ov.bathing ? ['入浴', ov.bathing] : null,
+        ov.contraindications ? ['禁忌', ov.contraindications] : null,
+      ].filter(Boolean);
+
+      if (rows.length > 0) {
+        html += `
+          <div class="about-section">
+            <div class="about-section-header">
+              <div class="about-section-icon">📋</div>
+              <div>
+                <h3 class="about-section-title">施術概要</h3>
+                <p class="about-section-subtitle">OVERVIEW</p>
+              </div>
+            </div>
+            <div class="about-section-body">
+              <table class="overview-table">
+                ${rows.map(([key, value]) => `
+                  <tr>
+                    <th>${escapeHtml(key)}</th>
+                    <td>${escapeHtml(value)}</td>
+                  </tr>
+                `).join('')}
+              </table>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Source Link
+    if (serviceContent.sourceUrl) {
+      html += `
+        <div class="about-section">
+          <div class="about-section-body">
+            <a href="${escapeHtml(serviceContent.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="source-link">
+              🌐 公式サイトで詳細を見る
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html || `
+      <div class="empty-state">
+        <div class="empty-icon">ℹ️</div>
+        <h3 class="empty-title">コンテンツがありません</h3>
+        <p class="empty-desc">詳細情報はスクレイピングされていません</p>
+      </div>
+    `;
+  }
+
+  function renderPricing(treatments) {
+    const container = document.getElementById('pricingContent');
+    
+    if (treatments.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">💰</div>
+          <h3 class="empty-title">施術がありません</h3>
+          <p class="empty-desc">このサブカテゴリには施術が登録されていません</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = treatments.map(treatment => `
+      <div class="treatment-group">
+        <div class="treatment-header">
+          <div>
+            <h3 class="treatment-name">${escapeHtml(treatment.name)}</h3>
+            ${treatment.description ? `<p class="treatment-desc">${escapeHtml(treatment.description)}</p>` : ''}
+          </div>
+          <span class="plan-count">${treatment.plans.length} プラン</span>
+        </div>
+        <div class="plan-list">
+          ${treatment.plans.length > 0 ? treatment.plans.map(plan => `
+            <div class="plan-row">
+              <div class="plan-name">${escapeHtml(plan.plan_name)}</div>
+              <div class="plan-sessions">${plan.sessions ? `${plan.sessions}回` : plan.quantity || '-'}</div>
+              <div class="plan-price">
+                ${formatPrice(plan.price)}
+                ${plan.price_taxed ? `<span class="plan-price-taxed">(税込${formatPrice(plan.price_taxed)})</span>` : ''}
+              </div>
+              <div class="plan-notes">${plan.notes ? escapeHtml(plan.notes) : ''}</div>
+            </div>
+          `).join('') : '<div class="plan-row"><div class="plan-name">プランなし</div></div>'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderTraining(modules) {
+    const container = document.getElementById('trainingContent');
+    
+    if (modules.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📚</div>
+          <h3 class="empty-title">カウンセリング資料がありません</h3>
+          <p class="empty-desc">このサブカテゴリのカウンセリング資料は準備中です</p>
+          <div class="empty-action">
+            <a href="/training/new?subcategory=${subcategoryId}" class="add-btn">
+              <span>+</span>
+              カウンセリング資料を追加
+            </a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="training-modules">
+        ${modules.map(module => `
+          <div class="training-card">
+            <h3 class="training-title">${escapeHtml(module.title)}</h3>
+            ${module.description ? `<p class="training-desc">${escapeHtml(module.description)}</p>` : ''}
+            <div class="training-meta">
+              ${module.difficulty_level ? `
+                <span class="difficulty-badge difficulty-${module.difficulty_level.toLowerCase()}">
+                  ${module.difficulty_level === 'basic' ? '基礎' : module.difficulty_level === 'intermediate' ? '中級' : '上級'}
+                </span>
+              ` : ''}
+              ${module.estimated_minutes ? `
+                <span class="training-meta-item">⏱️ ${module.estimated_minutes}分</span>
+              ` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderProtocols(protocols) {
+    const container = document.getElementById('protocolContent');
+    
+    if (protocols.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3 class="empty-title">施術プロトコルがありません</h3>
+          <p class="empty-desc">この施術の標準手順書は準備中です</p>
+          <div class="empty-action">
+            <a href="/protocols/new?subcategory=${subcategoryId}" class="add-btn">
+              <span>+</span>
+              プロトコルを追加
+            </a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="protocol-list">
+        ${protocols.map(protocol => `
+          <div class="protocol-card">
+            <div class="protocol-header">
+              <h3 class="protocol-title">${escapeHtml(protocol.title)}</h3>
+              ${protocol.version ? `<span class="protocol-version">v${protocol.version}</span>` : ''}
+            </div>
+            ${protocol.description ? `<p class="protocol-desc">${escapeHtml(protocol.description)}</p>` : ''}
+            <div class="protocol-actions">
+              <button class="protocol-btn protocol-btn-primary">詳細を見る</button>
+              <button class="protocol-btn protocol-btn-secondary">PDFダウンロード</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderCases(beforeAfters) {
+    const container = document.getElementById('casesContent');
+    
+    if (beforeAfters.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📸</div>
+          <h3 class="empty-title">症例写真がありません</h3>
+          <p class="empty-desc">この施術の症例写真は準備中です</p>
+          <div class="empty-action">
+            <a href="/before-afters/new?subcategory=${subcategoryId}" class="add-btn">
+              <span>+</span>
+              症例写真を追加
+            </a>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="cases-grid">
+        ${beforeAfters.map(caseItem => `
+          <div class="case-card">
+            <div class="case-images">
+              <div class="case-image-wrapper">
+                ${caseItem.before_image_url 
+                  ? `<img src="${caseItem.before_image_url}" alt="Before" class="case-image" />`
+                  : '<div class="case-image" style="display: flex; align-items: center; justify-content: center; color: var(--color-text-muted);">No Image</div>'
+                }
+                <span class="case-label case-label-before">Before</span>
+              </div>
+              <div class="case-image-wrapper">
+                ${caseItem.after_image_url 
+                  ? `<img src="${caseItem.after_image_url}" alt="After" class="case-image" />`
+                  : '<div class="case-image" style="display: flex; align-items: center; justify-content: center; color: var(--color-text-muted);">No Image</div>'
+                }
+                <span class="case-label case-label-after">After</span>
+              </div>
+            </div>
+            <div class="case-info">
+              <h3 class="case-title">${escapeHtml(caseItem.title || '症例')}</h3>
+              <div class="case-meta">
+                ${caseItem.patient_age ? `<span class="case-meta-item">👤 ${caseItem.patient_age}歳</span>` : ''}
+                ${caseItem.patient_gender ? `<span class="case-meta-item">${caseItem.patient_gender === 'female' ? '♀' : '♂'}</span>` : ''}
+                ${caseItem.treatment_count ? `<span class="case-meta-item">📋 ${caseItem.treatment_count}回施術</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function setupTabs() {
+    const tabNav = document.getElementById('tabNav');
+    const panels = document.querySelectorAll('.tab-panel');
+
+    tabNav.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+
+      const tabId = btn.dataset.tab;
+
+      // Update buttons
+      tabNav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Update panels
+      panels.forEach(panel => {
+        panel.classList.toggle('active', panel.id === `${tabId}Panel`);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+

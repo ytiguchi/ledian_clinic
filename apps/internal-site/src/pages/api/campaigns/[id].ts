@@ -1,22 +1,54 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryFirst, executeDB, queryDB } from '../../../lib/db';
 
+type CampaignInput = {
+  title?: unknown;
+  slug?: unknown;
+  description?: unknown;
+  image_url?: unknown;
+  start_date?: unknown;
+  end_date?: unknown;
+  campaign_type?: unknown;
+  priority?: unknown;
+  is_published?: unknown;
+  sort_order?: unknown;
+  plans?: unknown;
+};
+
+const jsonResponse = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const parseNumber = (value: unknown, fallback: number) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
+    return Number(value);
+  }
+  return fallback;
+};
+
+const validateCampaignInput = (data: CampaignInput) => {
+  const title = normalizeString(data.title);
+  const slug = normalizeString(data.slug);
+  if (!title) return { ok: false, error: 'Title is required' };
+  if (!slug) return { ok: false, error: 'Slug is required' };
+  return { ok: true, title, slug };
+};
+
 export const GET: APIRoute = async ({ locals, params }) => {
   if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ campaign: null }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(200, { campaign: null });
   }
   try {
     const db = getDB(locals.runtime.env);
     const id = params.id;
     
     if (!id) {
-      return new Response(JSON.stringify({ error: 'ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(400, { error: 'ID is required' });
     }
     
     // キャンペーン基本情報取得
@@ -41,10 +73,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
     );
     
     if (!campaign) {
-      return new Response(JSON.stringify({ error: 'Campaign not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(404, { error: 'Campaign not found' });
     }
     
     // 関連プラン取得
@@ -63,39 +92,47 @@ export const GET: APIRoute = async ({ locals, params }) => {
       [id]
     );
     
-    return new Response(JSON.stringify({
+    return jsonResponse(200, {
       campaign: {
         ...campaign,
         is_published: campaign.is_published === 1,
       },
       plans
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error fetching campaign:', error);
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
   }
 };
 
 export const PUT: APIRoute = async ({ locals, params, request }) => {
   try {
+    if (!locals?.runtime?.env) {
+      return jsonResponse(500, { error: 'Database not available' });
+    }
     const db = getDB(locals.runtime.env);
     const id = params.id;
-    const data = await request.json();
+    const data: CampaignInput = await request.json();
     
     if (!id) {
-      return new Response(JSON.stringify({ error: 'ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(400, { error: 'ID is required' });
+    }
+    
+    const validation = validateCampaignInput(data);
+    if (!validation.ok) {
+      return jsonResponse(400, { error: validation.error });
+    }
+    
+    const existing = await queryFirst<{ id: string }>(
+      db,
+      'SELECT id FROM campaigns WHERE slug = ? AND id != ? LIMIT 1',
+      [validation.slug, id]
+    );
+    if (existing) {
+      return jsonResponse(409, { error: 'Slug already exists' });
     }
     
     const result = await executeDB(
@@ -116,16 +153,16 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         WHERE id = ?
       `,
       [
-        data.title,
-        data.slug,
-        data.description || null,
-        data.image_url || null,
-        data.start_date || null,
-        data.end_date || null,
-        data.campaign_type || 'discount',
-        data.priority || 0,
-        data.is_published ? 1 : 0,
-        data.sort_order || 0,
+        validation.title,
+        validation.slug,
+        normalizeString(data.description) || null,
+        normalizeString(data.image_url) || null,
+        normalizeString(data.start_date) || null,
+        normalizeString(data.end_date) || null,
+        normalizeString(data.campaign_type) || 'discount',
+        parseNumber(data.priority, 0),
+        Boolean(data.is_published) ? 1 : 0,
+        parseNumber(data.sort_order, 0),
         id
       ]
     );
@@ -162,32 +199,26 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
       }
     }
     
-    return new Response(JSON.stringify({ success: true, id }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(200, { success: true, id });
   } catch (error) {
     console.error('Error updating campaign:', error);
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
   }
 };
 
 export const DELETE: APIRoute = async ({ locals, params }) => {
   try {
+    if (!locals?.runtime?.env) {
+      return jsonResponse(500, { error: 'Database not available' });
+    }
     const db = getDB(locals.runtime.env);
     const id = params.id;
     
     if (!id) {
-      return new Response(JSON.stringify({ error: 'ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(400, { error: 'ID is required' });
     }
     
     // campaign_plans は CASCADE で削除される想定
@@ -197,21 +228,13 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
       [id]
     );
     
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(200, { success: true });
   } catch (error) {
     console.error('Error deleting campaign:', error);
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
   }
 };
 export const prerender = false;
-
-

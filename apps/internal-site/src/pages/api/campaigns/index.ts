@@ -1,12 +1,46 @@
 import type { APIRoute } from 'astro';
-import { getDB, queryDB, executeDB } from '../../../lib/db';
+import { getDB, queryDB, executeDB, queryFirst } from '../../../lib/db';
+
+type CampaignInput = {
+  title?: unknown;
+  slug?: unknown;
+  description?: unknown;
+  start_date?: unknown;
+  end_date?: unknown;
+  discount_type?: unknown;
+  discount_value?: unknown;
+  is_published?: unknown;
+  is_featured?: unknown;
+};
+
+const jsonResponse = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const parseDiscountValue = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
+    return Number(value);
+  }
+  return null;
+};
+
+const validateCampaignInput = (data: CampaignInput) => {
+  const title = normalizeString(data.title);
+  const slug = normalizeString(data.slug);
+  if (!title) return { ok: false, error: 'Title is required' };
+  if (!slug) return { ok: false, error: 'Slug is required' };
+  return { ok: true, title, slug };
+};
 
 export const GET: APIRoute = async ({ locals, url }) => {
   if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ campaigns: [] }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(200, { campaigns: [] });
   }
   try {
     const db = getDB(locals.runtime.env);
@@ -19,18 +53,17 @@ export const GET: APIRoute = async ({ locals, url }) => {
         c.title,
         c.slug,
         c.description,
-        c.image_url,
         c.start_date,
         c.end_date,
-        c.campaign_type,
-        c.priority,
         c.is_published,
-        c.sort_order,
+        c.is_featured,
+        c.discount_type,
+        c.discount_value,
         c.created_at,
         c.updated_at,
-        COUNT(cp.id) AS plan_count
+        COUNT(ci.id) AS item_count
       FROM campaigns c
-      LEFT JOIN campaign_plans cp ON c.id = cp.campaign_id
+      LEFT JOIN campaign_items ci ON c.id = ci.campaign_id
       WHERE 1=1
     `;
     
@@ -41,97 +74,100 @@ export const GET: APIRoute = async ({ locals, url }) => {
       params.push(isPublished === '1' ? 1 : 0);
     }
     
-    query += ' GROUP BY c.id ORDER BY c.sort_order, c.created_at DESC';
+    query += ' GROUP BY c.id ORDER BY c.start_date DESC, c.created_at DESC';
     
     const campaigns = await queryDB<{
       id: string;
       title: string;
       slug: string;
       description: string | null;
-      image_url: string | null;
       start_date: string | null;
       end_date: string | null;
-      campaign_type: string;
-      priority: number;
       is_published: number;
-      sort_order: number;
+      is_featured: number;
+      discount_type: string | null;
+      discount_value: number | null;
       created_at: string;
       updated_at: string;
-      plan_count: number;
+      item_count: number;
     }>(db, query, params);
     
-    return new Response(JSON.stringify({ 
+    return jsonResponse(200, { 
       campaigns: campaigns.map(c => ({
         ...c,
         is_published: c.is_published === 1,
+        is_featured: c.is_featured === 1,
       }))
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error fetching campaigns:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
     console.error('Error details:', { errorMessage, errorStack });
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: errorMessage,
       stack: errorStack
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
   }
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
   try {
+    if (!locals?.runtime?.env) {
+      return jsonResponse(500, { error: 'Database not available' });
+    }
     const db = getDB(locals.runtime.env);
-    const data = await request.json();
+    const data: CampaignInput = await request.json();
+    const validation = validateCampaignInput(data);
+    if (!validation.ok) {
+      return jsonResponse(400, { error: validation.error });
+    }
     
-    // TODO: バリデーション
-    // - title, slug 必須
-    // - slug の一意性チェック
+    const existing = await queryFirst<{ id: string }>(
+      db,
+      'SELECT id FROM campaigns WHERE slug = ? LIMIT 1',
+      [validation.slug]
+    );
+    if (existing) {
+      return jsonResponse(409, { error: 'Slug already exists' });
+    }
+
+    const discountValue = parseDiscountValue(data.discount_value);
+    const campaignId = crypto.randomUUID();
     
     const result = await executeDB(
       db,
       `
         INSERT INTO campaigns (
-          title, slug, description, image_url,
-          start_date, end_date, campaign_type, priority,
-          is_published, sort_order
+          id, title, slug, description,
+          start_date, end_date, discount_type, discount_value,
+          is_published, is_featured
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
-        data.title,
-        data.slug,
-        data.description || null,
-        data.image_url || null,
-        data.start_date || null,
-        data.end_date || null,
-        data.campaign_type || 'discount',
-        data.priority || 0,
-        data.is_published ? 1 : 0,
-        data.sort_order || 0
+        campaignId,
+        validation.title,
+        validation.slug,
+        normalizeString(data.description) || null,
+        normalizeString(data.start_date) || null,
+        normalizeString(data.end_date) || null,
+        normalizeString(data.discount_type) || 'fixed',
+        discountValue,
+        Boolean(data.is_published) ? 1 : 0,
+        Boolean(data.is_featured) ? 1 : 0
       ]
     );
     
-    return new Response(JSON.stringify({
-      id: result.meta.last_row_id,
+    return jsonResponse(201, {
+      id: campaignId,
       success: true
-    }), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error creating campaign:', error);
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
   }
 };

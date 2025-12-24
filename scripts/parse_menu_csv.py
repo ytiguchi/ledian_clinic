@@ -1,687 +1,532 @@
 #!/usr/bin/env python3
 """
-レディアンクリニック メニューCSV パーサー
-CSV → 構造化JSON & SQL INSERT文 変換スクリプト
-
-CSVの構造:
-- col[0]: 大カテゴリ（スキンケア、医療脱毛等）
-- col[1]: 小カテゴリ（フォトフェイシャル、ハイフ等）
-- col[2]: 施術詳細/オプション名
-- col[3]: 施術名
-- col[4]: 回数・個数
-- col[5]: 価格(税抜)
-- col[6]: /回
-- col[7]: 税込
-- col[8]: 税込/回
-- col[9]: 原価率
-- col[10]: キャンペーン価格
-- col[11]: キャンペーン原価率
-- col[12]: 旧定価
-- col[13]: 備品原価
-- col[14]: 医師・看護師原価
-- col[15]: 原価合計
-- col[16]: 備考
-- col[17]: 社販OFF
+Ledian Clinic menu CSV parser.
+Builds 4-tier structure: Category -> Subcategory -> Treatment -> Plan.
 """
+
+import sys
+import io
+
+# Windows cp932 encoding fix
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 import csv
 import json
 import re
 import uuid
-from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Optional
+from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
-try:
-    import yaml
-except ImportError:
-    print("⚠️  yamlモジュールが見つかりません。YAML出力をスキップします。")
-    print("   インストール: pip install pyyaml")
-    yaml = None
+
+PUNCT_RE = re.compile(r"[\s\u3000/()?????,??!???:?;?\[\]{}]+")
+NON_WORD_RE = re.compile(r"[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF-]")
+MULTI_DASH_RE = re.compile(r"-+")
+
+
+def generate_uuid() -> str:
+    return str(uuid.uuid4())
+
+
+def slugify(text: str) -> str:
+    if not text:
+        return ""
+    slug = text.lower().strip()
+    slug = PUNCT_RE.sub("-", slug)
+    slug = NON_WORD_RE.sub("", slug)
+    slug = MULTI_DASH_RE.sub("-", slug)
+    return slug.strip("-")
+
+
+def parse_int(value: Optional[str]) -> Optional[int]:
+    if value is None:
+        return None
+    s = str(value).strip()
+    if s == "":
+        return None
+    s = re.sub(r"[,\s]", "", s)
+    try:
+        return int(float(s))
+    except (ValueError, TypeError):
+        return None
+
+
+def parse_percent_float(value: Optional[str]) -> Optional[float]:
+    if value is None:
+        return None
+    s = str(value).strip()
+    if s == "" or s == "#DIV/0!":
+        return None
+    s = re.sub(r"[%\s]", "", s)
+    try:
+        return float(s)
+    except (ValueError, TypeError):
+        return None
+
+
+def parse_percent_int(value: Optional[str]) -> Optional[int]:
+    if value is None:
+        return None
+    s = str(value).strip()
+    if s == "" or s == "-":
+        return None
+    s = re.sub(r"[%\s]", "", s)
+    try:
+        return int(float(s))
+    except (ValueError, TypeError):
+        return None
 
 
 @dataclass
 class TreatmentPlan:
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    plan_name: str = ""
+    id: str
+    treatment_id: str
+    plan_name: str
     plan_type: str = "single"
-    sessions: Optional[int] = None
+    sessions: int = 1
     quantity: Optional[str] = None
     price: int = 0
     price_taxed: int = 0
     price_per_session: Optional[int] = None
     price_per_session_taxed: Optional[int] = None
+    supply_cost: int = 0
+    labor_cost: int = 0
+    total_cost: int = 0
+    cost_rate: Optional[float] = None
+    staff_discount_rate: Optional[int] = None
+    staff_price: Optional[int] = None
+    old_price: Optional[int] = None
+    old_price_taxed: Optional[int] = None
     campaign_price: Optional[int] = None
     campaign_price_taxed: Optional[int] = None
-    cost_rate: Optional[float] = None
     campaign_cost_rate: Optional[float] = None
-    supply_cost: Optional[int] = None
-    staff_cost: Optional[int] = None
-    total_cost: Optional[int] = None
-    old_price: Optional[int] = None
-    staff_discount_rate: Optional[int] = None
     notes: Optional[str] = None
     sort_order: int = 0
+    is_active: int = 1
+    is_public: int = 1
 
 
 @dataclass
 class Treatment:
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    name: str = ""
-    slug: str = ""
+    id: str
+    subcategory_id: str
+    name: str
+    slug: str
     description: Optional[str] = None
-    plans: list = field(default_factory=list)
+    target_area: Optional[str] = None
     sort_order: int = 0
+    is_active: int = 1
+    is_public: int = 1
+    plans: list = field(default_factory=list)
 
 
 @dataclass
 class Subcategory:
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    name: str = ""
-    slug: str = ""
+    id: str
+    category_id: str
+    name: str
+    slug: str
     description: Optional[str] = None
-    treatments: list = field(default_factory=list)
+    device_name: Optional[str] = None
     sort_order: int = 0
+    is_active: int = 1
+    is_public: int = 1
+    treatments: list = field(default_factory=list)
 
 
 @dataclass
 class Category:
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    name: str = ""
-    slug: str = ""
-    subcategories: list = field(default_factory=list)
+    id: str
+    name: str
+    slug: str
+    description: Optional[str] = None
     sort_order: int = 0
+    is_active: int = 1
+    is_public: int = 1
+    subcategories: list = field(default_factory=list)
 
 
-def slugify(text: str) -> str:
-    """日本語テキストをslugに変換"""
-    text = text.strip().lower()
-    text = re.sub(r'[　\s]+', '-', text)
-    text = re.sub(r'[^\w\-]', '', text)
-    return text or 'unnamed'
+def determine_plan_type(sessions_str: Optional[str]) -> tuple[str, int, Optional[str]]:
+    if not sessions_str:
+        return "single", 1, None
 
+    s = sessions_str.strip()
 
-def parse_price(value: str) -> Optional[int]:
-    """価格文字列をintに変換"""
-    if not value or value.strip() in ['', '-', '#DIV/0!', '#VALUE!']:
-        return None
-    value = value.replace(',', '').replace('"', '').replace('+', '').strip()
-    try:
-        return int(float(value))
-    except (ValueError, TypeError):
-        return None
+    if "??" in s or "???" in s:
+        return "trial", 1, None
 
+    if "????" in s:
+        match = re.search(r"(\d+)?", s)
+        if match:
+            return "monitor", int(match.group(1)), None
+        return "monitor", 1, None
 
-def parse_percentage(value: str) -> Optional[float]:
-    """パーセント文字列をfloatに変換"""
-    if not value or value.strip() in ['', '-', '#DIV/0!', '#VALUE!']:
-        return None
-    value = value.replace('%', '').replace(',', '').strip()
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        return None
-
-
-def parse_discount(value: str) -> Optional[int]:
-    """割引率を抽出"""
-    if not value:
-        return None
-    match = re.search(r'(\d+)\s*[%％]', value)
+    match = re.search(r"^(\d+)?", s)
     if match:
-        return int(match.group(1))
-    return None
+        sessions = int(match.group(1))
+        if sessions > 1:
+            return "course", sessions, None
+        return "single", 1, None
 
-
-def determine_plan_type(plan_name: str, sessions: Optional[int]) -> str:
-    """プラン名から種別を判定"""
-    plan_name_lower = plan_name.lower()
-    if '初回' in plan_name or 'お試し' in plan_name:
-        return 'trial'
-    if 'モニター' in plan_name:
-        return 'monitor'
-    if 'キャンペーン' in plan_name:
-        return 'campaign'
-    if sessions and sessions > 1:
-        return 'course'
-    return 'single'
-
-
-def parse_sessions(value: str) -> tuple[Optional[int], Optional[str]]:
-    """回数・個数をパース"""
-    if not value:
-        return None, None
-    
-    value = value.strip()
-    
-    # 回数パターン
-    match = re.search(r'(\d+)\s*回', value)
+    match = re.search(r"^(\d+)?", s)
     if match:
-        return int(match.group(1)), None
-    
-    # 個数パターン
-    match = re.search(r'(\d+)\s*(cc|単位|T|S|mg|本|個|箇所)', value, re.IGNORECASE)
+        return "single", 1, f"{match.group(1)}?"
+
+    match = re.search(r"^(\d+)?", s)
     if match:
-        return None, f"{match.group(1)}{match.group(2)}"
-    
-    # ショットパターン
-    match = re.search(r'(\d+)\s*(SHOT|ショット)', value, re.IGNORECASE)
+        return "single", 1, f"{match.group(1)}?"
+
+    match = re.search(r"^(\d+)S", s, re.IGNORECASE)
     if match:
-        return None, f"{match.group(1)}SHOT"
-    
-    return None, value if value else None
+        return "single", 1, f"{match.group(1)}S"
 
+    match = re.search(r"(\d+)cc", s, re.IGNORECASE)
+    if match:
+        return "single", 1, f"{match.group(1)}cc"
 
-def is_skip_row(row: list) -> bool:
-    """スキップすべき行かどうか判定"""
-    # 全て空
-    if not any(cell.strip() for cell in row[:8]):
-        return True
-    
-    # コメント行（※で始まる）
-    for cell in row[:4]:
-        cell = cell.strip()
-        if cell and cell.startswith('※'):
-            return True
-    
-    return False
+    match = re.search(r"(\d+)??", s)
+    if match:
+        return "single", 1, f"{match.group(1)}??"
 
+    if "????" in s or "????" in s:
+        return "single", 1, s
 
-def get_safe(row: list, idx: int) -> str:
-    """安全にrowから値を取得"""
-    if idx < len(row):
-        return row[idx].strip()
-    return ""
+    return "single", 1, s if s else None
 
 
 def parse_csv(csv_path: str) -> list[Category]:
-    """CSVをパースして構造化データに変換（4階層構造対応）
-    
-    4階層構造（CSVの構造をそのままマッピング）:
-    - Category（大カテゴリ）: col[0]
-    - Subcategory（中カテゴリ）: col[1]
-    - Treatment（小カテゴリ）: col[2]
-    - Treatment Plan: プラン情報（col[3]は施術説明として扱う）
-    """
-    
     categories: dict[str, Category] = {}
-    
-    # 現在の状態を保持
-    current_category = ""
-    current_subcategory = ""  # 中カテゴリ（col[1]）
-    current_treatment = ""     # 小カテゴリ（col[2]）
-    
-    category_order = 0
-    subcategory_order = 0
-    treatment_order = 0
-    plan_order = 0
-    
-    with open(csv_path, 'r', encoding='utf-8') as f:
+    subcategory_map: dict[str, Subcategory] = {}
+    treatment_map: dict[str, Treatment] = {}
+
+    with open(csv_path, "r", encoding="utf-8-sig", newline="") as f:
         reader = csv.reader(f)
-        
-        # ヘッダー行をスキップ（1行 - CSVは改行を含むフィールドがあるため）
         next(reader, None)
-        
-        for row_num, row in enumerate(reader, start=4):
-            if len(row) < 6:
+        next(reader, None)
+
+        category_order = 0
+        subcategory_orders: dict[str, int] = {}
+        treatment_orders: dict[str, int] = {}
+        plan_orders: dict[str, int] = {}
+
+        current_cat_name = None
+        current_subcat_name = None
+        current_treat_name = None
+
+        for row in reader:
+            if len(row) < 8:
                 continue
-            
-            # スキップ判定
-            if is_skip_row(row):
+
+            cat_name = row[0].strip() if row[0] else None
+            subcat_name = row[1].strip() if row[1] else None
+            treat_name = row[2].strip() if row[2] else None
+            description = row[3].strip() if len(row) > 3 and row[3] else None
+            sessions_str = row[4].strip() if len(row) > 4 and row[4] else None
+            price_str = row[5] if len(row) > 5 else None
+            price_per_str = row[6] if len(row) > 6 else None
+            price_taxed_str = row[7] if len(row) > 7 else None
+            price_per_taxed_str = row[8] if len(row) > 8 else None
+            cost_rate_str = row[9] if len(row) > 9 else None
+            campaign_price_str = row[10] if len(row) > 10 else None
+            campaign_rate_str = row[11] if len(row) > 11 else None
+            old_price_str = row[12] if len(row) > 12 else None
+            supply_cost_str = row[13] if len(row) > 13 else None
+            labor_cost_str = row[14] if len(row) > 14 else None
+            total_cost_str = row[15] if len(row) > 15 else None
+            notes_str = row[16] if len(row) > 16 else None
+            staff_discount_str = row[17] if len(row) > 17 else None
+
+            if not cat_name and not subcat_name and not treat_name and not sessions_str:
                 continue
-            
-            # カラム抽出
-            col_category = get_safe(row, 0)      # 大カテゴリ
-            col_middle_category = get_safe(row, 1)   # 中カテゴリ
-            col_small_category = get_safe(row, 2)    # 小カテゴリ
-            col_description = get_safe(row, 3)       # 施術説明
-            col_sessions = get_safe(row, 4)      # 回数・個数
-            col_price = get_safe(row, 5)         # 価格(税抜)
-            col_price_per = get_safe(row, 6)     # /回
-            col_price_taxed = get_safe(row, 7)   # 税込
-            col_price_per_taxed = get_safe(row, 8)  # 税込/回
-            col_cost_rate = get_safe(row, 9)     # 原価率
-            col_campaign = get_safe(row, 10)     # キャンペーン価格
-            col_campaign_rate = get_safe(row, 11)  # キャンペーン原価率
-            col_old_price = get_safe(row, 12)    # 旧定価
-            col_supply_cost = get_safe(row, 13)  # 備品原価
-            col_staff_cost = get_safe(row, 14)   # 医師・看護師原価
-            col_total_cost = get_safe(row, 15)   # 原価合計
-            col_notes = get_safe(row, 16)        # 備考
-            col_discount = get_safe(row, 17)     # 社販OFF
-            
-            # ========================================
-            # カテゴリ処理
-            # ========================================
-            if col_category:
-                # 無効なカテゴリ名をスキップ
-                if col_category.startswith('※') or '割引' in col_category or 'OFF' in col_category.upper():
-                    continue
-                
-                current_category = col_category
-                current_subcategory = ""
-                current_treatment = ""
-                subcategory_order = 0
-                
-                if current_category not in categories:
+
+            price = parse_int(price_str)
+            price_taxed = parse_int(price_taxed_str)
+            if price is None and price_taxed is None:
+                continue
+
+            if cat_name:
+                current_cat_name = cat_name
+                if cat_name not in categories:
                     category_order += 1
-                    categories[current_category] = Category(
-                        name=current_category,
-                        slug=slugify(current_category),
-                        sort_order=category_order
+                    categories[cat_name] = Category(
+                        id=generate_uuid(),
+                        name=cat_name,
+                        slug=slugify(cat_name),
+                        sort_order=category_order,
                     )
-            
-            if not current_category:
+                    subcategory_orders[cat_name] = 0
+
+            if not current_cat_name:
                 continue
-            
-            category = categories[current_category]
-            
-            # ========================================
-            # サブカテゴリ（中カテゴリ）処理
-            # ========================================
-            if col_middle_category:
-                # 無効なサブカテゴリ名をスキップ
-                if col_middle_category.startswith('※') or '×' in col_middle_category:
-                    pass
-                else:
-                    if col_middle_category != current_subcategory:
-                        current_subcategory = col_middle_category
-                        current_treatment = ""
-                        subcategory_order += 1
-                        treatment_order = 0
-                        
-                        # 既存のサブカテゴリを探す
-                        existing = next(
-                            (sc for sc in category.subcategories if sc.name == current_subcategory),
-                            None
-                        )
-                        if not existing:
-                            new_sub = Subcategory(
-                                name=current_subcategory,
-                                slug=slugify(current_subcategory),
-                                description=f"{current_category} - {current_subcategory}",
-                                sort_order=subcategory_order
-                            )
-                            category.subcategories.append(new_sub)
-            
-            # サブカテゴリがない場合、カテゴリ名をデフォルトとして使用
-            if not current_subcategory:
-                current_subcategory = current_category
-                existing = next(
-                    (sc for sc in category.subcategories if sc.name == current_subcategory),
-                    None
-                )
-                if not existing:
-                    subcategory_order += 1
+
+            category = categories[current_cat_name]
+
+            effective_subcat_name = subcat_name if subcat_name else current_cat_name
+            if effective_subcat_name:
+                current_subcat_name = effective_subcat_name
+                subcat_key = f"{current_cat_name}|{effective_subcat_name}"
+
+                if subcat_key not in subcategory_map:
+                    subcategory_orders[current_cat_name] = subcategory_orders.get(current_cat_name, 0) + 1
                     new_sub = Subcategory(
-                        name=current_subcategory,
-                        slug=slugify(current_subcategory),
-                        description=f"{current_category}の治療法",
-                        sort_order=subcategory_order
+                        id=generate_uuid(),
+                        category_id=category.id,
+                        name=effective_subcat_name,
+                        slug=slugify(effective_subcat_name),
+                        device_name=subcat_name if subcat_name else None,
+                        sort_order=subcategory_orders[current_cat_name],
                     )
                     category.subcategories.append(new_sub)
-            
-            subcategory = next(
-                (sc for sc in category.subcategories if sc.name == current_subcategory),
-                None
-            )
-            if not subcategory:
+                    subcategory_map[subcat_key] = new_sub
+                    treatment_orders[subcat_key] = 0
+
+            if not current_subcat_name:
                 continue
-            
-            # ========================================
-            # 施術名（小カテゴリ）の決定
-            # ========================================
-            # 4階層構造: col[2]（小カテゴリ）を個別施術として使用
-            treatment_name = col_small_category if col_small_category else current_treatment
-            if not treatment_name:
-                # 小カテゴリがない場合は、中カテゴリ名を使用
-                treatment_name = current_subcategory
-            
-            # ========================================
-            # 価格チェック
-            # ========================================
-            price = parse_price(col_price)
-            if price is None:
-                # 価格がない行はスキップ（コメント行など）
+
+            subcat_key = f"{current_cat_name}|{current_subcat_name}"
+            if subcat_key not in subcategory_map:
                 continue
-            
-            # ========================================
-            # 施術の取得または作成
-            # ========================================
-            if treatment_name != current_treatment:
-                current_treatment = treatment_name
-                treatment_order += 1
-                plan_order = 0
-                
-                existing_treatment = next(
-                    (t for t in subcategory.treatments if t.name == current_treatment),
-                    None
-                )
-                if not existing_treatment:
-                    new_treatment = Treatment(
-                        name=current_treatment,
-                        slug=slugify(current_treatment),
-                        description=col_description if col_description else None,
-                        sort_order=treatment_order
-                    )
-                    subcategory.treatments.append(new_treatment)
-            
-            treatment = next(
-                (t for t in subcategory.treatments if t.name == current_treatment),
-                None
-            )
+
+            subcategory = subcategory_map[subcat_key]
+
+            if treat_name:
+                actual_treat_name = treat_name
+            elif description:
+                actual_treat_name = description
+                description = None
+            else:
+                actual_treat_name = sessions_str if sessions_str else "??"
+
+            if actual_treat_name != current_treat_name:
+                current_treat_name = actual_treat_name
+
+            treat_key = f"{subcat_key}|{actual_treat_name}"
+            treatment = treatment_map.get(treat_key)
+
             if not treatment:
-                continue
-            
-            # 施術説明を更新（col[3]の内容をdescriptionに設定）
-            if col_description and col_description != treatment.description:
-                treatment.description = col_description
-            
-            # ========================================
-            # プラン作成
-            # ========================================
-            sessions, quantity = parse_sessions(col_sessions)
-            plan_name = col_sessions if col_sessions else "1回"
-            plan_order += 1
-            
-            campaign_price = parse_price(col_campaign)
-            
+                treatment_orders[subcat_key] += 1
+                treatment = Treatment(
+                    id=generate_uuid(),
+                    subcategory_id=subcategory.id,
+                    name=actual_treat_name,
+                    slug=slugify(actual_treat_name),
+                    description=description,
+                    sort_order=treatment_orders[subcat_key],
+                )
+                subcategory.treatments.append(treatment)
+                treatment_map[treat_key] = treatment
+                plan_orders[treat_key] = 0
+
+            plan_orders[treat_key] = plan_orders.get(treat_key, 0) + 1
+
+            plan_type, sessions, quantity = determine_plan_type(sessions_str)
+
+            if sessions_str:
+                plan_name = sessions_str
+            elif description:
+                plan_name = description
+            else:
+                plan_name = "1?"
+
             plan = TreatmentPlan(
+                id=generate_uuid(),
+                treatment_id=treatment.id,
                 plan_name=plan_name,
-                plan_type=determine_plan_type(plan_name, sessions),
+                plan_type=plan_type,
                 sessions=sessions,
                 quantity=quantity,
-                price=price,
-                price_taxed=parse_price(col_price_taxed) or int(price * 1.1),
-                price_per_session=parse_price(col_price_per),
-                price_per_session_taxed=parse_price(col_price_per_taxed),
-                campaign_price=campaign_price,
-                campaign_price_taxed=int(campaign_price * 1.1) if campaign_price else None,
-                cost_rate=parse_percentage(col_cost_rate),
-                campaign_cost_rate=parse_percentage(col_campaign_rate),
-                supply_cost=parse_price(col_supply_cost),
-                staff_cost=parse_price(col_staff_cost),
-                total_cost=parse_price(col_total_cost),
-                old_price=parse_price(col_old_price),
-                staff_discount_rate=parse_discount(col_discount),
-                notes=col_notes if col_notes else None,
-                sort_order=plan_order
+                price=price or 0,
+                price_taxed=price_taxed or 0,
+                price_per_session=parse_int(price_per_str),
+                price_per_session_taxed=parse_int(price_per_taxed_str),
+                supply_cost=parse_int(supply_cost_str) or 0,
+                labor_cost=parse_int(labor_cost_str) or 0,
+                total_cost=parse_int(total_cost_str) or 0,
+                cost_rate=parse_percent_float(cost_rate_str),
+                staff_discount_rate=parse_percent_int(staff_discount_str),
+                old_price=parse_int(old_price_str),
+                campaign_price=parse_int(campaign_price_str),
+                campaign_cost_rate=parse_percent_float(campaign_rate_str),
+                notes=notes_str.strip() if notes_str else None,
+                sort_order=plan_orders[treat_key],
             )
-            
+
+            if plan.staff_discount_rate and plan.price_taxed:
+                plan.staff_price = int(plan.price_taxed * plan.staff_discount_rate / 100)
+
             treatment.plans.append(plan)
-    
+
     return list(categories.values())
 
 
-def to_dict(obj) -> dict:
-    """dataclassを再帰的にdictに変換"""
-    if hasattr(obj, '__dataclass_fields__'):
-        return {k: to_dict(v) for k, v in asdict(obj).items()}
-    elif isinstance(obj, list):
-        return [to_dict(item) for item in obj]
-    elif isinstance(obj, dict):
-        return {k: to_dict(v) for k, v in obj.items()}
-    return obj
-
-
-def generate_json(categories: list[Category], output_path: str):
-    """JSONファイル出力"""
-    data = {
-        "generated_at": datetime.now().isoformat(),
-        "categories": [to_dict(cat) for cat in categories]
-    }
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    
-    print(f"✅ JSON出力: {output_path}")
-
-
-def escape_sql(value: str) -> str:
-    """SQLエスケープ"""
+def escape_sql(value) -> str:
     if value is None:
-        return 'NULL'
+        return "NULL"
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, bool):
+        return "1" if value else "0"
     return "'" + str(value).replace("'", "''") + "'"
 
 
 def generate_sql(categories: list[Category], output_path: str):
-    """SQLインサート文出力"""
-    
     lines = [
         "-- ============================================",
-        "-- レディアンクリニック シードデータ",
+        "-- Ledian Clinic seed data v3",
         f"-- Generated: {datetime.now().isoformat()}",
+        "-- Category -> Subcategory unique",
         "-- ============================================",
         "",
-        "BEGIN;",
+        "-- Clear existing data",
+        "DELETE FROM treatment_plans;",
+        "DELETE FROM treatments;",
+        "DELETE FROM subcategories;",
+        "DELETE FROM categories;",
         "",
-        "-- カテゴリ",
     ]
-    
+
+    lines.append("-- Categories")
     for cat in categories:
         lines.append(
-            f"INSERT INTO categories (id, name, slug, sort_order) VALUES "
-            f"({escape_sql(cat.id)}, {escape_sql(cat.name)}, {escape_sql(cat.slug)}, {cat.sort_order});"
+            "INSERT INTO categories (id, name, slug, sort_order, is_active, is_public) VALUES "
+            f"({escape_sql(cat.id)}, {escape_sql(cat.name)}, {escape_sql(cat.slug)}, {cat.sort_order}, 1, 1);"
         )
-    
+
     lines.append("")
-    lines.append("-- サブカテゴリ（治療法グループ）")
-    
+    lines.append("-- Subcategories")
     for cat in categories:
         for sub in cat.subcategories:
-            description = escape_sql(sub.description) if sub.description else 'NULL'
             lines.append(
-                f"INSERT INTO subcategories (id, category_id, name, slug, description, sort_order) VALUES "
-                f"({escape_sql(sub.id)}, {escape_sql(cat.id)}, {escape_sql(sub.name)}, {escape_sql(sub.slug)}, {description}, {sub.sort_order});"
+                "INSERT INTO subcategories (id, category_id, name, slug, device_name, sort_order, is_active, is_public) VALUES "
+                f"({escape_sql(sub.id)}, {escape_sql(cat.id)}, {escape_sql(sub.name)}, {escape_sql(sub.slug)}, "
+                f"{escape_sql(sub.device_name)}, {sub.sort_order}, 1, 1);"
             )
-    
+
     lines.append("")
-    lines.append("-- 施術")
-    
+    lines.append("-- Treatments")
     for cat in categories:
         for sub in cat.subcategories:
             for treat in sub.treatments:
                 lines.append(
-                    f"INSERT INTO treatments (id, subcategory_id, name, slug, sort_order) VALUES "
-                    f"({escape_sql(treat.id)}, {escape_sql(sub.id)}, {escape_sql(treat.name)}, {escape_sql(treat.slug)}, {treat.sort_order});"
+                    "INSERT INTO treatments (id, subcategory_id, name, slug, description, sort_order, is_active, is_public) VALUES "
+                    f"({escape_sql(treat.id)}, {escape_sql(sub.id)}, {escape_sql(treat.name)}, {escape_sql(treat.slug)}, "
+                    f"{escape_sql(treat.description)}, {treat.sort_order}, 1, 1);"
                 )
-    
+
     lines.append("")
-    lines.append("-- 料金プラン")
-    
+    lines.append("-- Treatment plans")
     for cat in categories:
         for sub in cat.subcategories:
             for treat in sub.treatments:
                 for plan in treat.plans:
-                    sessions = plan.sessions if plan.sessions else 'NULL'
-                    quantity = escape_sql(plan.quantity) if plan.quantity else 'NULL'
-                    price_per = plan.price_per_session if plan.price_per_session else 'NULL'
-                    price_per_taxed = plan.price_per_session_taxed if plan.price_per_session_taxed else 'NULL'
-                    campaign = plan.campaign_price if plan.campaign_price else 'NULL'
-                    campaign_taxed = plan.campaign_price_taxed if plan.campaign_price_taxed else 'NULL'
-                    cost_rate = plan.cost_rate if plan.cost_rate else 'NULL'
-                    campaign_rate = plan.campaign_cost_rate if plan.campaign_cost_rate else 'NULL'
-                    supply = plan.supply_cost if plan.supply_cost else 'NULL'
-                    staff = plan.staff_cost if plan.staff_cost else 'NULL'
-                    total = plan.total_cost if plan.total_cost else 'NULL'
-                    old = plan.old_price if plan.old_price else 'NULL'
-                    discount = plan.staff_discount_rate if plan.staff_discount_rate else 'NULL'
-                    notes = escape_sql(plan.notes) if plan.notes else 'NULL'
-                    
                     lines.append(
-                        f"INSERT INTO treatment_plans "
-                        f"(id, treatment_id, plan_name, plan_type, sessions, quantity, "
-                        f"price, price_taxed, price_per_session, price_per_session_taxed, "
-                        f"campaign_price, campaign_price_taxed, cost_rate, campaign_cost_rate, "
-                        f"supply_cost, staff_cost, total_cost, old_price, staff_discount_rate, notes, sort_order) VALUES "
-                        f"({escape_sql(plan.id)}, {escape_sql(treat.id)}, {escape_sql(plan.plan_name)}, "
-                        f"{escape_sql(plan.plan_type)}, {sessions}, {quantity}, "
-                        f"{plan.price}, {plan.price_taxed}, {price_per}, {price_per_taxed}, "
-                        f"{campaign}, {campaign_taxed}, {cost_rate}, {campaign_rate}, "
-                        f"{supply}, {staff}, {total}, {old}, {discount}, {notes}, {plan.sort_order});"
+                        "INSERT INTO treatment_plans ("
+                        "id, treatment_id, plan_name, plan_type, sessions, quantity, "
+                        "price, price_taxed, price_per_session, price_per_session_taxed, "
+                        "supply_cost, labor_cost, total_cost, cost_rate, "
+                        "staff_discount_rate, staff_price, old_price, notes, sort_order, is_active, is_public"
+                        ") VALUES ("
+                        f"{escape_sql(plan.id)}, {escape_sql(plan.treatment_id)}, {escape_sql(plan.plan_name)}, "
+                        f"{escape_sql(plan.plan_type)}, {plan.sessions}, {escape_sql(plan.quantity)}, "
+                        f"{plan.price}, {plan.price_taxed}, {escape_sql(plan.price_per_session)}, {escape_sql(plan.price_per_session_taxed)}, "
+                        f"{plan.supply_cost}, {plan.labor_cost}, {plan.total_cost}, {escape_sql(plan.cost_rate)}, "
+                        f"{escape_sql(plan.staff_discount_rate)}, {escape_sql(plan.staff_price)}, {escape_sql(plan.old_price)}, "
+                        f"{escape_sql(plan.notes)}, {plan.sort_order}, 1, 1);"
                     )
-    
-    lines.append("")
-    lines.append("COMMIT;")
-    lines.append("")
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines))
-    
-    print(f"✅ SQL出力: {output_path}")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    print(f"[OK] SQL: {output_path}")
 
 
-def print_summary(categories: list[Category]):
-    """サマリー表示"""
-    print("\n📊 パース結果サマリー")
-    print("=" * 60)
-    
-    total_subcategories = 0
-    total_treatments = 0
-    total_plans = 0
-    
+def generate_json(categories: list[Category], output_path: str):
+    def to_dict(obj):
+        if hasattr(obj, "__dict__"):
+            return {k: to_dict(v) for k, v in obj.__dict__.items()}
+        if isinstance(obj, list):
+            return [to_dict(i) for i in obj]
+        return obj
+
+    data = [to_dict(cat) for cat in categories]
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print(f"[OK] JSON: {output_path}")
+
+
+def print_tree(categories: list[Category]):
+    print("\n" + "=" * 70)
+    print("4-tier structure: Category -> Subcategory -> Treatment -> Plan")
+    print("=" * 70)
+
+    total_sub = 0
+    total_treat = 0
+    total_plan = 0
+
     for cat in categories:
-        cat_subcategories = len(cat.subcategories)
-        cat_treatments = sum(len(sub.treatments) for sub in cat.subcategories)
-        cat_plans = sum(
-            len(t.plans) for sub in cat.subcategories for t in sub.treatments
+        sub_count = len(cat.subcategories)
+        treat_count = sum(len(sub.treatments) for sub in cat.subcategories)
+        plan_count = sum(
+            len(treat.plans)
+            for sub in cat.subcategories
+            for treat in sub.treatments
         )
-        total_subcategories += cat_subcategories
-        total_treatments += cat_treatments
-        total_plans += cat_plans
-        
-        print(f"\n📁 {cat.name}")
-        for sub in cat.subcategories[:5]:  # 最初の5つのみ表示
-            sub_treatments = len(sub.treatments)
-            sub_plans = sum(len(t.plans) for t in sub.treatments)
-            print(f"   └─ {sub.name}: {sub_treatments}施術, {sub_plans}プラン")
-        if len(cat.subcategories) > 5:
-            print(f"   └─ ... 他{len(cat.subcategories) - 5}サブカテゴリ")
-    
-    print("\n" + "=" * 60)
-    print(f"✨ 合計: {len(categories)}カテゴリ, {total_subcategories}サブカテゴリ, {total_treatments}施術, {total_plans}プラン")
 
+        total_sub += sub_count
+        total_treat += treat_count
+        total_plan += plan_count
 
-def generate_yaml(categories: list[Category], output_dir: Path):
-    """YAMLファイル出力（4階層構造対応）"""
-    if yaml is None:
-        print("⚠️  YAML出力をスキップします（pyyamlがインストールされていません）")
-        return
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # categories.yml
-    categories_data = []
-    for cat in categories:
-        categories_data.append({
-            'slug': cat.slug,
-            'name': cat.name,
-            'sort_order': cat.sort_order,
-            'is_active': True
-        })
-    
-    categories_file = output_dir / 'categories.yml'
-    with open(categories_file, 'w', encoding='utf-8') as f:
-        f.write('# 本番サイトの構造に合わせたカテゴリ定義\n')
-        f.write('# https://ledianclinic.jp/service/ のカテゴリ構造\n\n')
-        yaml.dump(categories_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    
-    print(f"✅ YAML出力: {categories_file}")
-    
-    # subcategories.yml
-    subcategories_data = []
-    for cat in categories:
+        print(f"\n[{cat.sort_order}] {cat.name}")
+
         for sub in cat.subcategories:
-            subcategories_data.append({
-                'slug': sub.slug,
-                'category_slug': cat.slug,
-                'name': sub.name,
-                'description': sub.description or f'{cat.name}の治療法',
-                'sort_order': sub.sort_order,
-                'is_active': True
-            })
-    
-    subcategories_file = output_dir / 'subcategories.yml'
-    with open(subcategories_file, 'w', encoding='utf-8') as f:
-        f.write('# 本番サイトの構造に合わせたサブカテゴリ定義（治療法グループ）\n')
-        f.write('# 4階層構造: Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan\n')
-        f.write('# https://ledianclinic.jp/service/ の構造に合わせて定義\n\n')
-        yaml.dump(subcategories_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    
-    print(f"✅ YAML出力: {subcategories_file}")
-    
-    # treatments.yml
-    treatments_data = []
-    for cat in categories:
-        for sub in cat.subcategories:
-            for treat in sub.treatments:
-                treatments_data.append({
-                    'slug': treat.slug,
-                    'subcategory_slug': sub.slug,
-                    'name': treat.name,
-                    'description': treat.description or None,
-                    'sort_order': treat.sort_order,
-                    'is_active': True
-                })
-    
-    treatments_file = output_dir / 'treatments.yml'
-    with open(treatments_file, 'w', encoding='utf-8') as f:
-        f.write('# 本番サイトの構造に合わせた施術定義（個別施術）\n')
-        f.write('# 4階層構造: Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan\n')
-        f.write('# https://ledianclinic.jp/service/{slug}/ の各ページが個別施術\n\n')
-        yaml.dump(treatments_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
-    
-    print(f"✅ YAML出力: {treatments_file}")
+            print(f"  +-- {sub.name}")
+            for treat in sub.treatments[:3]:
+                plan_summary = ", ".join([p.plan_name for p in treat.plans[:3]])
+                if len(treat.plans) > 3:
+                    plan_summary += f" (+{len(treat.plans) - 3})"
+                print(f"      +-- {treat.name}: [{plan_summary}]")
+            if len(sub.treatments) > 3:
+                print(f"      +-- ... ({len(sub.treatments) - 3} more)")
+
+    print("\n" + "=" * 70)
+    print(f"Total: {len(categories)} categories, {total_sub} subcategories,")
+    print(f"       {total_treat} treatments, {total_plan} plans")
+    print("=" * 70)
 
 
 def main():
-    # パス設定
-    script_dir = Path(__file__).parent
-    project_dir = script_dir.parent
-    
-    # CSVファイルのパス（DesktopまたはDownloadsから検索）
-    desktop_path = Path.home() / "Desktop" / "レディアンクリニックメニュー表 - メニュー一覧.csv"
-    downloads_path = Path.home() / "Downloads" / "レディアンクリニックメニュー表 - メニュー一覧.csv"
-    
-    if downloads_path.exists():
-        csv_path = downloads_path
-    elif desktop_path.exists():
-        csv_path = desktop_path
-    else:
-        csv_path = desktop_path  # エラーメッセージ用
-    json_output = project_dir / "database" / "seed_data.json"
-    sql_output = project_dir / "database" / "seed.sql"
-    yaml_output_dir = project_dir / "data" / "catalog"
-    
+    import sys
+
+    csv_path = Path(__file__).parent.parent / "data" / "raw" / "menu.csv"
+    if len(sys.argv) > 1:
+        csv_path = Path(sys.argv[1])
+
     if not csv_path.exists():
-        print(f"❌ CSVファイルが見つかりません: {csv_path}")
-        print(f"   期待されるパス: {csv_path}")
-        return
-    
-    print(f"📄 CSVファイル読み込み: {csv_path}")
-    print(f"📊 4階層構造で正規化します:")
-    print(f"   Category → Subcategory（治療法グループ） → Treatment（個別施術） → Treatment Plan")
-    print()
-    
-    # パース実行
+        print(f"[ERROR] CSV not found: {csv_path}")
+        sys.exit(1)
+
+    print(f"[INFO] CSV: {csv_path}")
+
     categories = parse_csv(str(csv_path))
-    
-    # サマリー表示
-    print_summary(categories)
-    
-    # 出力
-    json_output.parent.mkdir(parents=True, exist_ok=True)
-    generate_json(categories, str(json_output))
-    generate_sql(categories, str(sql_output))
-    generate_yaml(categories, yaml_output_dir)
-    
-    print("\n✨ 完了！")
-    print(f"\n📝 生成されたファイル:")
-    print(f"   - JSON: {json_output}")
-    print(f"   - SQL: {sql_output}")
-    print(f"   - YAML: {yaml_output_dir}/")
+    print_tree(categories)
+
+    output_dir = Path(__file__).parent.parent / "database" / "d1"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    sql_path = output_dir / "seed_menu_v3.sql"
+    json_path = output_dir / "seed_menu_v3.json"
+
+    generate_sql(categories, str(sql_path))
+    generate_json(categories, str(json_path))
+
+    print("\n[DONE]")
 
 
 if __name__ == "__main__":
     main()
+

@@ -53,3 +53,5 @@ ENV/
 .cache/
 
 
+apps/internal-site/.wrangler/
+backup/

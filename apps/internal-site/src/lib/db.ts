@@ -47,9 +47,9 @@ export async function queryDB<T = unknown>(
   query: string,
   params: unknown[] = []
 ): Promise<T[]> {
-  const stmt = db.prepare(query);
+  let stmt = db.prepare(query);
   if (params.length > 0) {
-    stmt.bind(...params);
+    stmt = stmt.bind(...params);
   }
   const result = await stmt.all<T>();
   if (!result.success) {
@@ -66,9 +66,9 @@ export async function queryFirst<T = unknown>(
   query: string,
   params: unknown[] = []
 ): Promise<T | null> {
-  const stmt = db.prepare(query);
+  let stmt = db.prepare(query);
   if (params.length > 0) {
-    stmt.bind(...params);
+    stmt = stmt.bind(...params);
   }
   return await stmt.first<T>();
 }
@@ -81,9 +81,9 @@ export async function executeDB(
   query: string,
   params: unknown[] = []
 ): Promise<D1Result> {
-  const stmt = db.prepare(query);
+  let stmt = db.prepare(query);
   if (params.length > 0) {
-    stmt.bind(...params);
+    stmt = stmt.bind(...params);
   }
   const result = await stmt.run();
   if (!result.success) {

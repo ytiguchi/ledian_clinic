@@ -57,10 +57,20 @@ export const GET: APIRoute = async ({ locals, url }) => {
       },
     });
   } catch (error) {
+    // テーブルが存在しない場合は空配列を返す
+    const errorMessage = error instanceof Error ? error.message : '';
+    if (errorMessage.includes('no such table')) {
+      console.warn('medication_plans table does not exist, returning empty array');
+      return new Response(JSON.stringify({ plans: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
     console.error('Error fetching medication plans:', error);
     return new Response(JSON.stringify({
       error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: errorMessage || 'Unknown error'
     }), {
       status: 500,
       headers: {

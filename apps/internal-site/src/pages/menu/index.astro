@@ -1,0 +1,544 @@
+---
+import Layout from '../../components/Layout.astro';
+---
+
+<Layout>
+  <div class="menu-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">施術一覧</h1>
+        <p class="page-subtitle">カテゴリとサブカテゴリで施術を探す</p>
+      </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="施術名・カテゴリで検索..." class="search-input" />
+    </div>
+
+    <!-- Category Grid -->
+    <div class="categories-container" id="categoriesContainer">
+      <div class="loading-state">読み込み中...</div>
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  .menu-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Search Bar */
+  .search-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    border-radius: var(--radius-xl);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .search-bar::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 50%;
+    height: 200%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    background: rgba(255,255,255,0.95);
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .search-input::placeholder {
+    color: #9ca3af;
+  }
+
+  .search-input:focus {
+    outline: none;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.15), 0 0 0 4px rgba(255,255,255,0.3);
+    transform: scale(1.01);
+  }
+
+  /* Categories Container */
+  .categories-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Category Section */
+  .category-section {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border-light);
+    overflow: hidden;
+    transition: all var(--transition-base);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .category-section:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--color-border-light);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .category-header:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 100%);
+  }
+
+  .category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--radius-lg);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .category-info {
+    flex: 1;
+  }
+
+  .category-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .category-count {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .category-count::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+  }
+
+  .category-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--color-bg-hover);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+  }
+
+  .category-header:hover .category-toggle {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .category-section.collapsed .category-toggle {
+    transform: rotate(-90deg);
+  }
+
+  /* Subcategory Grid */
+  .subcategory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  }
+
+  .category-section.collapsed .subcategory-grid {
+    display: none;
+  }
+
+  /* Subcategory Card */
+  .subcategory-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subcategory-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .subcategory-card:hover {
+    border-color: #667eea;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
+  }
+
+  .subcategory-card:hover::before {
+    opacity: 1;
+  }
+
+  .subcategory-name {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 0.75rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .subcategory-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+  }
+
+  .subcategory-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    background: #f1f5f9;
+    border-radius: var(--radius-full);
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .subcategory-meta-item span:first-child {
+    font-size: 0.875rem;
+  }
+
+  .treatment-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .treatment-tag {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.625rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    color: #475569;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+  }
+
+  .subcategory-card:hover .treatment-tag {
+    background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%);
+    border-color: #c7d2fe;
+    color: #4f46e5;
+  }
+
+  .treatment-tag.more {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+    font-weight: 600;
+  }
+
+  /* Loading & Empty States */
+  .loading-state, .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    border: 2px dashed #e2e8f0;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: grayscale(0.3);
+  }
+
+  .empty-state p {
+    font-size: 1rem;
+    color: #64748b;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .search-bar {
+      padding: 1.25rem;
+    }
+
+    .category-header {
+      padding: 1rem;
+    }
+
+    .category-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 1.25rem;
+    }
+
+    .subcategory-grid {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+      gap: 0.75rem;
+    }
+
+    .subcategory-card {
+      padding: 1rem;
+    }
+
+    .subcategory-meta {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  const categoryIcons = {
+    'スキンケア': '✨',
+    '医療脱毛': '💫',
+    'アートメイク': '🎨',
+    '点滴・注射': '💉',
+    '脂肪吸引': '🏋️',
+    '脂肪溶解注射': '💧',
+    '肌育注射': '🌸',
+    'ボトックス': '💎',
+    'ヒアルロン酸': '💧',
+    '糸リフト': '🧵',
+    '麻酔': '💤',
+    'ドクターズコスメ': '🧴',
+    '肌診断': '🔬',
+    'LDM': '⚡',
+    'ニキビ・ニキビ痕・毛穴治療': '🩹',
+    'リフトアップ': '⬆️',
+    'ピーリング': '🍋',
+    'シミ・美白治療': '☀️',
+    '痩身治療': '🏃',
+    '導入': '⚡',
+    'ローマピンク': '🌸',
+    'フォトフェイシャル': '💡',
+  };
+
+  function getCategoryIcon(name) {
+    for (const [key, icon] of Object.entries(categoryIcons)) {
+      if (name.includes(key) || key.includes(name)) return icon;
+    }
+    return '✨';
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  let allCategories = [];
+  let allSubcategories = [];
+  let allTreatments = [];
+  let allPlans = [];
+
+  async function init() {
+    try {
+      const [catRes, subRes, treatRes, planRes] = await Promise.all([
+        fetch('/api/categories'),
+        fetch('/api/subcategories'),
+        fetch('/api/treatments'),
+        fetch('/api/pricing')
+      ]);
+
+      if (!catRes.ok || !subRes.ok || !treatRes.ok) {
+        throw new Error('Failed to load data');
+      }
+
+      const [catData, subData, treatData, planData] = await Promise.all([
+        catRes.json(),
+        subRes.json(),
+        treatRes.json(),
+        planRes.ok ? planRes.json() : { plans: [] }
+      ]);
+
+      allCategories = catData.categories || [];
+      allSubcategories = subData.subcategories || [];
+      allTreatments = treatData.treatments || [];
+      allPlans = planData.plans || [];
+
+      renderCategories();
+      setupSearch();
+    } catch (error) {
+      console.error('Error loading data:', error);
+      document.getElementById('categoriesContainer').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">❌</div>
+          <p>データの読み込みに失敗しました</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderCategories(filter = '') {
+    const container = document.getElementById('categoriesContainer');
+    const filterLower = filter.toLowerCase();
+
+    // Filter categories and subcategories based on search
+    const filteredData = allCategories
+      .filter(cat => cat.is_active !== false)
+      .map(cat => {
+        const catSubs = allSubcategories.filter(sub => 
+          sub.category_id === cat.id && sub.is_active !== false
+        );
+        
+        const matchedSubs = catSubs.filter(sub => {
+          if (!filter) return true;
+          
+          // Check subcategory name
+          if (sub.name.toLowerCase().includes(filterLower)) return true;
+          
+          // Check treatments in this subcategory
+          const subTreatments = allTreatments.filter(t => t.subcategory_id === sub.id);
+          return subTreatments.some(t => t.name.toLowerCase().includes(filterLower));
+        });
+
+        // Check if category matches
+        const catMatches = cat.name.toLowerCase().includes(filterLower);
+        
+        return {
+          category: cat,
+          subcategories: catMatches ? catSubs : matchedSubs,
+          hasMatch: catMatches || matchedSubs.length > 0
+        };
+      })
+      .filter(item => item.hasMatch);
+
+    if (filteredData.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p>「${escapeHtml(filter)}」に一致する施術が見つかりません</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filteredData.map(({ category, subcategories }) => {
+      const subcatCards = subcategories.map(sub => {
+        const treatments = allTreatments.filter(t => t.subcategory_id === sub.id);
+        const planCount = allPlans.filter(p => 
+          treatments.some(t => t.id === p.treatment_id)
+        ).length;
+        
+        const displayTreatments = treatments.slice(0, 3);
+        const moreCount = treatments.length - 3;
+
+        return `
+          <a href="/menu/${sub.id}" class="subcategory-card">
+            <h3 class="subcategory-name">${escapeHtml(sub.name)}</h3>
+            <div class="subcategory-meta">
+              <span class="subcategory-meta-item">
+                <span>📋</span>
+                ${treatments.length} 施術
+              </span>
+              <span class="subcategory-meta-item">
+                <span>💰</span>
+                ${planCount} プラン
+              </span>
+            </div>
+            <div class="treatment-tags">
+              ${displayTreatments.map(t => `
+                <span class="treatment-tag">${escapeHtml(t.name)}</span>
+              `).join('')}
+              ${moreCount > 0 ? `<span class="treatment-tag more">+${moreCount}</span>` : ''}
+            </div>
+          </a>
+        `;
+      }).join('');
+
+      return `
+        <div class="category-section" data-category-id="${category.id}">
+          <div class="category-header">
+            <span class="category-icon">${getCategoryIcon(category.name)}</span>
+            <div class="category-info">
+              <h2 class="category-name">${escapeHtml(category.name)}</h2>
+              <p class="category-count">${subcategories.length} サブカテゴリ</p>
+            </div>
+            <span class="category-toggle">▼</span>
+          </div>
+          <div class="subcategory-grid">
+            ${subcatCards || '<div class="empty-state">サブカテゴリなし</div>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Add toggle functionality
+    container.querySelectorAll('.category-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const section = header.closest('.category-section');
+        section.classList.toggle('collapsed');
+      });
+    });
+  }
+
+  function setupSearch() {
+    const input = document.getElementById('searchInput');
+    let timeout = null;
+
+    input.addEventListener('input', () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        renderCategories(input.value.trim());
+      }, 300);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+

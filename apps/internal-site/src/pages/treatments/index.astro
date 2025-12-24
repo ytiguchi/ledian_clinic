@@ -7,7 +7,7 @@ import Layout from '../../components/Layout.astro';
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">施術研修コンテンツ</h1>
+        <h1 class="page-title">施術カウンセリング資料</h1>
         <p class="page-subtitle">カテゴリ → 施術 → 詳細情報をドリルダウンで確認</p>
       </div>
     </div>
@@ -837,7 +837,7 @@ import Layout from '../../components/Layout.astro';
           <h3 class="treatment-name">${escapeHtml(treatment.name)}</h3>
           <div class="treatment-tags">
             <span class="treatment-tag">${escapeHtml(treatment.subcategory_name)}</span>
-            ${hasContent ? '<span class="treatment-tag has-content">研修資料あり</span>' : ''}
+            ${hasContent ? '<span class="treatment-tag has-content">カウンセリング資料あり</span>' : ''}
           </div>
           <p class="treatment-desc">
             ${hasContent && hasContent.description ? escapeHtml(hasContent.description.substring(0, 80)) + '...' : 'クリックして詳細を表示'}
@@ -886,7 +886,7 @@ import Layout from '../../components/Layout.astro';
           <div class="section-content">
             <div class="empty-state">
               <div class="empty-icon">📚</div>
-              <p>研修コンテンツは準備中です</p>
+              <p>カウンセリング資料は準備中です</p>
             </div>
           </div>
         </div>

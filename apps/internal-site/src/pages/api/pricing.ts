@@ -4,141 +4,157 @@ import type { PricePlan, PricingResponse } from '../../types/api';
 
 export const prerender = false;
 
+type PricingInput = {
+  treatment_id?: unknown;
+  plan_name?: unknown;
+  plan_type?: unknown;
+  sessions?: unknown;
+  quantity?: unknown;
+  price?: unknown;
+  price_taxed?: unknown;
+  price_per_session?: unknown;
+  price_per_session_taxed?: unknown;
+  cost_rate?: unknown;
+  supply_cost?: unknown;
+  labor_cost?: unknown;
+  total_cost?: unknown;
+  sort_order?: unknown;
+};
+
+const jsonResponse = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+const parseNullableNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
+    return Number(value);
+  }
+  return null;
+};
+
+const getSearchParam = (url: URL, key: string) => {
+  const raw = url.searchParams.get(key);
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed === 'undefined' || trimmed === 'null') return null;
+  return trimmed;
+};
+
+const buildPricingQuery = (hasTreatmentId: boolean) => {
+  const selectColumns = [
+    'tp.id',
+    'tp.plan_name',
+    'tp.plan_type',
+    'tp.sessions',
+    'tp.quantity',
+    'tp.price',
+    'tp.price_taxed',
+    'tp.price_per_session',
+    'tp.price_per_session_taxed',
+    'tp.cost_rate',
+    'tp.supply_cost',
+    'tp.labor_cost',
+    'tp.total_cost',
+    'tp.staff_discount_rate',
+    'tp.staff_price',
+    'tp.old_price',
+    'tp.notes',
+    hasTreatmentId ? 't.id AS treatment_id' : 'sc.id AS treatment_id',
+    hasTreatmentId ? 't.name AS treatment_name' : 'sc.name AS treatment_name',
+    hasTreatmentId ? 't.slug AS treatment_slug' : 'sc.slug AS treatment_slug',
+    hasTreatmentId ? 't.description AS treatment_description' : 'NULL AS treatment_description',
+    'sc.id AS subcategory_id',
+    'sc.name AS subcategory_name',
+    'sc.device_name AS device_name',
+    'c.id AS category_id',
+    'c.name AS category_name',
+  ].join(',\n          ');
+
+  const fromClause = hasTreatmentId
+    ? `FROM treatment_plans tp
+        JOIN treatments t ON tp.treatment_id = t.id
+        JOIN subcategories sc ON t.subcategory_id = sc.id
+        JOIN categories c ON sc.category_id = c.id`
+    : `FROM treatment_plans tp
+        JOIN subcategories sc ON tp.subcategory_id = sc.id
+        JOIN categories c ON sc.category_id = c.id`;
+
+  const searchFields = hasTreatmentId
+    ? ['t.name', 'sc.name', 'tp.plan_name', 'c.name']
+    : ['sc.name', 'tp.plan_name', 'c.name'];
+
+  const orderBy = hasTreatmentId
+    ? ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order'
+    : ' ORDER BY c.sort_order, sc.sort_order, tp.sort_order';
+
+  const query = `
+        SELECT 
+          ${selectColumns}
+        ${fromClause}
+        WHERE tp.is_active = 1
+      `;
+
+  return { query, searchFields, orderBy };
+};
+
+const hasTreatmentIdColumn = async (db: ReturnType<typeof getDB>) => {
+  try {
+    const checkResult = await db.prepare(`
+      PRAGMA table_info(treatment_plans)
+    `).all<{ name: string }>();
+    if (checkResult.success && checkResult.results) {
+      return checkResult.results.some(col => col.name === 'treatment_id');
+    }
+  } catch (error) {
+    console.warn('Could not check table structure, assuming 3-tier structure:', error);
+  }
+  return false;
+};
+
 export const GET: APIRoute = async ({ locals, url }) => {
   if (!locals?.runtime?.env) {
     // 開発環境（npm run dev）では空配列を返す
     console.warn('D1 database is not available in development mode. Use "wrangler pages dev" for API testing.');
-    return new Response(JSON.stringify({ plans: [] }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(200, { plans: [] });
   }
   let query = '';
   let params: unknown[] = [];
   try {
     const db = getDB(locals.runtime.env);
     
-    const categoryId = url.searchParams.get('category_id')?.trim();
-    const subcategoryId = url.searchParams.get('subcategory_id')?.trim();
-    const search = url.searchParams.get('search')?.trim();
-    
-    // データベース構造を確認（treatment_idカラムが存在するか）
-    // SQLiteのpragma_table_infoを使用
-    let hasTreatmentId = false;
-    try {
-      const checkResult = await db.prepare(`
-        PRAGMA table_info(treatment_plans)
-      `).all<{ name: string }>();
-      
-      if (checkResult.success && checkResult.results) {
-        hasTreatmentId = checkResult.results.some(col => col.name === 'treatment_id');
-      }
-    } catch (e) {
-      // エラーが発生した場合は、subcategory_idを使用（3階層構造）
-      console.warn('Could not check table structure, assuming 3-tier structure:', e);
-      hasTreatmentId = false;
-    }
-    
-    // 4階層構造（treatment_idがある場合）または3階層構造（subcategory_idがある場合）に対応
-    if (hasTreatmentId) {
-      // 4階層構造: Category → Subcategory → Treatment → Treatment Plan
-      query = `
-        SELECT 
-          tp.id,
-          tp.plan_name,
-          tp.plan_type,
-          tp.sessions,
-          tp.price,
-          tp.price_taxed,
-          tp.campaign_price,
-          tp.campaign_price_taxed,
-          tp.cost_rate,
-          tp.supply_cost,
-          tp.staff_cost,
-          tp.total_cost,
-          t.id AS treatment_id,
-          t.name AS treatment_name,
-          t.slug AS treatment_slug,
-          sc.id AS subcategory_id,
-          sc.name AS subcategory_name,
-          c.id AS category_id,
-          c.name AS category_name
-        FROM treatment_plans tp
-        JOIN treatments t ON tp.treatment_id = t.id
-        JOIN subcategories sc ON t.subcategory_id = sc.id
-        JOIN categories c ON sc.category_id = c.id
-        WHERE tp.is_active = 1
-      `;
-    } else {
-      // 3階層構造: Category → Subcategory → Treatment Plan
-      query = `
-        SELECT 
-          tp.id,
-          tp.plan_name,
-          tp.plan_type,
-          tp.sessions,
-          tp.price,
-          tp.price_taxed,
-          tp.campaign_price,
-          tp.campaign_price_taxed,
-          tp.cost_rate,
-          tp.supply_cost,
-          tp.staff_cost,
-          tp.total_cost,
-          sc.id AS treatment_id,
-          sc.name AS treatment_name,
-          sc.slug AS treatment_slug,
-          sc.id AS subcategory_id,
-          sc.name AS subcategory_name,
-          c.id AS category_id,
-          c.name AS category_name
-        FROM treatment_plans tp
-        JOIN subcategories sc ON tp.subcategory_id = sc.id
-        JOIN categories c ON sc.category_id = c.id
-        WHERE tp.is_active = 1
-      `;
-    }
-    
+    const categoryId = getSearchParam(url, 'category_id');
+    const subcategoryId = getSearchParam(url, 'subcategory_id');
+    const search = getSearchParam(url, 'search');
+    const hasTreatmentId = await hasTreatmentIdColumn(db);
+    const built = buildPricingQuery(hasTreatmentId);
+
+    query = built.query;
     params = [];
-    
-    if (categoryId && categoryId !== '' && categoryId !== 'undefined' && categoryId !== 'null') {
+
+    if (categoryId) {
       query += ' AND c.id = ?';
       params.push(categoryId);
     }
-    
-    if (subcategoryId && subcategoryId !== '' && subcategoryId !== 'undefined' && subcategoryId !== 'null') {
+
+    if (subcategoryId) {
       query += ' AND sc.id = ?';
       params.push(subcategoryId);
     }
-    
-    if (search && search !== '' && search !== 'undefined' && search !== 'null') {
-      if (hasTreatmentId) {
-        query += ' AND (t.name LIKE ? OR sc.name LIKE ? OR tp.plan_name LIKE ? OR c.name LIKE ?)';
-      } else {
-        query += ' AND (sc.name LIKE ? OR tp.plan_name LIKE ? OR c.name LIKE ?)';
-      }
+
+    if (search) {
+      query += ` AND (${built.searchFields.map(field => `${field} LIKE ?`).join(' OR ')})`;
       const searchPattern = `%${search}%`;
-      if (hasTreatmentId) {
-        params.push(searchPattern, searchPattern, searchPattern, searchPattern);
-      } else {
-        params.push(searchPattern, searchPattern, searchPattern);
-      }
+      params.push(...built.searchFields.map(() => searchPattern));
     }
+
+    query += built.orderBy;
     
-    if (hasTreatmentId) {
-      query += ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order';
-    } else {
-      query += ' ORDER BY c.sort_order, sc.sort_order, tp.sort_order';
-    }
-    
-    // クエリとパラメータをログ出力
-    const questionMarks = (query.match(/\?/g) || []).length;
-    console.log('Pricing query question marks:', questionMarks);
-    console.log('Pricing params length:', params.length);
-    console.log('Pricing query:', query);
-    console.log('Pricing params:', JSON.stringify(params));
-    
-    // queryDBの代わりに直接prepareとbindを使用
     let stmt = db.prepare(query);
     if (params.length > 0) {
       stmt = stmt.bind(...params);
@@ -158,84 +174,82 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }));
     
     const response: PricingResponse = { plans: plansWithName };
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return jsonResponse(200, response);
   } catch (error) {
     console.error('Error fetching pricing:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
     console.error('Error details:', { errorMessage, errorStack, query, params });
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: errorMessage,
       stack: errorStack
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
   }
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
   try {
+    if (!locals?.runtime?.env) {
+      return jsonResponse(500, { error: 'Database not available' });
+    }
     const db = getDB(locals.runtime.env);
-    const data = await request.json();
-    
-    // TODO: バリデーション
+    const data: PricingInput = await request.json();
+
+    const treatmentId = normalizeString(data.treatment_id);
+    const planName = normalizeString(data.plan_name);
+    const price = parseNullableNumber(data.price);
+
+    if (!treatmentId) {
+      return jsonResponse(400, { error: 'treatment_id is required' });
+    }
+    if (!planName) {
+      return jsonResponse(400, { error: 'plan_name is required' });
+    }
+    if (price === null) {
+      return jsonResponse(400, { error: 'price is required' });
+    }
+
+    const priceTaxed = parseNullableNumber(data.price_taxed) ?? Math.round(price * 1.1);
     
     const result = await db.prepare(`
       INSERT INTO treatment_plans (
-        treatment_id, plan_name, plan_type, sessions, quantity,
+        id, treatment_id, plan_name, plan_type, sessions, quantity,
         price, price_taxed, price_per_session, price_per_session_taxed,
-        cost_rate, supply_cost, staff_cost, total_cost,
+        cost_rate, supply_cost, labor_cost, total_cost,
         sort_order, is_active
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `).bind(
-      data.treatment_id,
-      data.plan_name,
-      data.plan_type || 'single',
-      data.sessions || null,
-      data.quantity || null,
-      data.price,
-      data.price_taxed || Math.round(data.price * 1.1),
-      data.price_per_session || null,
-      data.price_per_session_taxed || null,
-      data.cost_rate || null,
-      data.supply_cost || null,
-      data.staff_cost || null,
-      data.total_cost || null,
-      data.sort_order || 0
+      crypto.randomUUID(),
+      treatmentId,
+      planName,
+      normalizeString(data.plan_type) || 'single',
+      parseNullableNumber(data.sessions),
+      normalizeString(data.quantity) || null,
+      price,
+      priceTaxed,
+      parseNullableNumber(data.price_per_session),
+      parseNullableNumber(data.price_per_session_taxed),
+      parseNullableNumber(data.cost_rate),
+      parseNullableNumber(data.supply_cost),
+      parseNullableNumber(data.labor_cost),
+      parseNullableNumber(data.total_cost),
+      parseNullableNumber(data.sort_order) ?? 0
     ).run();
     
     if (!result.success) {
       throw new Error(result.error || 'Failed to create plan');
     }
     
-    return new Response(JSON.stringify({
+    return jsonResponse(201, {
       id: result.meta.last_row_id,
       success: true
-    }), {
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
   } catch (error) {
     console.error('Error creating plan:', error);
-    return new Response(JSON.stringify({
+    return jsonResponse(500, {
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
   }
 };
