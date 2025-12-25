@@ -1,0 +1,157 @@
+
+--- 2025-12-24T09:09:57.362Z debug
+🪵  Writing logs to "/Users/iguchiyuuta/Dev/ledian_clinic/.wrangler/.wrangler/logs/wrangler-2025-12-24_09-09-57_295.log"
+---
+
+--- 2025-12-24T09:09:57.362Z debug
+Metrics dispatcher: Posting data {"deviceId":"feeee171-b95e-46da-8ba6-d1d9f814192f","event":"wrangler command started","timestamp":1766567397362,"properties":{"amplitude_session_id":1766567397361,"amplitude_event_id":0,"wranglerVersion":"4.51.0","osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:56 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6041","nodeVersion":20,"isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["command","local"],"argsCombination":"command, local","command":"wrangler d1 execute","args":{}}}
+---
+
+--- 2025-12-24T09:09:57.366Z debug
+.env file not found at "/Users/iguchiyuuta/Dev/ledian_clinic/apps/internal-site/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2025-12-24T09:09:57.366Z debug
+.env file not found at "/Users/iguchiyuuta/Dev/ledian_clinic/apps/internal-site/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2025-12-24T09:09:57.383Z log
+
+ ⛅️ wrangler 4.51.0 (update available 4.56.0)
+─────────────────────────────────────────────
+---
+
+--- 2025-12-24T09:09:57.384Z log
+Resource location: local 
+
+---
+
+--- 2025-12-24T09:09:57.384Z log
+Use --remote if you want to access the remote instance.
+
+---
+
+--- 2025-12-24T09:09:57.389Z log
+🌀 Executing on local database ledian-internal-prod (bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3) from .wrangler/state/v3/d1:
+---
+
+--- 2025-12-24T09:09:57.389Z log
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+---
+
+--- 2025-12-24T09:09:57.490Z log
+🚣 1 command executed successfully.
+---
+
+--- 2025-12-24T09:09:57.490Z log
+[
+  {
+    "results": [
+      {
+        "cid": 0,
+        "name": "id",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "lower(hex(randomblob(16)))",
+        "pk": 1
+      },
+      {
+        "cid": 1,
+        "name": "subcategory_id",
+        "type": "TEXT",
+        "notnull": 1,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 2,
+        "name": "before_image_url",
+        "type": "VARCHAR(500)",
+        "notnull": 1,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 3,
+        "name": "after_image_url",
+        "type": "VARCHAR(500)",
+        "notnull": 1,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 4,
+        "name": "caption",
+        "type": "TEXT",
+        "notnull": 0,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 5,
+        "name": "patient_age",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 6,
+        "name": "patient_gender",
+        "type": "VARCHAR(10)",
+        "notnull": 0,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 7,
+        "name": "treatment_count",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 8,
+        "name": "treatment_period",
+        "type": "VARCHAR(50)",
+        "notnull": 0,
+        "dflt_value": "null",
+        "pk": 0
+      },
+      {
+        "cid": 9,
+        "name": "is_published",
+        "type": "INTEGER",
+        "notnull": 1,
+        "dflt_value": "0",
+        "pk": 0
+      },
+      {
+        "cid": 10,
+        "name": "sort_order",
+        "type": "INTEGER",
+        "notnull": 0,
+        "dflt_value": "0",
+        "pk": 0
+      },
+      {
+        "cid": 11,
+        "name": "created_at",
+        "type": "DATETIME",
+        "notnull": 1,
+        "dflt_value": "datetime('now')",
+        "pk": 0
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 0
+    }
+  }
+]
+---
+
+--- 2025-12-24T09:09:57.491Z debug
+Metrics dispatcher: Posting data {"deviceId":"feeee171-b95e-46da-8ba6-d1d9f814192f","event":"wrangler command completed","timestamp":1766567397491,"properties":{"amplitude_session_id":1766567397361,"amplitude_event_id":1,"wranglerVersion":"4.51.0","osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:56 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6041","nodeVersion":20,"isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["command","local"],"argsCombination":"command, local","command":"wrangler d1 execute","args":{},"durationMs":140,"durationSeconds":0.14,"durationMinutes":0.0023333333333333335}}
+---
