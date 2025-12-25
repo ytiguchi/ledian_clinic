@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../../../lib/db';
 
-// 発売処理（subcategories + treatment_plans にマージ）
+// 発売処理（subcategories + treatments + treatment_plans にマージ）
 export const POST: APIRoute = async ({ params, request, locals }) => {
   try {
     const db = getDB(locals.runtime.env);
@@ -31,9 +31,8 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       category_id,
       subcategory_name,
       subcategory_slug,
-      plan_name = '1回',
-      price,
-      price_taxed,
+      treatment_name,
+      plans = [],
       web_register = false,
       smaregi_product_code,
       medical_force_product_id
@@ -48,11 +47,17 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       });
     }
 
-    const finalPrice = price || launch.planned_price;
-    const finalPriceTaxed = price_taxed || launch.planned_price_taxed;
+    // launch_plans からプランを取得（渡されなかった場合）
+    let plansToCreate = plans;
+    if (plansToCreate.length === 0) {
+      const { results: launchPlans } = await db.prepare(`
+        SELECT * FROM launch_plans WHERE launch_id = ? ORDER BY sort_order, id
+      `).bind(id).all();
+      plansToCreate = launchPlans || [];
+    }
 
-    if (!finalPrice || !finalPriceTaxed) {
-      return new Response(JSON.stringify({ error: '料金が設定されていません' }), {
+    if (plansToCreate.length === 0) {
+      return new Response(JSON.stringify({ error: '料金プランが1つ以上必要です' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -76,20 +81,54 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 
     const subcategoryId = subcategoryResult.meta.last_row_id;
 
-    // 2. treatment_plans に料金プラン作成
-    await db.prepare(`
-      INSERT INTO treatment_plans (
-        subcategory_id, plan_name, plan_type, 
-        price, price_taxed, is_active
-      ) VALUES (?, ?, 'single', ?, ?, 1)
+    // 2. treatments に施術を作成
+    const finalTreatmentName = treatment_name || subcategory_name;
+    const treatmentResult = await db.prepare(`
+      INSERT INTO treatments (subcategory_id, name, slug, sort_order, is_active)
+      VALUES (?, ?, ?, 1, 1)
     `).bind(
       subcategoryId,
-      plan_name,
-      finalPrice,
-      finalPriceTaxed
+      finalTreatmentName,
+      subcategory_slug
     ).run();
 
-    // 3. product_launches を更新
+    const treatmentId = treatmentResult.meta.last_row_id;
+
+    // 3. treatment_plans に全料金プランをコピー
+    let copiedPlansCount = 0;
+    for (const plan of plansToCreate) {
+      await db.prepare(`
+        INSERT INTO treatment_plans (
+          treatment_id, plan_name, plan_type, sessions, quantity,
+          price, price_taxed, price_per_session, price_per_session_taxed,
+          supply_cost, staff_cost, total_cost, cost_rate,
+          staff_discount_rate, staff_price,
+          sort_order, is_active, is_public, is_recommended, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)
+      `).bind(
+        treatmentId,
+        plan.plan_name,
+        plan.plan_type || 'single',
+        plan.sessions || 1,
+        plan.quantity || null,
+        plan.price,
+        plan.price_taxed,
+        plan.price_per_session || null,
+        plan.price_per_session_taxed || null,
+        plan.supply_cost || 0,
+        plan.labor_cost || plan.staff_cost || 0,
+        plan.total_cost || 0,
+        plan.cost_rate || null,
+        plan.staff_discount_rate || null,
+        plan.staff_price || null,
+        plan.sort_order || copiedPlansCount,
+        plan.is_recommended || 0,
+        plan.notes || null
+      ).run();
+      copiedPlansCount++;
+    }
+
+    // 4. product_launches を更新
     const now = new Date().toISOString();
     await db.prepare(`
       UPDATE product_launches SET
@@ -119,7 +158,9 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     return new Response(JSON.stringify({ 
       success: true,
       subcategory_id: subcategoryId,
-      message: `「${launch.name}」を発売しました`
+      treatment_id: treatmentId,
+      plans_copied: copiedPlansCount,
+      message: `「${launch.name}」を発売しました（${copiedPlansCount}件のプランをコピー）`
     }), {
       headers: { 'Content-Type': 'application/json' }
     });

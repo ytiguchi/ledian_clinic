@@ -27,9 +27,14 @@ export const GET: APIRoute = async ({ params, locals }) => {
       SELECT * FROM launch_tasks WHERE launch_id = ? ORDER BY sort_order ASC
     `).bind(id).all();
 
+    const plans = await db.prepare(`
+      SELECT * FROM launch_plans WHERE launch_id = ? ORDER BY sort_order, id
+    `).bind(id).all();
+
     return new Response(JSON.stringify({
       launch,
-      tasks: tasks.results || []
+      tasks: tasks.results || [],
+      plans: plans.results || []
     }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -45,41 +50,36 @@ export const GET: APIRoute = async ({ params, locals }) => {
   }
 };
 
-// 発売予定商品更新
+// 発売予定商品更新（部分更新対応）
 export const PUT: APIRoute = async ({ params, request, locals }) => {
   try {
     const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
 
-    const {
-      name,
-      description,
-      status,
-      target_category_id,
-      target_subcategory_name,
-      planned_price,
-      planned_price_taxed,
-      price_notes,
-      protocol_document_url,
-      protocol_notes,
-      training_document_url,
-      training_video_url,
-      training_notes,
-      target_launch_date,
-      owner_name,
-      priority,
-      notes
-    } = body;
-
-    // ステータス変更時に完了日を更新
-    let pricingCompletedAt = body.pricing_completed_at;
-    let protocolCompletedAt = body.protocol_completed_at;
-    let trainingCompletedAt = body.training_completed_at;
-
-    const currentLaunch = await db.prepare('SELECT status FROM product_launches WHERE id = ?').bind(id).first() as any;
+    // 現在のデータを取得
+    const currentLaunch = await db.prepare('SELECT * FROM product_launches WHERE id = ?').bind(id).first() as any;
     
-    if (currentLaunch && status !== currentLaunch.status) {
+    if (!currentLaunch) {
+      return new Response(JSON.stringify({ error: 'Not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 部分更新：渡されたフィールドのみ更新、undefined は現在の値を維持
+    const getValue = (key: string, defaultValue: any = null) => {
+      return body[key] !== undefined ? (body[key] || defaultValue) : currentLaunch[key];
+    };
+
+    const status = getValue('status');
+    
+    // ステータス変更時に完了日を更新
+    let pricingCompletedAt = getValue('pricing_completed_at');
+    let protocolCompletedAt = getValue('protocol_completed_at');
+    let trainingCompletedAt = getValue('training_completed_at');
+
+    if (status !== currentLaunch.status) {
       const now = new Date().toISOString();
       if (status === 'protocol' && !pricingCompletedAt) pricingCompletedAt = now;
       if (status === 'training' && !protocolCompletedAt) protocolCompletedAt = now;
@@ -111,26 +111,26 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
-      name,
-      description || null,
+      getValue('name'),
+      getValue('description'),
       status,
-      target_category_id || null,
-      target_subcategory_name || null,
-      planned_price || null,
-      planned_price_taxed || null,
-      price_notes || null,
-      pricingCompletedAt || null,
-      protocol_document_url || null,
-      protocol_notes || null,
-      protocolCompletedAt || null,
-      training_document_url || null,
-      training_video_url || null,
-      training_notes || null,
-      trainingCompletedAt || null,
-      target_launch_date || null,
-      owner_name || null,
-      priority || 0,
-      notes || null,
+      getValue('target_category_id'),
+      getValue('target_subcategory_name'),
+      getValue('planned_price'),
+      getValue('planned_price_taxed'),
+      getValue('price_notes'),
+      pricingCompletedAt,
+      getValue('protocol_document_url'),
+      getValue('protocol_notes'),
+      protocolCompletedAt,
+      getValue('training_document_url'),
+      getValue('training_video_url'),
+      getValue('training_notes'),
+      trainingCompletedAt,
+      getValue('target_launch_date'),
+      getValue('owner_name'),
+      getValue('priority', 0),
+      getValue('notes'),
       id
     ).run();
 

@@ -29,9 +29,9 @@ import Layout from '../../components/Layout.astro';
           </select>
         </div>
         <div class="filter-item">
-          <label class="label">施術</label>
+          <label class="label">サブカテゴリ</label>
           <select class="select" id="treatmentFilter">
-            <option value="">すべての施術</option>
+            <option value="">すべてのサブカテゴリ</option>
           </select>
         </div>
         <div class="filter-item">
@@ -256,11 +256,18 @@ import Layout from '../../components/Layout.astro';
 <script>
   interface BeforeAfter {
     id: string;
-    treatment_id: string;
-    treatment_name: string;
+    subcategory_id: string;
+    subcategory_name: string;
+    category_id: string;
+    category_name: string;
     before_image_url: string;
     after_image_url: string;
     caption: string | null;
+    treatment_content: string | null;
+    treatment_duration: string | null;
+    treatment_cost: number | null;
+    treatment_cost_text: string | null;
+    risks: string | null;
     patient_age: number | null;
     patient_gender: string | null;
     treatment_count: number | null;
@@ -272,8 +279,9 @@ import Layout from '../../components/Layout.astro';
 
   let beforeAfters: BeforeAfter[] = [];
   let categories: Array<{ id: string; name: string }> = [];
+  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
   let selectedCategoryId = '';
-  let selectedTreatmentId = '';
+  let selectedSubcategoryId = '';
   let selectedPublished: string = '';
 
   async function loadCategories() {
@@ -292,17 +300,27 @@ import Layout from '../../components/Layout.astro';
     }
   }
 
-  async function loadTreatments(categoryId: string) {
-    const select = document.getElementById('treatmentFilter') as HTMLSelectElement;
-    if (select) {
-      select.innerHTML = '<option value="">すべての施術</option>';
+  async function loadSubcategories(categoryId: string) {
+    try {
+      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
+      const data = await res.json();
+      subcategories = data.subcategories || [];
+      
+      const select = document.getElementById('treatmentFilter') as HTMLSelectElement;
+      if (select) {
+        select.innerHTML = '<option value="">すべてのサブカテゴリ</option>' +
+          subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
+      }
+    } catch (error) {
+      console.error('サブカテゴリ読み込みエラー:', error);
     }
   }
 
   async function loadBeforeAfters() {
     try {
       const params = new URLSearchParams();
-      if (selectedTreatmentId) params.append('treatment_id', selectedTreatmentId);
+      if (selectedCategoryId) params.append('category_id', selectedCategoryId);
+      if (selectedSubcategoryId) params.append('subcategory_id', selectedSubcategoryId);
       if (selectedPublished === 'published') params.append('is_published', '1');
       if (selectedPublished === 'unpublished') params.append('is_published', '0');
 
@@ -357,12 +375,16 @@ import Layout from '../../components/Layout.astro';
         </div>
         <div class="card-content">
           <div class="card-header">
-            <h3 class="treatment-name">${escapeHtml(item.treatment_name)}</h3>
+            <div>
+              <h3 class="treatment-name">${escapeHtml(item.category_name)} - ${escapeHtml(item.subcategory_name)}</h3>
+              ${item.treatment_cost_text ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(item.treatment_cost_text)}</p>` : ''}
+            </div>
             <span class="badge ${item.is_published === 1 ? 'badge-success' : 'badge-neutral'}">
               ${item.is_published === 1 ? '公開' : '非公開'}
             </span>
           </div>
           ${item.caption ? `<p class="card-caption">${escapeHtml(item.caption)}</p>` : ''}
+          ${item.treatment_content ? `<p class="card-caption text-sm">${escapeHtml(item.treatment_content.substring(0, 100))}${item.treatment_content.length > 100 ? '...' : ''}</p>` : ''}
           <div class="card-meta">
             ${item.treatment_count ? `<span class="meta-tag">🔄 ${item.treatment_count}回</span>` : ''}
             ${item.treatment_period ? `<span class="meta-tag">📅 ${item.treatment_period}</span>` : ''}
@@ -424,14 +446,20 @@ import Layout from '../../components/Layout.astro';
 
     categoryFilter?.addEventListener('change', () => {
       selectedCategoryId = categoryFilter.value;
+      selectedSubcategoryId = '';
       if (selectedCategoryId) {
-        loadTreatments(selectedCategoryId);
+        loadSubcategories(selectedCategoryId);
+      } else {
+        const treatmentFilter = document.getElementById('treatmentFilter') as HTMLSelectElement;
+        if (treatmentFilter) {
+          treatmentFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+        }
       }
       loadBeforeAfters();
     });
 
     treatmentFilter?.addEventListener('change', () => {
-      selectedTreatmentId = treatmentFilter.value;
+      selectedSubcategoryId = treatmentFilter.value;
       loadBeforeAfters();
     });
 

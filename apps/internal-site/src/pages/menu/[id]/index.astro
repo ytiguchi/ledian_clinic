@@ -387,6 +387,30 @@ import Layout from '../../../components/Layout.astro';
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
   }
 
+  .treatment-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .edit-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    background: #f8fafc;
+    color: #667eea;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all var(--transition-fast);
+  }
+
+  .edit-link:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
   .plan-list {
     display: grid;
     gap: 0;
@@ -1365,7 +1389,10 @@ import Layout from '../../../components/Layout.astro';
             <h3 class="treatment-name">${escapeHtml(treatment.name)}</h3>
             ${treatment.description ? `<p class="treatment-desc">${escapeHtml(treatment.description)}</p>` : ''}
           </div>
-          <span class="plan-count">${treatment.plans.length} プラン</span>
+          <div class="treatment-actions">
+            <a href="/treatments/${treatment.id}/edit" class="edit-link" title="詳細編集">✏️ 編集</a>
+            <span class="plan-count">${treatment.plans.length} プラン</span>
+          </div>
         </div>
         <div class="plan-list">
           ${treatment.plans.length > 0 ? treatment.plans.map(plan => `

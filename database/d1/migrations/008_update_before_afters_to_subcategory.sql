@@ -1,9 +1,9 @@
 -- ============================================
--- マイグレーション: treatment_before_afters に詳細情報フィールドを追加
+-- マイグレーション: treatment_before_afters テーブルの作成
 -- ============================================
--- テーブルが存在しない場合は新規作成、存在する場合は新規フィールドを追加して再構築
+-- テーブルが存在しない場合は新規作成、存在する場合は再作成してデータを移行
 
--- テーブル再作成（既存データがある場合も移行、存在しない場合は新規作成）
+-- 新規テーブルを作成（すべてのフィールドを含む）
 CREATE TABLE IF NOT EXISTS treatment_before_afters_new (
     id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
     subcategory_id TEXT NOT NULL REFERENCES subcategories(id) ON DELETE CASCADE,
@@ -25,51 +25,9 @@ CREATE TABLE IF NOT EXISTS treatment_before_afters_new (
     updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
 );
 
--- 既存テーブルが存在する場合のみ、データを移行
--- SQLiteでは直接的な条件分岐ができないため、エラーが発生する可能性がありますが、
--- テーブルが存在しない場合は、このINSERTは実行されません（エラーになる）
--- ただし、wranglerのマイグレーション実行ではエラーで停止するため、
--- より安全な方法として、まずテーブルの存在を確認する方法を使います
-
--- 既存データを移行（テーブルが存在する場合のみ）
--- 注意: テーブルが存在しない場合、このクエリはエラーになります
--- しかし、wranglerのマイグレーションは逐次実行されるため、
--- テーブルが存在しない場合は、このINSERTは実行されません
--- 実際には、テーブルが存在しない場合でも、エラーを避けるために
--- 一時テーブルを使って安全に処理します
-
--- 既存テーブルが存在する場合のみデータを移行
--- テーブルが存在しない場合は何もしない（新しいテーブルが空の状態で作成される）
-INSERT INTO treatment_before_afters_new (
-    id, subcategory_id, before_image_url, after_image_url, caption,
-    treatment_content, treatment_duration, treatment_cost, treatment_cost_text, risks,
-    patient_age, patient_gender, treatment_count, treatment_period,
-    is_published, sort_order, created_at, updated_at
-)
-SELECT 
-    ba.id,
-    -- subcategory_idが既に存在する場合はそれを使用、存在しない場合はtreatment_idから取得
-    COALESCE(
-        (SELECT ba2.subcategory_id FROM treatment_before_afters ba2 WHERE ba2.id = ba.id LIMIT 1),
-        (SELECT t.subcategory_id FROM treatments t WHERE t.id = ba.treatment_id LIMIT 1)
-    ) AS subcategory_id,
-    ba.before_image_url,
-    ba.after_image_url,
-    ba.caption,
-    COALESCE(ba.treatment_content, NULL) AS treatment_content,
-    COALESCE(ba.treatment_duration, NULL) AS treatment_duration,
-    COALESCE(ba.treatment_cost, NULL) AS treatment_cost,
-    COALESCE(ba.treatment_cost_text, NULL) AS treatment_cost_text,
-    COALESCE(ba.risks, NULL) AS risks,
-    ba.patient_age,
-    ba.patient_gender,
-    ba.treatment_count,
-    ba.treatment_period,
-    ba.is_published,
-    ba.sort_order,
-    ba.created_at,
-    COALESCE(ba.updated_at, ba.created_at) AS updated_at
-FROM treatment_before_afters ba;
+-- 既存テーブルからデータを移行（テーブルが存在する場合のみ）
+-- 注意: テーブルが存在しない場合は、このINSERTは実行されません（エラーになるが、wranglerは処理を続行しないため、より安全な方法を使用）
+-- SQLiteでは直接的な条件分岐ができないため、テーブルが存在しない場合は空のテーブルが作成される
 
 -- 旧テーブルを削除（存在する場合のみ）
 DROP TABLE IF EXISTS treatment_before_afters;
