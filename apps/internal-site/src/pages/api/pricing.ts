@@ -5,7 +5,7 @@ import type { PricePlan, PricingResponse } from '../../types/api';
 export const prerender = false;
 
 type PricingInput = {
-  treatment_id?: unknown;
+  subcategory_id?: unknown;
   plan_name?: unknown;
   plan_type?: unknown;
   sessions?: unknown;
@@ -16,7 +16,7 @@ type PricingInput = {
   price_per_session_taxed?: unknown;
   cost_rate?: unknown;
   supply_cost?: unknown;
-  labor_cost?: unknown;
+  staff_cost?: unknown;
   total_cost?: unknown;
   sort_order?: unknown;
 };
@@ -59,11 +59,8 @@ const buildPricingQuery = (hasTreatmentId: boolean) => {
     'tp.price_per_session_taxed',
     'tp.cost_rate',
     'tp.supply_cost',
-    'tp.labor_cost',
+    'tp.staff_cost',
     'tp.total_cost',
-    'tp.staff_discount_rate',
-    'tp.staff_price',
-    'tp.old_price',
     'tp.notes',
     hasTreatmentId ? 't.id AS treatment_id' : 'sc.id AS treatment_id',
     hasTreatmentId ? 't.name AS treatment_name' : 'sc.name AS treatment_name',
@@ -71,7 +68,6 @@ const buildPricingQuery = (hasTreatmentId: boolean) => {
     hasTreatmentId ? 't.description AS treatment_description' : 'NULL AS treatment_description',
     'sc.id AS subcategory_id',
     'sc.name AS subcategory_name',
-    'sc.device_name AS device_name',
     'c.id AS category_id',
     'c.name AS category_name',
   ].join(',\n          ');
@@ -196,12 +192,12 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const db = getDB(locals.runtime.env);
     const data: PricingInput = await request.json();
 
-    const treatmentId = normalizeString(data.treatment_id);
+    const subcategoryId = normalizeString(data.subcategory_id);
     const planName = normalizeString(data.plan_name);
     const price = parseNullableNumber(data.price);
 
-    if (!treatmentId) {
-      return jsonResponse(400, { error: 'treatment_id is required' });
+    if (!subcategoryId) {
+      return jsonResponse(400, { error: 'subcategory_id is required' });
     }
     if (!planName) {
       return jsonResponse(400, { error: 'plan_name is required' });
@@ -214,14 +210,14 @@ export const POST: APIRoute = async ({ locals, request }) => {
     
     const result = await db.prepare(`
       INSERT INTO treatment_plans (
-        id, treatment_id, plan_name, plan_type, sessions, quantity,
+        id, subcategory_id, plan_name, plan_type, sessions, quantity,
         price, price_taxed, price_per_session, price_per_session_taxed,
-        cost_rate, supply_cost, labor_cost, total_cost,
+        cost_rate, supply_cost, staff_cost, total_cost,
         sort_order, is_active
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `).bind(
       crypto.randomUUID(),
-      treatmentId,
+      subcategoryId,
       planName,
       normalizeString(data.plan_type) || 'single',
       parseNullableNumber(data.sessions),
@@ -232,7 +228,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
       parseNullableNumber(data.price_per_session_taxed),
       parseNullableNumber(data.cost_rate),
       parseNullableNumber(data.supply_cost),
-      parseNullableNumber(data.labor_cost),
+      parseNullableNumber(data.staff_cost),
       parseNullableNumber(data.total_cost),
       parseNullableNumber(data.sort_order) ?? 0
     ).run();
