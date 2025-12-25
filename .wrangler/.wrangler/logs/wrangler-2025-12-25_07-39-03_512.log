@@ -1,0 +1,97 @@
+
+--- 2025-12-25T07:39:03.580Z debug
+🪵  Writing logs to "/Users/iguchiyuuta/Dev/ledian_clinic/.wrangler/.wrangler/logs/wrangler-2025-12-25_07-39-03_512.log"
+---
+
+--- 2025-12-25T07:39:03.580Z debug
+Metrics dispatcher: Posting data {"deviceId":"feeee171-b95e-46da-8ba6-d1d9f814192f","event":"wrangler command started","timestamp":1766648343580,"properties":{"amplitude_session_id":1766648343580,"amplitude_event_id":0,"wranglerVersion":"4.51.0","osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:56 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6041","nodeVersion":20,"isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["command","config","local"],"argsCombination":"command, config, local","command":"wrangler d1 execute","args":{}}}
+---
+
+--- 2025-12-25T07:39:03.584Z debug
+.env file not found at "/Users/iguchiyuuta/Dev/ledian_clinic/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2025-12-25T07:39:03.584Z debug
+.env file not found at "/Users/iguchiyuuta/Dev/ledian_clinic/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2025-12-25T07:39:03.603Z log
+
+ ⛅️ wrangler 4.51.0 (update available 4.54.0)
+─────────────────────────────────────────────
+---
+
+--- 2025-12-25T07:39:03.603Z log
+Resource location: local 
+
+---
+
+--- 2025-12-25T07:39:03.603Z log
+Use --remote if you want to access the remote instance.
+
+---
+
+--- 2025-12-25T07:39:03.609Z log
+🌀 Executing on local database ledian-internal-prod (bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3) from .wrangler/state/v3/d1:
+---
+
+--- 2025-12-25T07:39:03.609Z log
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+---
+
+--- 2025-12-25T07:39:03.820Z log
+🚣 1 command executed successfully.
+---
+
+--- 2025-12-25T07:39:03.820Z log
+[
+  {
+    "results": [
+      {
+        "name": "001_init.sql",
+        "applied_at": "2025-12-24 08:04:29"
+      },
+      {
+        "name": "002_add_before_afters.sql",
+        "applied_at": "2025-12-24 08:04:29"
+      },
+      {
+        "name": "003_add_campaigns.sql",
+        "applied_at": "2025-12-24 08:04:29"
+      },
+      {
+        "name": "004_add_treatment_details.sql",
+        "applied_at": "2025-12-24 08:04:29"
+      },
+      {
+        "name": "005_restructure_to_subcategory_based.sql",
+        "applied_at": "2025-12-24 08:04:29"
+      },
+      {
+        "name": "006_finalize_subcategory_structure.sql",
+        "applied_at": "2025-12-24 08:04:30"
+      },
+      {
+        "name": "007_update_treatment_details_to_subcategory.sql",
+        "applied_at": "2025-12-24 08:04:30"
+      },
+      {
+        "name": "008_restructure_to_4_tier.sql",
+        "applied_at": "2025-12-24 08:05:24"
+      },
+      {
+        "name": "009_seed_4_tier_data.sql",
+        "applied_at": "2025-12-24 08:05:24"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 1
+    }
+  }
+]
+---
+
+--- 2025-12-25T07:39:03.821Z debug
+Metrics dispatcher: Posting data {"deviceId":"feeee171-b95e-46da-8ba6-d1d9f814192f","event":"wrangler command completed","timestamp":1766648343821,"properties":{"amplitude_session_id":1766648343580,"amplitude_event_id":1,"wranglerVersion":"4.51.0","osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:56 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6041","nodeVersion":20,"isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["command","config","local"],"argsCombination":"command, config, local","command":"wrangler d1 execute","args":{},"durationMs":253,"durationSeconds":0.253,"durationMinutes":0.004216666666666666}}
+---

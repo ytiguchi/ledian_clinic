@@ -376,6 +376,73 @@ export const prerender = false;
     ? pathParts[pathParts.length - 2] 
     : pathParts[pathParts.length - 1];
 
+  const getInput = (id: string) =>
+    document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+
+  const setInputValue = (id: string, value: string | number | null | undefined) => {
+    const el = getInput(id);
+    if (el) el.value = value === null || value === undefined ? '' : String(value);
+  };
+
+  const getInputValue = (id: string) => getInput(id)?.value ?? '';
+
+  const setChecked = (id: string, checked: boolean) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.checked = checked;
+  };
+
+  const setText = (id: string, value: string | null | undefined) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? '';
+  };
+
+  const getIntValue = (id: string, fallback: number | null = null) => {
+    const raw = getInputValue(id);
+    if (!raw) return fallback;
+    const parsed = parseInt(raw, 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  };
+
+  const fetchJson = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+    return res.json();
+  };
+
+  const postJson = (url: string, body: unknown) =>
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+  const loadList = async (
+    url: string,
+    key: string,
+    render: (items: any[]) => void,
+    label: string
+  ) => {
+    try {
+      const data = await fetchJson(url);
+      render(data[key] || []);
+    } catch (error) {
+      console.error(`${label}読み込みエラー:`, error);
+    }
+  };
+
+  const setEmptyState = (container: HTMLElement | null, message: string) => {
+    if (!container) return;
+    container.innerHTML = `<p class="text-sm text-gray-500">${message}</p>`;
+  };
+
+  const tagTypes = ['concern', 'effect', 'body_part', 'feature'] as const;
+  const tagTypeLabels: Record<string, string> = {
+    concern: 'お悩み',
+    effect: '効果',
+    body_part: '施術部位',
+    feature: '特徴',
+  };
+
   // データ読み込み
   async function loadData() {
     try {
@@ -383,24 +450,23 @@ export const prerender = false;
       const form = document.getElementById('treatmentDetailsForm');
       
       // 施術基本情報を読み込み
-      const treatmentRes = await fetch(`/api/treatments/${treatmentId}`);
-      if (!treatmentRes.ok) throw new Error('施術情報の取得に失敗しました');
-      const treatmentData = await treatmentRes.json();
+      const treatmentData = await fetchJson(`/api/treatments/${treatmentId}`);
       const treatment = treatmentData.treatment;
       
       // 基本情報を表示
-      document.getElementById('treatmentName')!.textContent = treatment.name;
-      document.getElementById('treatmentCategory')!.textContent = treatment.category_name;
-      document.getElementById('treatmentSubcategory')!.textContent = treatment.subcategory_name;
-      document.getElementById('treatmentId')!.setAttribute('data-id', treatment.id);
+      setText('treatmentName', treatment.name);
+      setText('treatmentCategory', treatment.category_name);
+      setText('treatmentSubcategory', treatment.subcategory_name);
+      document.getElementById('treatmentId')?.setAttribute('data-id', treatment.id);
       
       // 詳細情報を読み込み
-      const detailsRes = await fetch(`/api/treatments/${treatmentId}/details`);
-      if (detailsRes.ok) {
-        const detailsData = await detailsRes.json();
+      try {
+        const detailsData = await fetchJson(`/api/treatments/${treatmentId}/details`);
         if (detailsData.details) {
           populateDetailsForm(detailsData.details);
         }
+      } catch (error) {
+        console.warn('詳細情報読み込みをスキップ:', error);
       }
       
       // フロー、注意事項、FAQ、タグを読み込み
@@ -424,85 +490,74 @@ export const prerender = false;
   }
 
   function populateDetailsForm(details: any) {
-    (document.getElementById('tagline') as HTMLInputElement).value = details.tagline || '';
-    (document.getElementById('taglineEn') as HTMLInputElement).value = details.tagline_en || '';
-    (document.getElementById('summary') as HTMLTextAreaElement).value = details.summary || '';
-    (document.getElementById('description') as HTMLTextAreaElement).value = details.description || '';
-    (document.getElementById('durationMin') as HTMLInputElement).value = details.duration_min || '';
-    (document.getElementById('durationMax') as HTMLInputElement).value = details.duration_max || '';
-    (document.getElementById('durationText') as HTMLInputElement).value = details.duration_text || '';
-    (document.getElementById('downtimeDays') as HTMLInputElement).value = details.downtime_days || '0';
-    (document.getElementById('downtimeText') as HTMLInputElement).value = details.downtime_text || '';
-    (document.getElementById('painLevel') as HTMLSelectElement).value = details.pain_level || '';
-    (document.getElementById('effectDurationMonths') as HTMLInputElement).value = details.effect_duration_months || '';
-    (document.getElementById('effectDurationText') as HTMLInputElement).value = details.effect_duration_text || '';
-    (document.getElementById('recommendedSessions') as HTMLInputElement).value = details.recommended_sessions || '';
-    (document.getElementById('sessionIntervalWeeks') as HTMLInputElement).value = details.session_interval_weeks || '';
-    (document.getElementById('sessionIntervalText') as HTMLInputElement).value = details.session_interval_text || '';
-    (document.getElementById('popularityRank') as HTMLInputElement).value = details.popularity_rank || '';
-    (document.getElementById('isFeatured') as HTMLInputElement).checked = details.is_featured;
-    (document.getElementById('isNew') as HTMLInputElement).checked = details.is_new;
-    (document.getElementById('heroImageUrl') as HTMLInputElement).value = details.hero_image_url || '';
-    (document.getElementById('thumbnailUrl') as HTMLInputElement).value = details.thumbnail_url || '';
-    (document.getElementById('videoUrl') as HTMLInputElement).value = details.video_url || '';
-    (document.getElementById('metaTitle') as HTMLInputElement).value = details.meta_title || '';
-    (document.getElementById('metaDescription') as HTMLTextAreaElement).value = details.meta_description || '';
+    const valueMap = [
+      ['tagline', details.tagline],
+      ['taglineEn', details.tagline_en],
+      ['summary', details.summary],
+      ['description', details.description],
+      ['durationMin', details.duration_min],
+      ['durationMax', details.duration_max],
+      ['durationText', details.duration_text],
+      ['downtimeDays', details.downtime_days ?? 0],
+      ['downtimeText', details.downtime_text],
+      ['painLevel', details.pain_level],
+      ['effectDurationMonths', details.effect_duration_months],
+      ['effectDurationText', details.effect_duration_text],
+      ['recommendedSessions', details.recommended_sessions],
+      ['sessionIntervalWeeks', details.session_interval_weeks],
+      ['sessionIntervalText', details.session_interval_text],
+      ['popularityRank', details.popularity_rank],
+      ['heroImageUrl', details.hero_image_url],
+      ['thumbnailUrl', details.thumbnail_url],
+      ['videoUrl', details.video_url],
+      ['metaTitle', details.meta_title],
+      ['metaDescription', details.meta_description],
+    ] as const;
+    valueMap.forEach(([id, value]) => setInputValue(id, value));
+    setChecked('isFeatured', Boolean(details.is_featured));
+    setChecked('isNew', Boolean(details.is_new));
   }
 
   async function loadFlows() {
-    try {
-      const res = await fetch(`/api/treatments/${treatmentId}/flows`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const flows = data.flows || [];
-      renderFlows(flows);
-    } catch (error) {
-      console.error('フロー読み込みエラー:', error);
-    }
+    await loadList(
+      `/api/treatments/${treatmentId}/flows`,
+      'flows',
+      renderFlows,
+      'フロー'
+    );
   }
 
   async function loadCautions() {
-    try {
-      const res = await fetch(`/api/treatments/${treatmentId}/cautions`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const cautions = data.cautions || [];
-      renderCautions(cautions);
-    } catch (error) {
-      console.error('注意事項読み込みエラー:', error);
-    }
+    await loadList(
+      `/api/treatments/${treatmentId}/cautions`,
+      'cautions',
+      renderCautions,
+      '注意事項'
+    );
   }
 
   async function loadFaqs() {
-    try {
-      const res = await fetch(`/api/treatments/${treatmentId}/faqs`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const faqs = data.faqs || [];
-      renderFaqs(faqs);
-    } catch (error) {
-      console.error('FAQ読み込みエラー:', error);
-    }
+    await loadList(
+      `/api/treatments/${treatmentId}/faqs`,
+      'faqs',
+      renderFaqs,
+      'FAQ'
+    );
   }
 
   async function loadTags() {
-    try {
-      const res = await fetch(`/api/treatments/${treatmentId}/tags`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const treatmentTags = data.tags || [];
-      renderTreatmentTags(treatmentTags);
-    } catch (error) {
-      console.error('タグ読み込みエラー:', error);
-    }
+    await loadList(
+      `/api/treatments/${treatmentId}/tags`,
+      'tags',
+      renderTreatmentTags,
+      'タグ'
+    );
   }
 
   let tagMasters: any[] = [];
   async function loadTagMasters() {
     try {
-      const res = await fetch('/api/tags');
-      if (!res.ok) return;
-      const data = await res.json();
+      const data = await fetchJson('/api/tags');
       tagMasters = data.tags || [];
       renderTagMasters();
     } catch (error) {
@@ -521,7 +576,7 @@ export const prerender = false;
     if (!container) return;
     
     if (flows.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-500">ステップを追加してください</p>';
+      setEmptyState(container, 'ステップを追加してください');
       return;
     }
     
@@ -592,7 +647,7 @@ export const prerender = false;
     if (!container) return;
     
     if (cautionsList.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-500">注意事項を追加してください</p>';
+      setEmptyState(container, '注意事項を追加してください');
       return;
     }
     
@@ -647,7 +702,7 @@ export const prerender = false;
     if (!container) return;
     
     if (faqsList.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-500">FAQを追加してください</p>';
+      setEmptyState(container, 'FAQを追加してください');
       return;
     }
     
@@ -712,21 +767,13 @@ export const prerender = false;
   }
 
   function renderTagMasters() {
-    const types = ['concern', 'effect', 'body_part', 'feature'];
-    const typeLabels: Record<string, string> = {
-      concern: 'お悩み',
-      effect: '効果',
-      body_part: '施術部位',
-      feature: '特徴'
-    };
-    
-    types.forEach(type => {
+    tagTypes.forEach(type => {
       const container = document.getElementById(`${type}Tags`);
       if (!container) return;
       
       const tags = tagMasters.filter(t => t.tag_type === type);
       if (tags.length === 0) {
-        container.innerHTML = '<p class="text-sm text-gray-500">タグが登録されていません</p>';
+        setEmptyState(container, 'タグが登録されていません');
         return;
       }
       
@@ -845,65 +892,45 @@ export const prerender = false;
       try {
         // 詳細情報を保存
         const detailsData = {
-          tagline: (document.getElementById('tagline') as HTMLInputElement).value,
-          tagline_en: (document.getElementById('taglineEn') as HTMLInputElement).value,
-          summary: (document.getElementById('summary') as HTMLTextAreaElement).value,
-          description: (document.getElementById('description') as HTMLTextAreaElement).value,
-          duration_min: parseInt((document.getElementById('durationMin') as HTMLInputElement).value) || null,
-          duration_max: parseInt((document.getElementById('durationMax') as HTMLInputElement).value) || null,
-          duration_text: (document.getElementById('durationText') as HTMLInputElement).value,
-          downtime_days: parseInt((document.getElementById('downtimeDays') as HTMLInputElement).value) || 0,
-          downtime_text: (document.getElementById('downtimeText') as HTMLInputElement).value,
-          pain_level: parseInt((document.getElementById('painLevel') as HTMLSelectElement).value) || null,
-          effect_duration_months: parseInt((document.getElementById('effectDurationMonths') as HTMLInputElement).value) || null,
-          effect_duration_text: (document.getElementById('effectDurationText') as HTMLInputElement).value,
-          recommended_sessions: parseInt((document.getElementById('recommendedSessions') as HTMLInputElement).value) || null,
-          session_interval_weeks: parseInt((document.getElementById('sessionIntervalWeeks') as HTMLInputElement).value) || null,
-          session_interval_text: (document.getElementById('sessionIntervalText') as HTMLInputElement).value,
-          popularity_rank: parseInt((document.getElementById('popularityRank') as HTMLInputElement).value) || null,
+          tagline: getInputValue('tagline'),
+          tagline_en: getInputValue('taglineEn'),
+          summary: getInputValue('summary'),
+          description: getInputValue('description'),
+          duration_min: getIntValue('durationMin'),
+          duration_max: getIntValue('durationMax'),
+          duration_text: getInputValue('durationText'),
+          downtime_days: getIntValue('downtimeDays', 0),
+          downtime_text: getInputValue('downtimeText'),
+          pain_level: getIntValue('painLevel'),
+          effect_duration_months: getIntValue('effectDurationMonths'),
+          effect_duration_text: getInputValue('effectDurationText'),
+          recommended_sessions: getIntValue('recommendedSessions'),
+          session_interval_weeks: getIntValue('sessionIntervalWeeks'),
+          session_interval_text: getInputValue('sessionIntervalText'),
+          popularity_rank: getIntValue('popularityRank'),
           is_featured: (document.getElementById('isFeatured') as HTMLInputElement).checked,
           is_new: (document.getElementById('isNew') as HTMLInputElement).checked,
-          hero_image_url: (document.getElementById('heroImageUrl') as HTMLInputElement).value,
-          thumbnail_url: (document.getElementById('thumbnailUrl') as HTMLInputElement).value,
-          video_url: (document.getElementById('videoUrl') as HTMLInputElement).value,
-          meta_title: (document.getElementById('metaTitle') as HTMLInputElement).value,
-          meta_description: (document.getElementById('metaDescription') as HTMLTextAreaElement).value,
+          hero_image_url: getInputValue('heroImageUrl'),
+          thumbnail_url: getInputValue('thumbnailUrl'),
+          video_url: getInputValue('videoUrl'),
+          meta_title: getInputValue('metaTitle'),
+          meta_description: getInputValue('metaDescription'),
         };
         
-        await fetch(`/api/treatments/${id}/details`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(detailsData)
-        });
+        await postJson(`/api/treatments/${id}/details`, detailsData);
         
         // フロー、注意事項、FAQ、タグを保存
         await Promise.all([
-          fetch(`/api/treatments/${id}/flows`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ flows: flowSteps })
+          postJson(`/api/treatments/${id}/flows`, { flows: flowSteps }),
+          postJson(`/api/treatments/${id}/cautions`, { cautions }),
+          postJson(`/api/treatments/${id}/faqs`, { faqs }),
+          postJson(`/api/treatments/${id}/tags`, {
+            tags: Array.from(selectedTagIds).map((tagId, index) => ({
+              tag_id: tagId,
+              is_primary: false,
+              sort_order: index,
+            })),
           }),
-          fetch(`/api/treatments/${id}/cautions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cautions })
-          }),
-          fetch(`/api/treatments/${id}/faqs`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ faqs })
-          }),
-          fetch(`/api/treatments/${id}/tags`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              tags: Array.from(selectedTagIds).map((tagId, index) => ({
-                tag_id: tagId,
-                is_primary: false,
-                sort_order: index
-              }))
-            })
-          })
         ]);
         
         alert('保存しました');
@@ -923,4 +950,3 @@ export const prerender = false;
     loadData();
   });
 </script>
-

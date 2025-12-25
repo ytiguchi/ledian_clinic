@@ -111,6 +111,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
           supply_cost = ?,
           staff_cost = ?,
           total_cost = ?,
+          notes = ?,
           updated_at = datetime('now')
         WHERE id = ?
       `,
@@ -128,6 +129,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         data.supply_cost || null,
         data.staff_cost || null,
         data.total_cost || null,
+        data.notes || null,
         id
       ]
     );

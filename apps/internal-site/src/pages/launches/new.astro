@@ -6,27 +6,64 @@ import Layout from '../../components/Layout.astro';
   <div class="new-launch-page">
     <!-- Page Header -->
     <div class="page-header">
-      <div>
-        <a href="/launches" class="back-link">← 発売予定商品一覧</a>
-        <h1 class="page-title">新規商品登録</h1>
+      <div class="header-left">
+        <a href="/launches" class="back-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          一覧に戻る
+        </a>
+        <h1 class="page-title">
+          <span class="title-icon">🚀</span>
+          新規商品を登録
+        </h1>
+        <p class="page-subtitle">基本情報を入力して登録後、料金プランやタスクを追加できます</p>
+      </div>
+    </div>
+
+    <!-- Steps Guide -->
+    <div class="steps-guide">
+      <div class="step active">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <span class="step-title">基本情報を登録</span>
+          <span class="step-desc">商品名・カテゴリ・担当者</span>
+        </div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <span class="step-title">料金プランを追加</span>
+          <span class="step-desc">1回・コース等</span>
+        </div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <span class="step-title">発売処理</span>
+          <span class="step-desc">施術一覧にマージ</span>
+        </div>
       </div>
     </div>
 
     <!-- Form -->
     <form id="launchForm" class="form-container">
       <div class="form-section">
-        <h2 class="section-title">基本情報</h2>
+        <h2 class="section-title">📦 商品情報</h2>
         
         <div class="form-grid">
           <div class="form-group full-width">
             <label class="label required">商品名</label>
             <input type="text" name="name" class="input" placeholder="例: クマ取り（経結膜脱脂）" required>
+            <span class="input-hint">発売後、サブカテゴリ名として使用されます</span>
           </div>
 
           <div class="form-group full-width">
             <label class="label">説明</label>
-            <textarea name="description" class="textarea" rows="3" 
-              placeholder="商品の概要や特徴を入力"></textarea>
+            <textarea name="description" class="textarea" rows="2" 
+              placeholder="商品の概要（任意）"></textarea>
           </div>
 
           <div class="form-group">
@@ -34,56 +71,29 @@ import Layout from '../../components/Layout.astro';
             <select name="target_category_id" class="select" id="categorySelect">
               <option value="">選択してください</option>
             </select>
+            <span class="input-hint">発売時に選択し直せます</span>
           </div>
 
           <div class="form-group">
             <label class="label">サブカテゴリ名</label>
             <input type="text" name="target_subcategory_name" class="input" 
-              placeholder="例: クマ取り">
+              placeholder="商品名と同じなら空欄でOK">
           </div>
         </div>
       </div>
 
       <div class="form-section">
-        <h2 class="section-title">料金情報（予定）</h2>
+        <h2 class="section-title">👤 担当・スケジュール</h2>
         
         <div class="form-grid">
-          <div class="form-group">
-            <label class="label">予定価格（税抜）</label>
-            <div class="input-group">
-              <span class="input-prefix">¥</span>
-              <input type="number" name="planned_price" class="input" placeholder="0">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="label">予定価格（税込）</label>
-            <div class="input-group">
-              <span class="input-prefix">¥</span>
-              <input type="number" name="planned_price_taxed" class="input" placeholder="0">
-            </div>
-          </div>
-
-          <div class="form-group full-width">
-            <label class="label">料金備考</label>
-            <textarea name="price_notes" class="textarea" rows="2" 
-              placeholder="料金に関する補足事項"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2 class="section-title">スケジュール・担当</h2>
-        
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="label">発売予定日</label>
-            <input type="date" name="target_launch_date" class="input">
-          </div>
-
           <div class="form-group">
             <label class="label">主担当</label>
             <input type="text" name="owner_name" class="input" placeholder="例: 院長">
+          </div>
+
+          <div class="form-group">
+            <label class="label">発売予定日</label>
+            <input type="date" name="target_launch_date" class="input">
           </div>
 
           <div class="form-group">
@@ -95,20 +105,23 @@ import Layout from '../../components/Layout.astro';
               <option value="15">最優先</option>
             </select>
           </div>
-        </div>
-      </div>
 
-      <div class="form-section">
-        <div class="form-group full-width">
-          <label class="label">備考</label>
-          <textarea name="notes" class="textarea" rows="3" 
-            placeholder="その他メモ"></textarea>
+          <div class="form-group">
+            <label class="label">備考</label>
+            <input type="text" name="notes" class="input" placeholder="メモがあれば">
+          </div>
         </div>
       </div>
 
       <div class="form-actions">
         <a href="/launches" class="btn btn-secondary">キャンセル</a>
-        <button type="submit" class="btn btn-primary">登録する</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          登録して料金プランを追加 →
+        </button>
       </div>
     </form>
   </div>
@@ -122,28 +135,145 @@ import Layout from '../../components/Layout.astro';
     max-width: 800px;
   }
 
+  /* Page Header */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
   .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
     font-size: 0.875rem;
     color: var(--color-text-muted);
     text-decoration: none;
-    margin-bottom: 0.5rem;
-    display: inline-block;
+    margin-bottom: 0.75rem;
+    transition: color 0.15s ease;
   }
 
   .back-link:hover {
     color: var(--color-accent);
   }
 
+  .back-link svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .title-icon {
+    font-size: 1.75rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9375rem;
+    color: var(--color-text-muted);
+    margin: 0.5rem 0 0;
+  }
+
+  /* Steps Guide */
+  .steps-guide {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, var(--color-bg-card) 0%, var(--color-bg) 100%);
+    border: 1px solid var(--color-border-light);
+    border-radius: 16px;
+    overflow-x: auto;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border-radius: 12px;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+  }
+
+  .step.active {
+    opacity: 1;
+    background: linear-gradient(135deg, var(--color-accent) 0%, #c99a45 100%);
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .step.active .step-number {
+    background: var(--color-primary);
+    color: var(--color-accent);
+  }
+
+  .step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .step-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .step.active .step-title {
+    color: var(--color-primary);
+  }
+
+  .step-desc {
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+  }
+
+  .step.active .step-desc {
+    color: var(--color-primary);
+    opacity: 0.8;
+  }
+
+  .step-arrow {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* Form */
   .form-container {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
   .form-section {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-light);
+    border-radius: 16px;
     padding: 1.5rem;
   }
 
@@ -152,7 +282,7 @@ import Layout from '../../components/Layout.astro';
     font-weight: 600;
     margin-bottom: 1.25rem;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border-light);
   }
 
   .form-grid {
@@ -179,16 +309,16 @@ import Layout from '../../components/Layout.astro';
 
   .label.required::after {
     content: ' *';
-    color: var(--color-error);
+    color: #dc2626;
   }
 
   .input, .select, .textarea {
     padding: 0.625rem 0.875rem;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     font-size: 0.9375rem;
     background: var(--color-bg);
-    transition: border-color var(--transition-fast);
+    transition: border-color 0.15s ease;
   }
 
   .input:focus, .select:focus, .textarea:focus {
@@ -198,34 +328,61 @@ import Layout from '../../components/Layout.astro';
 
   .textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 60px;
   }
 
-  .input-group {
-    display: flex;
-    align-items: center;
-  }
-
-  .input-prefix {
-    padding: 0.625rem 0.75rem;
-    background: var(--color-bg-hover);
-    border: 1px solid var(--color-border);
-    border-right: none;
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
+  .input-hint {
+    font-size: 0.75rem;
     color: var(--color-text-muted);
-    font-size: 0.875rem;
-  }
-
-  .input-group .input {
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    flex: 1;
   }
 
   .form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.75rem;
-    padding-top: 1rem;
+    padding-top: 0.5rem;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    border: none;
+  }
+
+  .btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-accent) 0%, #c99a45 100%);
+    color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(212, 168, 83, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(212, 168, 83, 0.4);
+  }
+
+  .btn-secondary {
+    background: var(--color-bg-secondary);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-bg-hover);
   }
 
   @media (max-width: 640px) {
@@ -235,6 +392,18 @@ import Layout from '../../components/Layout.astro';
 
     .form-group.full-width {
       grid-column: span 1;
+    }
+
+    .steps-guide {
+      padding: 1rem;
+    }
+
+    .step-desc {
+      display: none;
+    }
+
+    .step-content {
+      display: none;
     }
   }
 </style>
@@ -259,33 +428,34 @@ import Layout from '../../components/Layout.astro';
     }
   }
 
-  // 税抜価格から税込価格を自動計算
-  function setupPriceCalculation() {
-    const priceInput = document.querySelector('input[name="planned_price"]') as HTMLInputElement;
-    const priceTaxedInput = document.querySelector('input[name="planned_price_taxed"]') as HTMLInputElement;
-
-    priceInput?.addEventListener('input', () => {
-      const price = parseInt(priceInput.value) || 0;
-      priceTaxedInput.value = String(Math.round(price * 1.1));
-    });
-  }
-
   async function handleSubmit(e: Event) {
     e.preventDefault();
     
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '登録中...';
+
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     
-    const data: Record<string, any> = {};
+    const data: Record<string, any> = {
+      status: 'planning' // 初期ステータス
+    };
+    
     formData.forEach((value, key) => {
       if (value) {
-        if (key === 'planned_price' || key === 'planned_price_taxed' || key === 'priority' || key === 'target_category_id') {
+        if (key === 'priority' || key === 'target_category_id') {
           data[key] = parseInt(value as string) || null;
         } else {
           data[key] = value;
         }
       }
     });
+
+    // サブカテゴリ名が空なら商品名を使用
+    if (!data.target_subcategory_name && data.name) {
+      data.target_subcategory_name = data.name;
+    }
 
     try {
       const res = await fetch('/api/product-launches', {
@@ -297,22 +467,30 @@ import Layout from '../../components/Layout.astro';
       const result = await res.json();
       
       if (res.ok && result.success) {
-        window.location.href = `/launches/${result.id}/edit`;
+        // 編集ページの料金プランタブへ遷移
+        window.location.href = `/launches/${result.id}/edit?tab=plans`;
       } else {
         alert(result.error || '登録に失敗しました');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"></polyline>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          </svg>
+          登録して料金プランを追加 →
+        `;
       }
     } catch (error) {
       console.error('Error creating launch:', error);
       alert('登録に失敗しました');
+      submitBtn.disabled = false;
     }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     loadCategories();
-    setupPriceCalculation();
     
     const form = document.getElementById('launchForm');
     form?.addEventListener('submit', handleSubmit);
   });
 </script>
-

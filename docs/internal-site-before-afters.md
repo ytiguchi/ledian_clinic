@@ -79,10 +79,16 @@ CREATE TABLE treatment_before_afters (
 
 D1用のマイグレーションファイル:
 - `database/d1/migrations/002_add_before_afters.sql`
+- `database/d1/migrations/010_restore_content_tables_to_treatment_id.sql`（4階層化後の整合）
 
 適用方法:
 ```bash
 wrangler d1 execute ledian-internal-prod --file=database/d1/migrations/002_add_before_afters.sql
+```
+
+4階層化マイグレーション後の整合:
+```bash
+wrangler d1 execute ledian-internal-prod --file=database/d1/migrations/010_restore_content_tables_to_treatment_id.sql
 ```
 
 ## 今後の拡張予定
@@ -94,7 +100,6 @@ wrangler d1 execute ledian-internal-prod --file=database/d1/migrations/002_add_b
 - ドラッグ&ドロップ対応
 
 ### 機能改善
-- 施術IDからカテゴリ・サブカテゴリの自動取得（編集ページ）
 - 一括公開/非公開切り替え
 - 並び替え機能（ドラッグ&ドロップ）
 - 画像プレビューの拡大表示
@@ -122,6 +127,5 @@ wrangler d1 execute ledian-internal-prod --file=database/d1/migrations/002_add_b
 4. **フィルタリング**
    - カテゴリ・施術・公開状態で絞り込み
    - 複数条件の組み合わせ可能
-
 
 

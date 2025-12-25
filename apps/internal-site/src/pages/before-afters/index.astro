@@ -7,7 +7,7 @@ import Layout from '../../components/Layout.astro';
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">症例写真管理</h1>
+        <h1 class="page-title">📸 症例写真管理</h1>
         <p class="page-subtitle">ビフォーアフター写真を管理します</p>
       </div>
       <a href="/before-afters/new" class="btn btn-primary">
@@ -17,6 +17,22 @@ import Layout from '../../components/Layout.astro';
         </svg>
         新規症例追加
       </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <span class="stat-value" id="totalCount">-</span>
+        <span class="stat-label">総件数</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="publishedCount">-</span>
+        <span class="stat-label">公開中</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="subcategoryCount">-</span>
+        <span class="stat-label">施術種類</span>
+      </div>
     </div>
 
     <!-- Filter Bar -->
@@ -30,7 +46,7 @@ import Layout from '../../components/Layout.astro';
         </div>
         <div class="filter-item">
           <label class="label">サブカテゴリ</label>
-          <select class="select" id="treatmentFilter">
+          <select class="select" id="subcategoryFilter">
             <option value="">すべてのサブカテゴリ</option>
           </select>
         </div>
@@ -45,8 +61,8 @@ import Layout from '../../components/Layout.astro';
       </div>
     </div>
 
-    <!-- Before/After Grid -->
-    <div class="gallery-grid" id="beforeAfterGrid">
+    <!-- Cases List -->
+    <div class="cases-list" id="casesList">
       <div class="loading-container">
         <div class="loading">読み込み中...</div>
       </div>
@@ -59,25 +75,64 @@ import Layout from '../../components/Layout.astro';
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
-  .filter-grid {
+  /* Stats Row */
+  .stats-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
 
+  .stat-card {
+    background: linear-gradient(135deg, var(--color-bg-card) 0%, var(--color-bg) 100%);
+    border: 1px solid var(--color-border-light);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-accent);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Filter */
+  .filter-bar {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-light);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+  }
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
   .filter-item {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.25rem;
   }
 
-  /* Gallery Grid */
-  .gallery-grid {
+  /* Cases List - Precise 2 Column Grid */
+  .cases-list {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    width: 100%;
   }
 
   .loading-container {
@@ -87,134 +142,268 @@ import Layout from '../../components/Layout.astro';
     padding: 3rem;
   }
 
-  /* Gallery Card */
-  .gallery-card {
+  /* Case Card - Equal Height */
+  .case-card {
     background: var(--color-bg-card);
-    border-radius: var(--radius-lg);
     border: 1px solid var(--color-border-light);
-    box-shadow: var(--shadow-sm);
+    border-radius: 12px;
     overflow: hidden;
-    transition: all var(--transition-base);
     animation: fadeIn 0.3s ease-out backwards;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
-  .gallery-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+  .case-card * {
+    box-sizing: border-box;
+    max-width: 100%;
   }
 
-  /* Image Comparison */
-  .image-comparison {
+  .case-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Case Header - Compact */
+  .case-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+    border-bottom: 1px solid var(--color-border-light);
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+
+  .case-title-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .case-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .case-category {
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+    padding: 0.125rem 0.375rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .case-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .badge-success {
+    background: #dcfce7;
+    color: #166534;
+    padding: 0.125rem 0.375rem;
+    border-radius: 8px;
+    font-size: 0.5625rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .badge-neutral {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 0.125rem 0.375rem;
+    border-radius: 8px;
+    font-size: 0.5625rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Case Body - Fixed Height Layout */
+  .case-body {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    background: var(--color-border-light);
+    grid-template-columns: 180px 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    flex: 1;
+    min-height: 200px;
+  }
+
+  /* Image Comparison - Stacked */
+  .image-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .image-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .image-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+  }
+
+  .image-label.before {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .image-label.after {
+    background: #fef3c7;
+    color: #92400e;
   }
 
   .image-wrapper {
-    position: relative;
-    aspect-ratio: 1;
-    background: var(--color-bg-hover);
+    aspect-ratio: 4/3;
+    border-radius: 6px;
     overflow: hidden;
+    border: 1px solid var(--color-border-light);
+    background: var(--color-bg-secondary);
   }
 
   .image-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--transition-slow);
+    display: block;
   }
 
-  .gallery-card:hover .image-wrapper img {
-    transform: scale(1.05);
+  .no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: 0.25rem;
   }
 
-  .image-label {
-    position: absolute;
-    bottom: 0.5rem;
-    left: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
+  /* Case Info */
+  .case-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .info-section {
+    padding: 0.5rem;
+    background: var(--color-bg-secondary);
+    border-radius: 6px;
+    border-left: 2px solid var(--color-accent);
+    overflow: hidden;
+  }
+
+  .info-section-title {
     font-size: 0.6875rem;
     font-weight: 600;
-    border-radius: var(--radius-sm);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .image-label.before {
-    background: var(--color-primary);
-  }
-
-  .image-label.after {
-    background: var(--color-accent);
-    color: var(--color-primary);
-  }
-
-  /* Card Content */
-  .card-content {
-    padding: 1.25rem;
-  }
-
-  .card-header {
+    color: var(--color-accent);
+    margin: 0 0 0.25rem 0;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+    align-items: center;
+    gap: 0.25rem;
   }
 
-  .treatment-name {
-    font-size: 1rem;
-    font-weight: 600;
+  .info-section-content {
+    font-size: 0.6875rem;
+    line-height: 1.4;
     color: var(--color-text);
-    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: hidden;
   }
 
-  .card-caption {
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    margin: 0 0 0.75rem 0;
-    line-height: 1.5;
+  .info-section-content.truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  /* Card Meta */
-  .card-meta {
+  .info-section-full {
+    max-height: 140px;
+    overflow-y: auto;
+  }
+
+  .info-section-full .info-section-content {
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+
+  .caption-section-header {
+    display: block;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-top: 0.5rem;
+    margin-bottom: 0.125rem;
+    font-size: 0.6875rem;
+  }
+
+  .caption-section-header:first-child {
+    margin-top: 0;
+  }
+
+  /* Meta Row */
+  .meta-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 1rem;
+    padding: 0.375rem 0 0;
+    border-top: 1px solid var(--color-border-light);
+    margin-top: auto;
   }
 
-  .meta-tag {
-    display: inline-flex;
+  .meta-item {
+    display: flex;
     align-items: center;
     gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    background: var(--color-bg-hover);
-    border-radius: var(--radius-sm);
+    font-size: 0.625rem;
+    color: var(--color-text-secondary);
+    background: var(--color-bg);
+    padding: 0.125rem 0.375rem;
+    border-radius: 4px;
+  }
+
+  .meta-item-icon {
     font-size: 0.75rem;
-    color: var(--color-text-muted);
   }
 
-  /* Card Actions */
-  .card-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
+  /* Action Buttons - Compact */
   .action-btn {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    font-size: 0.8125rem;
+    padding: 0.375rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.6875rem;
     font-weight: 500;
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    text-align: center;
-    transition: all var(--transition-fast);
     cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
     border: none;
   }
+
 
   .action-btn-edit {
     background: var(--color-accent);
@@ -222,33 +411,85 @@ import Layout from '../../components/Layout.astro';
   }
 
   .action-btn-edit:hover {
-    background: var(--color-accent-light);
+    filter: brightness(1.1);
   }
 
   .action-btn-delete {
-    background: var(--color-error-light);
-    color: #b91c1c;
+    background: #fee2e2;
+    color: #dc2626;
   }
 
   .action-btn-delete:hover {
-    background: var(--color-error);
-    color: white;
+    background: #fecaca;
   }
 
-  /* Responsive */
-  @media (max-width: 1200px) {
-    .gallery-grid {
-      grid-template-columns: repeat(2, 1fr);
+  /* Empty State */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--color-bg-card);
+    border-radius: 12px;
+    border: 1px dashed var(--color-border);
+  }
+
+  .empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-state-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.375rem;
+  }
+
+  .empty-state-desc {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
+    .cases-list {
+      grid-template-columns: 1fr;
+    }
+
+    .case-body {
+      grid-template-columns: 200px 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
     .filter-grid {
       grid-template-columns: 1fr;
     }
 
-    .gallery-grid {
+    .stats-row {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .case-body {
       grid-template-columns: 1fr;
+    }
+
+    .image-comparison {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+
+    .image-panel {
+      flex: 1;
     }
   }
 </style>
@@ -279,7 +520,7 @@ import Layout from '../../components/Layout.astro';
 
   let beforeAfters: BeforeAfter[] = [];
   let categories: Array<{ id: string; name: string }> = [];
-  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
+  let subcategories: Array<{ id: string; name: string }> = [];
   let selectedCategoryId = '';
   let selectedSubcategoryId = '';
   let selectedPublished: string = '';
@@ -306,10 +547,10 @@ import Layout from '../../components/Layout.astro';
       const data = await res.json();
       subcategories = data.subcategories || [];
       
-      const select = document.getElementById('treatmentFilter') as HTMLSelectElement;
+      const select = document.getElementById('subcategoryFilter') as HTMLSelectElement;
       if (select) {
         select.innerHTML = '<option value="">すべてのサブカテゴリ</option>' +
-          subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
+          subcategories.map(sc => `<option value="${sc.id}">${sc.name}</option>`).join('');
       }
     } catch (error) {
       console.error('サブカテゴリ読み込みエラー:', error);
@@ -327,94 +568,128 @@ import Layout from '../../components/Layout.astro';
       const res = await fetch(`/api/before-afters?${params.toString()}`);
       const data = await res.json();
       beforeAfters = data.before_afters || [];
-      renderGrid();
+      
+      updateStats();
+      renderList();
     } catch (error) {
       console.error('症例写真読み込みエラー:', error);
       showError('症例写真の読み込みに失敗しました');
     }
   }
 
-  function renderGrid() {
-    const grid = document.getElementById('beforeAfterGrid');
-    if (!grid) return;
+  function updateStats() {
+    const totalEl = document.getElementById('totalCount');
+    const publishedEl = document.getElementById('publishedCount');
+    const subcatEl = document.getElementById('subcategoryCount');
+    
+    if (totalEl) totalEl.textContent = String(beforeAfters.length);
+    if (publishedEl) publishedEl.textContent = String(beforeAfters.filter(b => b.is_published === 1).length);
+    
+    const uniqueSubcats = new Set(beforeAfters.map(b => b.subcategory_id));
+    if (subcatEl) subcatEl.textContent = String(uniqueSubcats.size);
+  }
+
+  function renderList() {
+    const container = document.getElementById('casesList');
+    if (!container) return;
 
     if (beforeAfters.length === 0) {
-      grid.innerHTML = `
-        <div class="loading-container" style="grid-column: 1 / -1">
-          <div class="empty-state">
-            <div class="empty-state-icon">📸</div>
-            <div class="empty-state-title">症例写真がありません</div>
-            <div class="empty-state-desc">新規症例を追加してください</div>
-          </div>
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📸</div>
+          <div class="empty-state-title">症例写真がありません</div>
+          <div class="empty-state-desc">新規症例を追加してください</div>
         </div>
       `;
       return;
     }
 
-    grid.innerHTML = beforeAfters.map((item, index) => `
-      <div class="gallery-card" style="animation-delay: ${index * 0.05}s">
-        <div class="image-comparison">
-          <div class="image-wrapper">
-            <img 
-              src="${escapeHtml(item.before_image_url)}" 
-              alt="施術前"
-              loading="lazy"
-              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f1f5f9%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2212%22%3EBefore%3C/text%3E%3C/svg%3E'"
-            />
-            <span class="image-label before">Before</span>
+    container.innerHTML = beforeAfters.map((item, index) => `
+      <div class="case-card" style="animation-delay: ${index * 0.03}s">
+        <div class="case-header">
+          <div class="case-title-section">
+            <h3 class="case-title">${escapeHtml(item.subcategory_name)}</h3>
+            <span class="case-category">${escapeHtml(item.category_name)}</span>
           </div>
-          <div class="image-wrapper">
-            <img 
-              src="${escapeHtml(item.after_image_url)}" 
-              alt="施術後"
-              loading="lazy"
-              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23fef3c7%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23b8922e%22 font-size=%2212%22%3EAfter%3C/text%3E%3C/svg%3E'"
-            />
-            <span class="image-label after">After</span>
-          </div>
-        </div>
-        <div class="card-content">
-          <div class="card-header">
-            <div>
-              <h3 class="treatment-name">${escapeHtml(item.category_name)} - ${escapeHtml(item.subcategory_name)}</h3>
-              ${item.treatment_cost_text ? `<p class="text-sm text-gray-600 mt-1">${escapeHtml(item.treatment_cost_text)}</p>` : ''}
-            </div>
+          <div class="case-actions">
             <span class="badge ${item.is_published === 1 ? 'badge-success' : 'badge-neutral'}">
               ${item.is_published === 1 ? '公開' : '非公開'}
             </span>
-          </div>
-          ${item.caption ? `<p class="card-caption">${escapeHtml(item.caption)}</p>` : ''}
-          ${item.treatment_content ? `<p class="card-caption text-sm">${escapeHtml(item.treatment_content.substring(0, 100))}${item.treatment_content.length > 100 ? '...' : ''}</p>` : ''}
-          <div class="card-meta">
-            ${item.treatment_count ? `<span class="meta-tag">🔄 ${item.treatment_count}回</span>` : ''}
-            ${item.treatment_period ? `<span class="meta-tag">📅 ${item.treatment_period}</span>` : ''}
-            ${item.patient_age ? `<span class="meta-tag">👤 ${item.patient_age}歳</span>` : ''}
-            ${item.patient_gender ? `<span class="meta-tag">${item.patient_gender === '女性' ? '♀️' : '♂️'} ${item.patient_gender}</span>` : ''}
-          </div>
-          <div class="card-actions">
             <a href="/before-afters/${item.id}/edit" class="action-btn action-btn-edit">編集</a>
-            <button onclick="deleteBeforeAfter('${item.id}')" class="action-btn action-btn-delete">削除</button>
+          </div>
+        </div>
+        <div class="case-body">
+          <div class="image-comparison">
+            <div class="image-panel">
+              <div class="image-label before">Before</div>
+              <div class="image-wrapper">
+                ${item.before_image_url 
+                  ? `<img src="${escapeHtml(item.before_image_url)}" alt="施術前" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">`
+                  : '<div class="no-image">-</div>'}
+              </div>
+            </div>
+            <div class="image-panel">
+              <div class="image-label after">After</div>
+              <div class="image-wrapper">
+                <img src="${escapeHtml(item.after_image_url)}" alt="施術後" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+              </div>
+            </div>
+          </div>
+          <div class="case-info">
+            ${item.caption ? `
+            <div class="info-section info-section-full">
+              <div class="info-section-content">${formatCaption(item.caption)}</div>
+            </div>
+            ` : `
+            <div class="info-section">
+              <div class="info-section-content">治療：${escapeHtml(item.subcategory_name)}</div>
+            </div>
+            `}
+            
+            <div class="meta-row">
+              ${item.treatment_count ? `<div class="meta-item">🔄 ${item.treatment_count}回</div>` : ''}
+              ${item.patient_age ? `<div class="meta-item">👤 ${item.patient_age}歳</div>` : ''}
+              ${item.patient_gender ? `<div class="meta-item">${item.patient_gender === '女性' ? '♀' : '♂'}</div>` : ''}
+            </div>
           </div>
         </div>
       </div>
     `).join('');
   }
 
-  function escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  function escapeHtml(text: string | null | undefined): string {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatCaption(text: string): string {
+    if (!text) return '';
+    
+    // Escape HTML first
+    let formatted = escapeHtml(text);
+    
+    // Convert section headers to styled spans
+    formatted = formatted.replace(/【([^】]+)】/g, '<span class="caption-section-header">【$1】</span>');
+    
+    // Convert newlines to <br>
+    formatted = formatted.replace(/\n/g, '<br>');
+    
+    return formatted;
   }
 
   function showError(message: string) {
-    const grid = document.getElementById('beforeAfterGrid');
-    if (grid) {
-      grid.innerHTML = `
-        <div class="loading-container" style="grid-column: 1 / -1">
-          <div class="empty-state" style="color: var(--color-error)">
-            <div class="empty-state-icon">⚠️</div>
-            <div class="empty-state-title">${escapeHtml(message)}</div>
-          </div>
+    const container = document.getElementById('casesList');
+    if (container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <div class="empty-state-title">エラー</div>
+          <div class="empty-state-desc">${message}</div>
         </div>
       `;
     }
@@ -426,7 +701,7 @@ import Layout from '../../components/Layout.astro';
     try {
       const res = await fetch(`/api/before-afters/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        await loadBeforeAfters();
+        loadBeforeAfters();
       } else {
         alert('削除に失敗しました');
       }
@@ -441,7 +716,7 @@ import Layout from '../../components/Layout.astro';
     loadBeforeAfters();
 
     const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
-    const treatmentFilter = document.getElementById('treatmentFilter') as HTMLSelectElement;
+    const subcategoryFilter = document.getElementById('subcategoryFilter') as HTMLSelectElement;
     const publishedFilter = document.getElementById('publishedFilter') as HTMLSelectElement;
 
     categoryFilter?.addEventListener('change', () => {
@@ -450,16 +725,16 @@ import Layout from '../../components/Layout.astro';
       if (selectedCategoryId) {
         loadSubcategories(selectedCategoryId);
       } else {
-        const treatmentFilter = document.getElementById('treatmentFilter') as HTMLSelectElement;
-        if (treatmentFilter) {
-          treatmentFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
+        const subcategoryFilter = document.getElementById('subcategoryFilter') as HTMLSelectElement;
+        if (subcategoryFilter) {
+          subcategoryFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
         }
       }
       loadBeforeAfters();
     });
 
-    treatmentFilter?.addEventListener('change', () => {
-      selectedSubcategoryId = treatmentFilter.value;
+    subcategoryFilter?.addEventListener('change', () => {
+      selectedSubcategoryId = subcategoryFilter.value;
       loadBeforeAfters();
     });
 

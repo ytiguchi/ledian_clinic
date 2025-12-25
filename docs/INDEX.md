@@ -28,6 +28,7 @@
 
 - [PostgreSQLスキーマ](../database/schema.sql) - PostgreSQLスキーマ定義
 - [D1マイグレーション](../database/d1/migrations/) - D1マイグレーションファイル
+- [D1マイグレーション運用](../database/d1/README.md) - 現行スキーマ/運用メモ
 - [スキーマ拡張計画](./SCHEMA_EXTENSION_PLAN.md) - 今後の拡張計画
 
 ## 🐛 トラブルシューティング
@@ -38,7 +39,7 @@
 ## 📝 履歴・参考
 
 - [APIルーティング修正](./API_ROUTING_FIX.md)
-- [FIXED_API_ERRORS](./FIXED_API_ERRORS.md)
+- [FIXED_API_ERRORS](./_archive/FIXED_API_ERRORS.md)
 
 ---
 
@@ -75,6 +76,4 @@
 - データ分析機能
 
 詳細は [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) を参照してください。
-
-
 

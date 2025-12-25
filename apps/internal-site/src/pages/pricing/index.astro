@@ -83,6 +83,123 @@ import Layout from '../../components/Layout.astro';
         </tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination hidden">
+      <div class="pagination-info">
+        <span id="paginationText"></span>
+        <select id="itemsPerPageSelect" class="select select-sm">
+          <option value="25">25件/ページ</option>
+          <option value="50" selected>50件/ページ</option>
+          <option value="100">100件/ページ</option>
+          <option value="200">200件/ページ</option>
+        </select>
+      </div>
+      <div class="pagination-controls">
+        <button id="paginationPrev" class="btn btn-sm btn-secondary" disabled>前へ</button>
+        <div id="paginationNumbers" class="pagination-numbers"></div>
+        <button id="paginationNext" class="btn btn-sm btn-secondary" disabled>次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeEditModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">料金プラン編集</h2>
+        <button onclick="closeEditModal()" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editPlanForm">
+          <input type="hidden" id="editPlanId" />
+          
+          <!-- 基本情報 -->
+          <div class="form-section">
+            <h3 class="form-section-title">基本情報</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">サブカテゴリ *</label>
+                <select id="editSubcategoryId" class="select" required>
+                  <option value="">選択してください</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">プラン名 *</label>
+                <input type="text" id="editPlanName" class="input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">プラン種別 *</label>
+                <select id="editPlanType" class="select" required>
+                  <option value="single">単発</option>
+                  <option value="course">コース</option>
+                  <option value="trial">お試し</option>
+                  <option value="monitor">モニター</option>
+                  <option value="campaign">キャンペーン</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">回数</label>
+                <input type="number" id="editSessions" class="input" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 価格情報 -->
+          <div class="form-section">
+            <h3 class="form-section-title">価格情報</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">税抜価格（円） *</label>
+                <input type="number" id="editPrice" class="input" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">税込価格（円） *</label>
+                <input type="number" id="editPriceTaxed" class="input" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- 原価情報 -->
+          <div class="form-section">
+            <h3 class="form-section-title">原価情報</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">原価率（%）</label>
+                <input type="number" id="editCostRate" class="input" step="0.1" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">備品原価（円）</label>
+                <input type="number" id="editSupplyCost" class="input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">人件費（円）</label>
+                <input type="number" id="editStaffCost" class="input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">原価合計（円）</label>
+                <input type="number" id="editTotalCost" class="input" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 備考 -->
+          <div class="form-section">
+            <h3 class="form-section-title">備考</h3>
+            <div class="form-group">
+              <textarea id="editNotes" class="textarea" rows="3"></textarea>
+            </div>
+          </div>
+
+          <!-- アクション -->
+          <div class="form-actions">
+            <button type="button" onclick="closeEditModal()" class="btn btn-secondary">キャンセル</button>
+            <button type="submit" class="btn btn-primary">更新</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </Layout>
 
@@ -324,6 +441,11 @@ import Layout from '../../components/Layout.astro';
   let selectedSubcategoryId = '';
   let searchTimeout = null;
   let isLoading = false;
+  
+  // Pagination
+  let currentPage = 1;
+  let itemsPerPage = 50;
+  let totalItems = 0;
 
   async function fetchJson(input, init) {
     try {
@@ -459,7 +581,11 @@ import Layout from '../../components/Layout.astro';
       errors.push(`薬剤料金: ${medicationResult.error}`);
     }
 
+    totalItems = plans.length + medicationPlans.length;
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(totalItems / itemsPerPage)));
+
     renderTable();
+    renderPagination();
 
     if (errors.length > 0 && plans.length === 0 && medicationPlans.length === 0) {
       showError(`データの読み込みに失敗しました: ${errors.join(' / ')}`);
@@ -486,6 +612,16 @@ import Layout from '../../components/Layout.astro';
       .finally(() => setLoading(false));
   }
 
+  function getPaginatedItems() {
+    const allItems = [...medicationPlans, ...plans];
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return {
+      items: allItems.slice(startIndex, endIndex),
+      startIndex
+    };
+  }
+
   function renderTable() {
     const tbody = document.getElementById('priceTableBody');
     if (!tbody) return;
@@ -505,8 +641,22 @@ import Layout from '../../components/Layout.astro';
       return;
     }
 
+    const { items: paginatedItems, startIndex } = getPaginatedItems();
+
+    // ページネーション表示用のデータを分離
+    const paginatedMedicationPlans = [];
+    const paginatedPlans = [];
+    
+    paginatedItems.forEach((item, index) => {
+      if (item.medication_name) {
+        paginatedMedicationPlans.push(item);
+      } else {
+        paginatedPlans.push(item);
+      }
+    });
+
     // カテゴリでグループ化
-    const groupedPlans = plans.reduce((acc, plan) => {
+    const groupedPlans = paginatedPlans.reduce((acc, plan) => {
       const categoryId = plan.category_id;
       if (!acc[categoryId]) {
         acc[categoryId] = {
@@ -522,8 +672,8 @@ import Layout from '../../components/Layout.astro';
     let html = '';
     
     // 薬剤料金を先に表示
-    if (medicationPlans.length > 0) {
-      medicationPlans.forEach((mp) => {
+    if (paginatedMedicationPlans.length > 0) {
+      paginatedMedicationPlans.forEach((mp) => {
         html += `
           <tr class="medication-row">
             <td>
@@ -637,7 +787,7 @@ import Layout from '../../components/Layout.astro';
           </td>
           <td>
             <div class="action-buttons">
-              <a href="/pricing/${plan.id}/edit" class="action-btn action-btn-edit">編集</a>
+              <button onclick="openEditModal('${plan.id}')" class="action-btn action-btn-edit">編集</button>
               <button onclick="deletePlan('${plan.id}')" class="action-btn action-btn-delete">削除</button>
             </div>
           </td>
@@ -646,6 +796,80 @@ import Layout from '../../components/Layout.astro';
     });
 
     tbody.innerHTML = html;
+  }
+
+  function renderPagination() {
+    const paginationEl = document.getElementById('pagination');
+    const paginationText = document.getElementById('paginationText');
+    const paginationNumbers = document.getElementById('paginationNumbers');
+    const paginationPrev = document.getElementById('paginationPrev');
+    const paginationNext = document.getElementById('paginationNext');
+
+    if (!paginationEl || !paginationText || !paginationNumbers) return;
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+    if (totalItems === 0 || totalPages <= 1) {
+      paginationEl.classList.add('hidden');
+      return;
+    }
+
+    paginationEl.classList.remove('hidden');
+
+    // 情報テキスト
+    const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+    paginationText.textContent = `${startItem}件〜${endItem}件 / 全${totalItems}件`;
+
+    // ページ番号ボタン
+    let html = '';
+    const maxVisiblePages = 7;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      html += `<button class="pagination-number" onclick="goToPage(1)">1</button>`;
+      if (startPage > 2) {
+        html += `<span class="pagination-number disabled">...</span>`;
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      html += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        html += `<span class="pagination-number disabled">...</span>`;
+      }
+      html += `<button class="pagination-number" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    paginationNumbers.innerHTML = html;
+
+    // 前へ/次へボタン
+    if (paginationPrev) {
+      paginationPrev.disabled = currentPage === 1;
+      paginationPrev.onclick = () => goToPage(currentPage - 1);
+    }
+    if (paginationNext) {
+      paginationNext.disabled = currentPage === totalPages;
+      paginationNext.onclick = () => goToPage(currentPage + 1);
+    }
+  }
+
+  function goToPage(page) {
+    const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+    renderPagination();
+    // ページトップにスクロール
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function escapeHtml(text) {
@@ -676,13 +900,108 @@ import Layout from '../../components/Layout.astro';
     try {
       const res = await fetch(`/api/pricing-id/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        await loadPricing();
+        await refreshData();
       } else {
         alert('削除に失敗しました');
       }
     } catch (error) {
       console.error('削除エラー:', error);
       alert('削除に失敗しました');
+    }
+  }
+
+  async function openEditModal(planId) {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editPlanForm');
+    if (!modal || !form) return;
+
+    try {
+      // プランデータを取得
+      const res = await fetch(`/api/pricing-id/${planId}`);
+      if (!res.ok) {
+        alert('プランデータの取得に失敗しました');
+        return;
+      }
+      const data = await res.json();
+      const plan = data.plan;
+
+      // フォームに値を設定
+      document.getElementById('editPlanId').value = plan.id;
+      document.getElementById('editPlanName').value = plan.plan_name || '';
+      document.getElementById('editPlanType').value = plan.plan_type || 'single';
+      document.getElementById('editSessions').value = plan.sessions || '';
+      document.getElementById('editPrice').value = plan.price || '';
+      document.getElementById('editPriceTaxed').value = plan.price_taxed || '';
+      document.getElementById('editCostRate').value = plan.cost_rate || '';
+      document.getElementById('editSupplyCost').value = plan.supply_cost || '';
+      document.getElementById('editStaffCost').value = plan.staff_cost || '';
+      document.getElementById('editTotalCost').value = plan.total_cost || '';
+      document.getElementById('editNotes').value = plan.notes || '';
+
+      // サブカテゴリ選択肢を設定
+      const subcategorySelect = document.getElementById('editSubcategoryId');
+      if (subcategorySelect) {
+        subcategorySelect.innerHTML = '<option value="">選択してください</option>' +
+          subcategories.map(sub => 
+            `<option value="${sub.id}" ${sub.id === plan.subcategory_id ? 'selected' : ''}>${escapeHtml(sub.category_name)} - ${escapeHtml(sub.name)}</option>`
+          ).join('');
+      }
+
+      // モーダルを表示
+      modal.classList.remove('hidden');
+    } catch (error) {
+      console.error('編集モーダルオープンエラー:', error);
+      alert('プランデータの取得に失敗しました');
+    }
+  }
+
+  function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      const form = document.getElementById('editPlanForm');
+      if (form) form.reset();
+    }
+  }
+
+  async function savePlan() {
+    const form = document.getElementById('editPlanForm');
+    if (!form) return;
+
+    const planId = document.getElementById('editPlanId').value;
+    if (!planId) return;
+
+    const data = {
+      subcategory_id: document.getElementById('editSubcategoryId').value,
+      plan_name: document.getElementById('editPlanName').value,
+      plan_type: document.getElementById('editPlanType').value,
+      sessions: document.getElementById('editSessions').value ? Number(document.getElementById('editSessions').value) : null,
+      price: Number(document.getElementById('editPrice').value),
+      price_taxed: Number(document.getElementById('editPriceTaxed').value),
+      cost_rate: document.getElementById('editCostRate').value ? Number(document.getElementById('editCostRate').value) : null,
+      supply_cost: document.getElementById('editSupplyCost').value ? Number(document.getElementById('editSupplyCost').value) : null,
+      staff_cost: document.getElementById('editStaffCost').value ? Number(document.getElementById('editStaffCost').value) : null,
+      total_cost: document.getElementById('editTotalCost').value ? Number(document.getElementById('editTotalCost').value) : null,
+      notes: document.getElementById('editNotes').value || null,
+    };
+
+    try {
+      const res = await fetch(`/api/pricing-id/${planId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        closeEditModal();
+        await refreshData();
+      } else {
+        const error = await res.json();
+        alert(`更新に失敗しました: ${error.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('保存エラー:', error);
+      alert('更新に失敗しました');
     }
   }
 
@@ -697,10 +1016,36 @@ import Layout from '../../components/Layout.astro';
     const categoryFilter = document.getElementById('categoryFilter');
     const subcategoryFilter = document.getElementById('subcategoryFilter');
     const clearButton = document.getElementById('clearBtn');
+    const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
+    const editPlanForm = document.getElementById('editPlanForm');
+
+    // 1ページあたりの件数変更
+    itemsPerPageSelect?.addEventListener('change', (e) => {
+      itemsPerPage = Number((e.target as HTMLSelectElement).value);
+      currentPage = 1;
+      renderTable();
+      renderPagination();
+    });
+
+    // 編集フォーム送信
+    editPlanForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await savePlan();
+    });
+
+    // 税抜価格から税込価格を自動計算
+    const editPriceInput = document.getElementById('editPrice');
+    const editPriceTaxedInput = document.getElementById('editPriceTaxed');
+    editPriceInput?.addEventListener('input', () => {
+      const price = Number((editPriceInput as HTMLInputElement).value);
+      if (editPriceTaxedInput && price > 0) {
+        (editPriceTaxedInput as HTMLInputElement).value = Math.round(price * 1.1).toString();
+      }
+    });
 
     // リアルタイム検索（入力中に検索）
     searchInput?.addEventListener('input', (e) => {
-      const value = (e.target).value;
+      const value = (e.target as HTMLInputElement).value;
       searchQuery = value;
       
       // デバウンス処理（500ms後に検索実行）
@@ -708,6 +1053,7 @@ import Layout from '../../components/Layout.astro';
         clearTimeout(searchTimeout);
       }
       searchTimeout = window.setTimeout(() => {
+        currentPage = 1; // 検索時は1ページ目に戻る
         setLoading(true);
         refreshData().finally(() => setLoading(false));
       }, 500);
@@ -718,20 +1064,22 @@ import Layout from '../../components/Layout.astro';
         if (searchTimeout !== null) {
           clearTimeout(searchTimeout);
         }
-        searchQuery = searchInput.value;
+        searchQuery = (searchInput as HTMLInputElement).value;
+        currentPage = 1; // 検索時は1ページ目に戻る
         setLoading(true);
         refreshData().finally(() => setLoading(false));
       }
     });
 
     categoryFilter?.addEventListener('change', (e) => {
-      const value = (e.target).value;
+      const value = (e.target as HTMLSelectElement).value;
       selectedCategoryId = value;
       selectedSubcategoryId = ''; // カテゴリ変更時はサブカテゴリをリセット
       if (subcategoryFilter) {
         subcategoryFilter.value = '';
         subcategoryFilter.innerHTML = '<option value="">すべてのサブカテゴリ</option>';
       }
+      currentPage = 1; // フィルタ変更時は1ページ目に戻る
       setLoading(true);
       loadSubcategories(selectedCategoryId)
         .then(() => refreshData())
@@ -739,7 +1087,8 @@ import Layout from '../../components/Layout.astro';
     });
 
     subcategoryFilter?.addEventListener('change', () => {
-      selectedSubcategoryId = subcategoryFilter.value;
+      selectedSubcategoryId = (subcategoryFilter as HTMLSelectElement).value;
+      currentPage = 1; // フィルタ変更時は1ページ目に戻る
       setLoading(true);
       refreshData().finally(() => setLoading(false));
     });
@@ -748,6 +1097,4 @@ import Layout from '../../components/Layout.astro';
       clearFilters();
     });
   });
-
-  window.deletePlan = deletePlan;
 </script>

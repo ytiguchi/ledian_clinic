@@ -24,11 +24,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
         ba.before_image_url,
         ba.after_image_url,
         ba.caption,
-        ba.treatment_content,
-        ba.treatment_duration,
-        ba.treatment_cost,
-        ba.treatment_cost_text,
-        ba.risks,
         ba.patient_age,
         ba.patient_gender,
         ba.treatment_count,
@@ -36,7 +31,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
         ba.is_published,
         ba.sort_order,
         ba.created_at,
-        ba.updated_at,
         sc.name AS subcategory_name,
         c.id AS category_id,
         c.name AS category_name
@@ -48,17 +42,17 @@ export const GET: APIRoute = async ({ locals, url }) => {
     
     const params: unknown[] = [];
     
+    if (categoryId) {
+      query += ' AND c.id = ?';
+      params.push(categoryId);
+    }
+
     if (subcategoryId) {
       query += ' AND ba.subcategory_id = ?';
       params.push(subcategoryId);
     }
     
-    if (categoryId) {
-      query += ' AND c.id = ?';
-      params.push(categoryId);
-    }
-    
-    if (isPublished !== null) {
+    if (isPublished !== null && isPublished !== undefined) {
       query += ' AND ba.is_published = ?';
       params.push(isPublished === '1' ? 1 : 0);
     }
@@ -75,11 +69,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
       before_image_url: string;
       after_image_url: string;
       caption: string | null;
-      treatment_content: string | null;
-      treatment_duration: string | null;
-      treatment_cost: number | null;
-      treatment_cost_text: string | null;
-      risks: string | null;
       patient_age: number | null;
       patient_gender: string | null;
       treatment_count: number | null;
@@ -87,7 +76,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
       is_published: number;
       sort_order: number;
       created_at: string;
-      updated_at: string;
       subcategory_name: string;
       category_id: string;
       category_name: string;
@@ -131,8 +119,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (!data.before_image_url || !data.after_image_url) {
-      return new Response(JSON.stringify({ error: 'before_image_url and after_image_url are required' }), {
+    if (!data.after_image_url) {
+      return new Response(JSON.stringify({ error: 'after_image_url is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -141,20 +129,14 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const result = await db.prepare(`
       INSERT INTO treatment_before_afters (
         subcategory_id, before_image_url, after_image_url, caption,
-        treatment_content, treatment_duration, treatment_cost, treatment_cost_text, risks,
         patient_age, patient_gender, treatment_count, treatment_period,
         is_published, sort_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.subcategory_id,
-      data.before_image_url,
+      data.before_image_url || '',
       data.after_image_url,
       data.caption || null,
-      data.treatment_content || null,
-      data.treatment_duration || null,
-      data.treatment_cost || null,
-      data.treatment_cost_text || null,
-      data.risks || null,
       data.patient_age || null,
       data.patient_gender || null,
       data.treatment_count || null,
@@ -185,5 +167,3 @@ export const POST: APIRoute = async ({ locals, request }) => {
     });
   }
 };
-
-

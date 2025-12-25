@@ -34,7 +34,7 @@
 ## 📝 メモ・参考
 
 - [APIルーティング修正](./API_ROUTING_FIX.md) - APIルーティング問題の修正履歴
-- [FIXED_API_ERRORS](./FIXED_API_ERRORS.md) - APIエラー修正履歴
+- [FIXED_API_ERRORS](./_archive/FIXED_API_ERRORS.md) - APIエラー修正履歴
 
 ## クイックスタート
 
@@ -71,6 +71,5 @@
 - データ分析機能
 
 詳細は [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) を参照してください。
-
 
 

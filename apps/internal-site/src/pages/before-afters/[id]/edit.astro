@@ -174,6 +174,8 @@ export const prerender = false;
   interface BeforeAfterData {
     id: string;
     treatment_id: string;
+    category_id: string;
+    subcategory_id: string;
     before_image_url: string;
     after_image_url: string;
     caption: string | null;
@@ -200,9 +202,28 @@ export const prerender = false;
       const data = await res.json();
       const beforeAfter = data.before_after as BeforeAfterData;
 
-      // 治療IDからカテゴリ・サブカテゴリを取得（簡易版）
-      // TODO: treatment_idからcategory_id, subcategory_idを取得するAPIが必要
-      await loadTreatmentsForEdit(beforeAfter.treatment_id);
+      const categorySelect = document.getElementById('categorySelect') as HTMLSelectElement;
+      if (categorySelect) {
+        categorySelect.value = beforeAfter.category_id || '';
+      }
+
+      if (beforeAfter.category_id) {
+        await loadSubcategories(beforeAfter.category_id);
+      }
+
+      const subcategorySelect = document.getElementById('subcategorySelect') as HTMLSelectElement;
+      if (subcategorySelect) {
+        subcategorySelect.value = beforeAfter.subcategory_id || '';
+      }
+
+      if (beforeAfter.subcategory_id) {
+        await loadTreatments(beforeAfter.subcategory_id);
+      }
+
+      const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+      if (treatmentSelect) {
+        treatmentSelect.value = beforeAfter.treatment_id || '';
+      }
 
       // フォームに値を設定
       populateForm(beforeAfter);
@@ -222,12 +243,40 @@ export const prerender = false;
     }
   }
 
-  async function loadTreatmentsForEdit(treatmentId: string) {
-    // TODO: treatment_idからtreatment情報を取得して、subcategory_idを取得
-    // 現在は簡易的に全施術から該当を探す
+  async function loadSubcategories(categoryId: string) {
+    const select = document.getElementById('subcategorySelect') as HTMLSelectElement;
+    if (!select) return;
+    select.innerHTML = '<option value="">選択してください</option>';
+    treatments = [];
+    const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+    if (treatmentSelect) {
+      treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+    }
+
+    try {
+      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
+      const data = await res.json();
+      subcategories = data.subcategories || [];
+      select.innerHTML = '<option value="">選択してください</option>' +
+        subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
+    } catch (error) {
+      console.error('サブカテゴリ読み込みエラー:', error);
+    }
+  }
+
+  async function loadTreatments(subcategoryId: string) {
     const select = document.getElementById('treatmentSelect') as HTMLSelectElement;
-    if (select) {
-      select.value = treatmentId;
+    if (!select) return;
+    select.innerHTML = '<option value="">選択してください</option>';
+
+    try {
+      const res = await fetch(`/api/treatments?subcategory_id=${subcategoryId}`);
+      const data = await res.json();
+      treatments = data.treatments || [];
+      select.innerHTML = '<option value="">選択してください</option>' +
+        treatments.map(treatment => `<option value="${treatment.id}">${treatment.name}</option>`).join('');
+    } catch (error) {
+      console.error('施術読み込みエラー:', error);
     }
   }
 
@@ -241,7 +290,6 @@ export const prerender = false;
 
   function populateForm(data: BeforeAfterData) {
     (document.getElementById('beforeAfterId') as HTMLInputElement).value = data.id;
-    (document.getElementById('treatmentSelect') as HTMLSelectElement).value = data.treatment_id;
     (document.getElementById('beforeImageUrl') as HTMLInputElement).value = data.before_image_url;
     (document.getElementById('afterImageUrl') as HTMLInputElement).value = data.after_image_url;
     
@@ -291,6 +339,34 @@ export const prerender = false;
     updateImagePreview('beforeImageUrl', 'beforePreview');
     updateImagePreview('afterImageUrl', 'afterPreview');
 
+    const categorySelect = document.getElementById('categorySelect') as HTMLSelectElement;
+    const subcategorySelect = document.getElementById('subcategorySelect') as HTMLSelectElement;
+
+    categorySelect?.addEventListener('change', async () => {
+      const categoryId = categorySelect.value;
+      if (!categoryId) {
+        subcategorySelect.innerHTML = '<option value="">選択してください</option>';
+        const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+        if (treatmentSelect) {
+          treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+        }
+        return;
+      }
+      await loadSubcategories(categoryId);
+    });
+
+    subcategorySelect?.addEventListener('change', async () => {
+      const subcategoryId = subcategorySelect.value;
+      if (!subcategoryId) {
+        const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+        if (treatmentSelect) {
+          treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+        }
+        return;
+      }
+      await loadTreatments(subcategoryId);
+    });
+
     const form = document.getElementById('beforeAfterForm') as HTMLFormElement;
     
     form?.addEventListener('submit', async (e) => {
@@ -331,5 +407,4 @@ export const prerender = false;
     });
   });
 </script>
-
 

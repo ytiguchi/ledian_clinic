@@ -1830,9 +1830,14 @@ const { id } = Astro.params;
     document.getElementById('addTaskForm')?.addEventListener('submit', handleAddTask);
     document.getElementById('launchBtn')?.addEventListener('click', handleLaunch);
 
-    // Check URL for action=launch
+    // Check URL params for tab navigation
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('action') === 'launch') {
+    const tabParam = urlParams.get('tab');
+    const actionParam = urlParams.get('action');
+    
+    if (tabParam) {
+      document.querySelector(`[data-tab="${tabParam}"]`)?.dispatchEvent(new Event('click'));
+    } else if (actionParam === 'launch') {
       document.querySelector('[data-tab="launch"]')?.dispatchEvent(new Event('click'));
     }
   });

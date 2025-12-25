@@ -1,5 +1,6 @@
 ---
 import Layout from '../../components/Layout.astro';
+import TreatmentSelector from '../../components/TreatmentSelector.astro';
 ---
 
 <Layout>
@@ -23,31 +24,13 @@ import Layout from '../../components/Layout.astro';
 
     <form class="form-container" id="beforeAfterForm">
       <!-- 基本情報 - カテゴリ選択 -->
-      <div class="category-selector">
-        <div class="selector-header">
-          <span class="selector-step">STEP 1</span>
-          <h3 class="selector-title">施術カテゴリを選択</h3>
-        </div>
-        <div class="category-grid" id="categoryGrid">
-          <div class="category-loading">
-            <div class="loading-spinner"></div>
-            <span>カテゴリを読み込み中...</span>
-          </div>
-        </div>
-        <input type="hidden" name="category" id="categorySelect" />
-      </div>
-
-      <!-- サブカテゴリ選択 -->
-      <div class="subcategory-selector hidden" id="subcategorySection">
-        <div class="selector-header">
-          <span class="selector-step">STEP 2</span>
-          <h3 class="selector-title">サブカテゴリを選択</h3>
-        </div>
-        <div class="subcategory-grid" id="subcategoryGrid">
-          <!-- 動的に生成 -->
-        </div>
-        <input type="hidden" name="subcategory" id="subcategorySelect" required />
-      </div>
+      <TreatmentSelector
+        id="before-after-selector"
+        requiredCategory={false}
+        requiredSubcategory={true}
+        requiredTreatment={true}
+        showTreatmentStep={true}
+      />
 
       <!-- 画像モード選択 -->
       <div>
@@ -219,90 +202,6 @@ import Layout from '../../components/Layout.astro';
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 治療情報 -->
-      <div class="form-section">
-        <div class="section-header">
-          <div class="section-icon treatment-icon">💉</div>
-          <div>
-            <h3 class="section-title">治療情報</h3>
-            <p class="section-desc">施術内容と費用について記入してください</p>
-          </div>
-        </div>
-        <div class="section-content">
-          <div class="form-group">
-            <label class="form-label">
-              <span class="label-icon">📝</span>
-              治療内容
-            </label>
-            <textarea
-              name="treatmentContent"
-              id="treatmentContent"
-              rows="4"
-              placeholder="例: イタリア製痩身機器「ONDA PRO」を使用し、特殊なマイクロ波で脂肪細胞を加熱・分解..."
-              class="form-textarea"
-            ></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">
-                <span class="label-icon">🔄</span>
-                期間・回数
-              </label>
-              <input
-                type="text"
-                name="treatmentDuration"
-                id="treatmentDuration"
-                placeholder="例: 1回 体用ハンドピース使用"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label">
-                <span class="label-icon">💰</span>
-                費用（税込）
-              </label>
-              <div class="input-with-suffix">
-                <input
-                  type="number"
-                  name="treatmentCost"
-                  id="treatmentCost"
-                  placeholder="36300"
-                  class="form-input"
-                />
-                <span class="input-suffix">円</span>
-              </div>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">
-              <span class="label-icon">🏷️</span>
-              費用表示テキスト
-            </label>
-            <input
-              type="text"
-              name="treatmentCostText"
-              id="treatmentCostText"
-              placeholder="例: 1回税込36,300円"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label">
-              <span class="label-icon">⚠️</span>
-              リスク・副作用
-            </label>
-            <textarea
-              name="risks"
-              id="risks"
-              rows="3"
-              placeholder="例: 一時的な赤み、熱感、むくみ&#10;稀に火傷や色素沈着&#10;効果には個人差あり"
-              class="form-textarea"
-            ></textarea>
-            <p class="form-hint">※ 改行で区切って複数の項目を入力できます</p>
           </div>
         </div>
       </div>
@@ -530,16 +429,18 @@ import Layout from '../../components/Layout.astro';
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    padding: 1rem 0.75rem;
-    background: #f8fafc;
-    border: 2px solid transparent;
-    border-radius: 0.75rem;
+    gap: 0.625rem;
+    padding: 1.25rem 1rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     user-select: none;
     -webkit-user-select: none;
+    min-height: 90px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
   .category-card :global(*) {
@@ -547,30 +448,34 @@ import Layout from '../../components/Layout.astro';
   }
 
   .category-card:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-    transform: translateY(-2px);
+    background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #d4a853;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(212, 168, 83, 0.2);
   }
 
   .category-card.selected {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border-color: #d4a853;
-    box-shadow: 0 4px 15px rgba(212, 168, 83, 0.2);
+    background: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
+    border-color: #b8922e;
+    box-shadow: 0 0 0 4px rgba(212, 168, 83, 0.3), 0 8px 25px rgba(212, 168, 83, 0.3);
+    transform: scale(1.02);
   }
 
   .category-card-icon {
-    font-size: 1.75rem;
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   }
 
   .category-card-name {
     font-size: 0.8125rem;
     font-weight: 600;
     color: #334155;
-    line-height: 1.3;
+    line-height: 1.4;
   }
 
   .category-card.selected .category-card-name {
-    color: #92400e;
+    color: #0f172a;
+    font-weight: 700;
   }
 
   /* Subcategory Grid */
@@ -583,21 +488,22 @@ import Layout from '../../components/Layout.astro';
   .subcategory-card {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1.25rem 1.5rem;
-    background-color: #ffffff;
-    border: 3px solid #e2e8f0;
-    border-radius: 1rem;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 0.875rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    min-height: 70px;
+    min-height: 56px;
     user-select: none;
     -webkit-user-select: none;
     font-family: inherit;
     font-size: inherit;
     text-align: left;
     width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 
   .subcategory-card :global(*) {
@@ -610,42 +516,47 @@ import Layout from '../../components/Layout.astro';
   }
 
   .subcategory-card:hover {
-    background-color: #fffbeb;
+    background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
     border-color: #d4a853;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(212, 168, 83, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 168, 83, 0.2);
   }
 
   .subcategory-card.selected {
-    background-color: #0f172a;
-    background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    border-color: #d4a853;
-    border-width: 3px;
-    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.4), 0 0 0 4px rgba(212, 168, 83, 0.5);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #d4a853 0%, #f0d78c 100%) !important;
+    border-color: #b8922e !important;
+    border-width: 4px !important;
+    box-shadow: 0 0 0 6px rgba(212, 168, 83, 0.4), 0 12px 40px rgba(212, 168, 83, 0.5) !important;
+    transform: scale(1.08);
+    animation: pulse-gold 0.5s ease-out;
+  }
+
+  @keyframes pulse-gold {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 168, 83, 0.7); }
+    50% { transform: scale(1.12); box-shadow: 0 0 0 15px rgba(212, 168, 83, 0); }
+    100% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(212, 168, 83, 0.4), 0 12px 40px rgba(212, 168, 83, 0.5); }
   }
 
   .subcategory-card-check {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    background-color: #f1f5f9;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     color: transparent;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid #e2e8f0;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid #cbd5e1;
   }
 
   .subcategory-card.selected .subcategory-card-check {
-    background-color: #d4a853;
-    background-image: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
-    color: #0f172a;
-    border-color: #e9c97a;
-    box-shadow: 0 4px 12px rgba(212, 168, 83, 0.6);
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: none;
   }
 
   .subcategory-card-name {
@@ -657,8 +568,9 @@ import Layout from '../../components/Layout.astro';
   }
 
   .subcategory-card.selected .subcategory-card-name {
-    color: #ffffff;
-    font-weight: 700;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    font-size: 1.1rem !important;
   }
 
   /* 選択トースト */
@@ -705,6 +617,10 @@ import Layout from '../../components/Layout.astro';
   }
 
   .subcategory-selector.hidden {
+    display: none;
+  }
+  
+  .treatment-selector.hidden {
     display: none;
   }
 
@@ -1237,6 +1153,7 @@ import Layout from '../../components/Layout.astro';
 <script>
   let categories: Array<{ id: string; name: string }> = [];
   let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
+  let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
   let currentImageMode: 'before-after' | 'single' = 'before-after';
 
   // モード切り替え処理
@@ -1262,144 +1179,30 @@ import Layout from '../../components/Layout.astro';
 
   // カテゴリアイコンマッピング
   const categoryIcons: Record<string, string> = {
+    '肌診断': '🔬',
+    'フォトフェイシャル': '💡',
     'リフトアップ': '✨',
-    '肌質改善': '🌸',
-    '痩身': '💪',
-    'スキンケア': '🧴',
-    '注入': '💉',
-    '脱毛': '✂️',
+    'ニキビ・ニキビ痕・毛穴治療': '🎯',
+    'レーザー治療': '⚡',
+    '各種ピーリング': '🧪',
+    '導入・エレクトロポレーション': '💫',
+    '医療脱毛': '✂️',
     'アートメイク': '🎨',
-    '点滴': '💧',
-    '内服・外用': '💊',
+    '点滴・注射': '💉',
+    '脂肪溶解注射': '💧',
+    '肌育注射': '🌱',
+    'ボトックス注射': '💎',
+    'ヒアルロン酸注入': '💖',
+    '糸リフト': '🧵',
+    '他院抜糸': '🔧',
+    '麻酔': '😴',
+    '医薬品': '💊',
+    'ドクターズコスメ': '🧴',
+    'ローマピンク': '🌸',
+    'LDM': '📡',
     'その他': '📋'
   };
 
-  let selectedCategoryId: string | null = null;
-  let selectedSubcategoryId: string | null = null;
-
-  async function loadCategories() {
-    try {
-      const res = await fetch('/api/categories');
-      const data = await res.json();
-      categories = data.categories || [];
-      
-      const grid = document.getElementById('categoryGrid');
-      if (grid) {
-        grid.innerHTML = categories.map(cat => `
-          <div class="category-card" data-category-id="${cat.id}">
-            <div class="category-card-icon" style="pointer-events:none;">${categoryIcons[cat.name] || '📋'}</div>
-            <div class="category-card-name" style="pointer-events:none;">${cat.name}</div>
-          </div>
-        `).join('');
-
-        // カード選択イベント
-        grid.querySelectorAll('.category-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const categoryId = card.getAttribute('data-category-id');
-            if (categoryId) {
-              selectCategory(categoryId, card as HTMLElement);
-            }
-          });
-        });
-      }
-    } catch (error) {
-      console.error('カテゴリ読み込みエラー:', error);
-      const grid = document.getElementById('categoryGrid');
-      if (grid) {
-        grid.innerHTML = '<div class="category-loading">読み込みに失敗しました</div>';
-      }
-    }
-  }
-
-  function selectCategory(categoryId: string, cardElement: HTMLElement) {
-    selectedCategoryId = categoryId;
-    
-    // hidden inputを更新
-    const input = document.getElementById('categorySelect') as HTMLInputElement;
-    if (input) input.value = categoryId;
-    
-    // 選択状態を更新
-    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
-    cardElement.classList.add('selected');
-    
-    // サブカテゴリセクションを表示してロード
-    const subcategorySection = document.getElementById('subcategorySection');
-    if (subcategorySection) {
-      subcategorySection.classList.remove('hidden');
-      loadSubcategories(categoryId);
-    }
-    
-    // スムーズにスクロール
-    subcategorySection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  async function loadSubcategories(categoryId: string) {
-    const grid = document.getElementById('subcategoryGrid');
-    if (!grid) return;
-    
-    // ローディング表示
-    grid.innerHTML = '<div class="category-loading"><div class="loading-spinner"></div><span>サブカテゴリを読み込み中...</span></div>';
-    
-    try {
-      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
-      const data = await res.json();
-      subcategories = data.subcategories || [];
-      
-      if (subcategories.length === 0) {
-        grid.innerHTML = '<div class="category-loading">サブカテゴリがありません</div>';
-        return;
-      }
-      
-      grid.innerHTML = subcategories.map(sub => `
-        <button type="button" class="subcategory-card" data-subcategory-id="${sub.id}">
-          <span class="subcategory-card-check" style="pointer-events:none;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="pointer-events:none;">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </span>
-          <span class="subcategory-card-name" style="pointer-events:none;">${sub.name}</span>
-        </button>
-      `).join('');
-      
-      // クリックイベントを追加
-      grid.querySelectorAll('.subcategory-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const subcategoryId = card.getAttribute('data-subcategory-id');
-          if (subcategoryId) {
-            selectSubcategory(subcategoryId, card as HTMLElement);
-          }
-        });
-      });
-    } catch (error) {
-      console.error('サブカテゴリ読み込みエラー:', error);
-      grid.innerHTML = '<div class="category-loading">読み込みに失敗しました</div>';
-    }
-  }
-
-  // サブカテゴリ選択関数
-  function selectSubcategory(subcategoryId: string, element: HTMLElement) {
-    selectedSubcategoryId = subcategoryId;
-    
-    // hidden inputを更新
-    const input = document.getElementById('subcategorySelect') as HTMLInputElement;
-    if (input) input.value = subcategoryId;
-    
-    // 全カードから選択状態を削除
-    document.querySelectorAll('.subcategory-card').forEach(c => {
-      c.classList.remove('selected');
-    });
-    
-    // クリックされたカードに選択状態を追加
-    element.classList.add('selected');
-    
-    // トースト表示
-    const subcategory = subcategories.find(s => s.id === subcategoryId);
-    if (subcategory) {
-      showSelectionToast(`✓ ${subcategory.name} を選択しました`);
-    }
-  }
   
   // 選択トースト表示
   function showSelectionToast(message: string) {
@@ -1532,7 +1335,6 @@ import Layout from '../../components/Layout.astro';
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadCategories();
     initModeSwitch();
 
     // 性別ボタン初期化
@@ -1581,18 +1383,21 @@ import Layout from '../../components/Layout.astro';
         // 単一画像の場合、after_image_urlのみ設定（before_image_urlはnull）
         afterUrl = singleUrl;
       }
+
+      // TreatmentSelectorコンポーネントから値を取得
+      const selectorValues = getSelectorValues();
+      const subcategoryId = selectorValues.subcategoryId || (formData.get('subcategory') as string);
+      
+      if (!subcategoryId) {
+        alert('サブカテゴリを選択してください');
+        return;
+      }
       
       const data = {
-        subcategory_id: formData.get('subcategory'),
+        subcategory_id: subcategoryId,
         before_image_url: beforeUrl,
         after_image_url: afterUrl,
-        image_type: currentImageMode, // 'before-after' or 'single'
         caption: formData.get('caption') || null,
-        treatment_content: formData.get('treatmentContent') || null,
-        treatment_duration: formData.get('treatmentDuration') || null,
-        treatment_cost: formData.get('treatmentCost') ? Number(formData.get('treatmentCost')) : null,
-        treatment_cost_text: formData.get('treatmentCostText') || null,
-        risks: formData.get('risks') || null,
         patient_age: formData.get('patientAge') ? Number(formData.get('patientAge')) : null,
         patient_gender: formData.get('patientGender') || null,
         treatment_count: formData.get('treatmentCount') ? Number(formData.get('treatmentCount')) : null,

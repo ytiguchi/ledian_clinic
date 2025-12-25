@@ -37,11 +37,6 @@ export const GET: APIRoute = async ({ locals, params }) => {
       before_image_url: string;
       after_image_url: string;
       caption: string | null;
-      treatment_content: string | null;
-      treatment_duration: string | null;
-      treatment_cost: number | null;
-      treatment_cost_text: string | null;
-      risks: string | null;
       patient_age: number | null;
       patient_gender: string | null;
       treatment_count: number | null;
@@ -49,7 +44,6 @@ export const GET: APIRoute = async ({ locals, params }) => {
       is_published: number;
       sort_order: number;
       created_at: string;
-      updated_at: string;
       subcategory_name: string;
       category_id: string;
       category_name: string;
@@ -104,8 +98,8 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (!data.before_image_url || !data.after_image_url) {
-      return new Response(JSON.stringify({ error: 'before_image_url and after_image_url are required' }), {
+    if (!data.after_image_url) {
+      return new Response(JSON.stringify({ error: 'after_image_url is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -117,11 +111,6 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         before_image_url = ?,
         after_image_url = ?,
         caption = ?,
-        treatment_content = ?,
-        treatment_duration = ?,
-        treatment_cost = ?,
-        treatment_cost_text = ?,
-        risks = ?,
         patient_age = ?,
         patient_gender = ?,
         treatment_count = ?,
@@ -132,14 +121,9 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
       WHERE id = ?
     `).bind(
       data.subcategory_id,
-      data.before_image_url,
+      data.before_image_url || '',
       data.after_image_url,
       data.caption || null,
-      data.treatment_content || null,
-      data.treatment_duration || null,
-      data.treatment_cost || null,
-      data.treatment_cost_text || null,
-      data.risks || null,
       data.patient_age || null,
       data.patient_gender || null,
       data.treatment_count || null,
@@ -208,5 +192,3 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
     });
   }
 };
-
-

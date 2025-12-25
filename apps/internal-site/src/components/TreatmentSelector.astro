@@ -1,0 +1,619 @@
+---
+export interface Props {
+  // コンポーネントID（複数使用時の識別用）
+  id?: string;
+  // 初期値
+  initialCategoryId?: string;
+  initialSubcategoryId?: string;
+  initialTreatmentId?: string;
+  // カテゴリアイコンマップ（オプション）
+  categoryIcons?: Record<string, string>;
+  // イベントハンドラー
+  onCategoryChange?: (categoryId: string) => void;
+  onSubcategoryChange?: (subcategoryId: string) => void;
+  onTreatmentChange?: (treatmentId: string) => void;
+  // 必須フィールドの設定
+  requiredCategory?: boolean;
+  requiredSubcategory?: boolean;
+  requiredTreatment?: boolean;
+  // ステップ3を表示するか（デフォルト: true）
+  showTreatmentStep?: boolean;
+}
+
+const {
+  id = 'treatment-selector',
+  initialCategoryId,
+  initialSubcategoryId,
+  initialTreatmentId,
+  categoryIcons = {},
+  onCategoryChange,
+  onSubcategoryChange,
+  onTreatmentChange,
+  requiredCategory = false,
+  requiredSubcategory = false,
+  requiredTreatment = false,
+  showTreatmentStep = true,
+} = Astro.props;
+
+const categoryInputId = `${id}-category-input`;
+const subcategoryInputId = `${id}-subcategory-input`;
+const treatmentSelectId = `${id}-treatment-select`;
+const categoryGridId = `${id}-category-grid`;
+const subcategoryGridId = `${id}-subcategory-grid`;
+const subcategorySectionId = `${id}-subcategory-section`;
+const treatmentSectionId = `${id}-treatment-section`;
+---
+
+<div class="treatment-selector-wrapper">
+  <!-- STEP 1: カテゴリ選択 -->
+  <div class="category-selector">
+    <div class="selector-header">
+      <span class="selector-step">STEP 1</span>
+      <h3 class="selector-title">施術カテゴリを選択</h3>
+    </div>
+    <div class="category-grid" id={categoryGridId}>
+      <div class="category-loading">
+        <div class="loading-spinner"></div>
+        <span>カテゴリを読み込み中...</span>
+      </div>
+    </div>
+    <input type="hidden" name="category" id={categoryInputId} required={requiredCategory} />
+  </div>
+
+  <!-- STEP 2: サブカテゴリ選択 -->
+  <div class="subcategory-selector hidden" id={subcategorySectionId}>
+    <div class="selector-header">
+      <span class="selector-step">STEP 2</span>
+      <h3 class="selector-title">サブカテゴリを選択</h3>
+    </div>
+    <div class="subcategory-grid" id={subcategoryGridId}>
+      <!-- 動的に生成 -->
+    </div>
+    <input type="hidden" name="subcategory" id={subcategoryInputId} required={requiredSubcategory} />
+  </div>
+
+  {showTreatmentStep && (
+    <!-- STEP 3: 施術選択 -->
+    <div class="treatment-selector hidden" id={treatmentSectionId}>
+      <div class="selector-header">
+        <span class="selector-step">STEP 3</span>
+        <h3 class="selector-title">施術を選択</h3>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          <select name="treatment" id={treatmentSelectId} class="form-input" required={requiredTreatment}>
+            <option value="">施術を選択してください</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
+<style>
+  /* ========================================
+     Category Selector
+     ======================================== */
+  .category-selector,
+  .subcategory-selector {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+  }
+
+  .selector-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .selector-step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
+    color: #0f172a;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-radius: 2rem;
+  }
+
+  .selector-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .category-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 1.25rem 1rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    min-height: 90px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .category-card :global(*) {
+    pointer-events: none;
+  }
+
+  .category-card:hover {
+    background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #d4a853;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(212, 168, 83, 0.2);
+  }
+
+  .category-card.selected {
+    background: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
+    border-color: #b8922e;
+    box-shadow: 0 0 0 4px rgba(212, 168, 83, 0.3), 0 8px 25px rgba(212, 168, 83, 0.3);
+    transform: scale(1.02);
+  }
+
+  .category-card-icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+
+  .category-card-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+    line-height: 1.4;
+  }
+
+  .category-card.selected .category-card-name {
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  /* Subcategory Grid */
+  .subcategory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .subcategory-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 0.875rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-height: 56px;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: inherit;
+    font-size: inherit;
+    text-align: left;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .subcategory-card :global(*) {
+    pointer-events: none;
+  }
+
+  .subcategory-card:focus {
+    outline: 3px solid #d4a853;
+    outline-offset: 2px;
+  }
+
+  .subcategory-card:hover {
+    background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #d4a853;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 168, 83, 0.2);
+  }
+
+  .subcategory-card.selected {
+    background: linear-gradient(135deg, #d4a853 0%, #f0d78c 100%) !important;
+    border-color: #b8922e !important;
+    border-width: 4px !important;
+    box-shadow: 0 0 0 6px rgba(212, 168, 83, 0.4), 0 12px 40px rgba(212, 168, 83, 0.5) !important;
+    transform: scale(1.08);
+    animation: pulse-gold 0.5s ease-out;
+  }
+
+  @keyframes pulse-gold {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 168, 83, 0.7); }
+    50% { transform: scale(1.12); box-shadow: 0 0 0 15px rgba(212, 168, 83, 0); }
+    100% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(212, 168, 83, 0.4), 0 12px 40px rgba(212, 168, 83, 0.5); }
+  }
+
+  .subcategory-card-check {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: transparent;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid #cbd5e1;
+  }
+
+  .subcategory-card.selected .subcategory-card-check {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: none;
+  }
+
+  .subcategory-card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    line-height: 1.4;
+  }
+
+  .subcategory-card.selected .subcategory-card-name {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+    font-size: 1.1rem !important;
+  }
+
+  /* Loading State */
+  .category-loading {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: #64748b;
+  }
+
+  .loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #d4a853;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .subcategory-selector.hidden,
+  .treatment-selector.hidden {
+    display: none;
+  }
+
+  .treatment-selector {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+  }
+
+  .section-content {
+    margin-top: 0.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.9375rem;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #d4a853;
+    box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.1);
+  }
+</style>
+
+<script define:vars={{
+  componentId: id,
+  categoryInputId,
+  subcategoryInputId,
+  treatmentSelectId,
+  categoryGridId,
+  subcategoryGridId,
+  subcategorySectionId,
+  treatmentSectionId,
+  initialCategoryId,
+  initialSubcategoryId,
+  initialTreatmentId,
+  categoryIconsJson: JSON.stringify(categoryIcons),
+  showTreatmentStep,
+}}>
+  // デフォルトのカテゴリアイコン
+  const defaultCategoryIcons: Record<string, string> = {
+    '肌診断': '🔬',
+    'フォトフェイシャル': '💡',
+    'リフトアップ': '✨',
+    'ニキビ・ニキビ痕・毛穴治療': '🎯',
+    'レーザー治療': '⚡',
+    '各種ピーリング': '🖌️',
+    '導入・エレクトロポレーション': '🌀',
+    '医療脱毛': '✂️',
+    'アートメイク': '🎨',
+    '点滴・注射': '💉',
+    '脂肪溶解注射': '💧',
+    '肌育注射': '🌱',
+    'ボトックス注射': '💎',
+    'ヒアルロン酸注入': '💗',
+    '糸リフト': '🧵',
+    '他院抜糸': '🔧',
+    '麻酔': '😴',
+    '医薬品': '💊',
+    'ドクターズコスメ': '🧴',
+    'ローマピンク': '🌸',
+    'LDM': '📡',
+  };
+
+  const icons = { ...defaultCategoryIcons, ...JSON.parse(categoryIconsJson) };
+
+  let categories: Array<{ id: string; name: string }> = [];
+  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
+  let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
+  let selectedCategoryId: string | null = initialCategoryId || null;
+  let selectedSubcategoryId: string | null = initialSubcategoryId || null;
+  let selectedTreatmentId: string | null = initialTreatmentId || null;
+
+  // カスタムイベントを発火するヘルパー
+  function dispatchChangeEvent(eventName: string, detail: unknown) {
+    const event = new CustomEvent(eventName, { detail, bubbles: true });
+    document.dispatchEvent(event);
+  }
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      categories = data.categories || [];
+      
+      const grid = document.getElementById(categoryGridId);
+      if (grid) {
+        grid.innerHTML = categories.map(cat => `
+          <div class="category-card" data-category-id="${cat.id}">
+            <div class="category-card-icon">${icons[cat.name] || '📋'}</div>
+            <div class="category-card-name">${cat.name}</div>
+          </div>
+        `).join('');
+
+        // カード選択イベント
+        grid.querySelectorAll('.category-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const categoryId = card.getAttribute('data-category-id');
+            if (categoryId) {
+              selectCategory(categoryId, card as HTMLElement);
+            }
+          });
+        });
+
+        // 初期値が設定されている場合は選択状態にする
+        if (initialCategoryId) {
+          const card = grid.querySelector(`[data-category-id="${initialCategoryId}"]`) as HTMLElement;
+          if (card) {
+            selectCategory(initialCategoryId, card);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('カテゴリ読み込みエラー:', error);
+      const grid = document.getElementById(categoryGridId);
+      if (grid) {
+        grid.innerHTML = '<div class="category-loading">読み込みに失敗しました</div>';
+      }
+    }
+  }
+
+  function selectCategory(categoryId: string, cardElement: HTMLElement) {
+    selectedCategoryId = categoryId;
+    
+    // hidden inputを更新
+    const input = document.getElementById(categoryInputId) as HTMLInputElement;
+    if (input) input.value = categoryId;
+    
+    // 全カードから選択スタイルをリセット
+    document.querySelectorAll(`#${categoryGridId} .category-card`).forEach(c => {
+      c.classList.remove('selected');
+    });
+    
+    // 選択されたカードにスタイルを適用
+    cardElement.classList.add('selected');
+
+    // サブカテゴリセクションを表示
+    const subcategorySection = document.getElementById(subcategorySectionId);
+    if (subcategorySection) {
+      subcategorySection.classList.remove('hidden');
+      subcategorySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // 治療セクションを非表示
+    if (showTreatmentStep) {
+      const treatmentSection = document.getElementById(treatmentSectionId);
+      if (treatmentSection) {
+        treatmentSection.classList.add('hidden');
+      }
+      const treatmentSelect = document.getElementById(treatmentSelectId) as HTMLSelectElement;
+      if (treatmentSelect) {
+        treatmentSelect.innerHTML = '<option value="">施術を選択してください</option>';
+      }
+      selectedTreatmentId = null;
+    }
+    selectedSubcategoryId = null;
+
+    // サブカテゴリを読み込み
+    loadSubcategories(categoryId);
+
+    // カスタムイベントを発火
+    dispatchChangeEvent(`treatment-selector:category-change:${componentId}`, { categoryId });
+  }
+
+  async function loadSubcategories(categoryId: string) {
+    const grid = document.getElementById(subcategoryGridId);
+    if (!grid) return;
+    
+    // ローディング表示
+    grid.innerHTML = '<div class="category-loading"><div class="loading-spinner"></div><span>サブカテゴリを読み込み中...</span></div>';
+    
+    try {
+      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
+      const data = await res.json();
+      subcategories = data.subcategories || [];
+      
+      if (subcategories.length === 0) {
+        grid.innerHTML = '<div class="category-loading">サブカテゴリがありません</div>';
+        return;
+      }
+      
+      grid.innerHTML = subcategories.map(sub => `
+        <button type="button" class="subcategory-card" data-subcategory-id="${sub.id}">
+          <span class="subcategory-card-check">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </span>
+          <span class="subcategory-card-name">${sub.name}</span>
+        </button>
+      `).join('');
+
+      // サブカテゴリ選択イベント
+      grid.querySelectorAll('.subcategory-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const subcategoryId = card.getAttribute('data-subcategory-id');
+          if (subcategoryId) {
+            selectSubcategory(subcategoryId, card as HTMLElement);
+          }
+        });
+      });
+
+      // 初期値が設定されている場合は選択状態にする
+      if (initialSubcategoryId) {
+        const card = grid.querySelector(`[data-subcategory-id="${initialSubcategoryId}"]`) as HTMLElement;
+        if (card) {
+          selectSubcategory(initialSubcategoryId, card);
+        }
+      }
+    } catch (error) {
+      console.error('サブカテゴリ読み込みエラー:', error);
+      grid.innerHTML = '<div class="category-loading">読み込みに失敗しました</div>';
+    }
+  }
+
+  function selectSubcategory(subcategoryId: string, element: HTMLElement) {
+    selectedSubcategoryId = subcategoryId;
+    
+    // hidden inputを更新
+    const input = document.getElementById(subcategoryInputId) as HTMLInputElement;
+    if (input) input.value = subcategoryId;
+    
+    // 全カードから選択スタイルをリセット
+    document.querySelectorAll(`#${subcategoryGridId} .subcategory-card`).forEach(c => {
+      c.classList.remove('selected');
+    });
+    
+    // 選択されたカードにスタイルを適用
+    element.classList.add('selected');
+
+    // 治療セクションを表示
+    if (showTreatmentStep) {
+      const treatmentSection = document.getElementById(treatmentSectionId);
+      if (treatmentSection) {
+        treatmentSection.classList.remove('hidden');
+        treatmentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      loadTreatments(subcategoryId);
+    }
+
+    // カスタムイベントを発火
+    dispatchChangeEvent(`treatment-selector:subcategory-change:${componentId}`, { subcategoryId });
+  }
+
+  async function loadTreatments(subcategoryId: string) {
+    const select = document.getElementById(treatmentSelectId) as HTMLSelectElement;
+    if (!select) return;
+    select.innerHTML = '<option value="">施術を選択してください</option>';
+    selectedTreatmentId = null;
+
+    try {
+      const res = await fetch(`/api/treatments?subcategory_id=${subcategoryId}`);
+      const data = await res.json();
+      treatments = data.treatments || [];
+
+      if (treatments.length === 0) {
+        select.innerHTML = '<option value="">施術がありません</option>';
+        return;
+      }
+
+      select.innerHTML = '<option value="">施術を選択してください</option>' +
+        treatments.map(treatment => `<option value="${treatment.id}">${treatment.name}</option>`).join('');
+
+      // 初期値が設定されている場合は選択状態にする
+      if (initialTreatmentId) {
+        select.value = initialTreatmentId;
+        selectedTreatmentId = initialTreatmentId;
+      }
+
+      select.onchange = () => {
+        selectedTreatmentId = select.value || null;
+        
+        // カスタムイベントを発火
+        dispatchChangeEvent(`treatment-selector:treatment-change:${componentId}`, { treatmentId: selectedTreatmentId });
+      };
+    } catch (error) {
+      console.error('施術読み込みエラー:', error);
+      select.innerHTML = '<option value="">読み込みに失敗しました</option>';
+    }
+  }
+
+  // 公開API（外部から値にアクセスするためのメソッド）
+  window[`getTreatmentSelector_${componentId}`] = () => ({
+    getCategoryId: () => selectedCategoryId,
+    getSubcategoryId: () => selectedSubcategoryId,
+    getTreatmentId: () => selectedTreatmentId,
+  });
+
+  // 初期化
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+  });
+</script>
+

@@ -1,0 +1,127 @@
+
+--- 2025-12-25T07:38:45.618Z debug
+🪵  Writing logs to "/Users/iguchiyuuta/Dev/ledian_clinic/.wrangler/.wrangler/logs/wrangler-2025-12-25_07-38-45_548.log"
+---
+
+--- 2025-12-25T07:38:45.618Z debug
+Metrics dispatcher: Posting data {"deviceId":"feeee171-b95e-46da-8ba6-d1d9f814192f","event":"wrangler command started","timestamp":1766648325618,"properties":{"amplitude_session_id":1766648325617,"amplitude_event_id":0,"wranglerVersion":"4.51.0","osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:56 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6041","nodeVersion":20,"isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["command","config","local"],"argsCombination":"command, config, local","command":"wrangler d1 execute","args":{}}}
+---
+
+--- 2025-12-25T07:38:45.622Z debug
+.env file not found at "/Users/iguchiyuuta/Dev/ledian_clinic/.env". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2025-12-25T07:38:45.622Z debug
+.env file not found at "/Users/iguchiyuuta/Dev/ledian_clinic/.env.local". Continuing... For more details, refer to https://developers.cloudflare.com/workers/wrangler/system-environment-variables/
+---
+
+--- 2025-12-25T07:38:45.640Z log
+
+ ⛅️ wrangler 4.51.0 (update available 4.54.0)
+─────────────────────────────────────────────
+---
+
+--- 2025-12-25T07:38:45.640Z log
+Resource location: local 
+
+---
+
+--- 2025-12-25T07:38:45.640Z log
+Use --remote if you want to access the remote instance.
+
+---
+
+--- 2025-12-25T07:38:45.646Z log
+🌀 Executing on local database ledian-internal-prod (bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3) from .wrangler/state/v3/d1:
+---
+
+--- 2025-12-25T07:38:45.646Z log
+🌀 To execute on your remote database, add a --remote flag to your wrangler command.
+---
+
+--- 2025-12-25T07:38:45.867Z log
+🚣 1 command executed successfully.
+---
+
+--- 2025-12-25T07:38:45.868Z log
+[
+  {
+    "results": [
+      {
+        "name": "_cf_METADATA"
+      },
+      {
+        "name": "campaign_plans"
+      },
+      {
+        "name": "campaigns"
+      },
+      {
+        "name": "categories"
+      },
+      {
+        "name": "d1_migrations"
+      },
+      {
+        "name": "medication_plans"
+      },
+      {
+        "name": "medications"
+      },
+      {
+        "name": "sqlite_sequence"
+      },
+      {
+        "name": "subcategories"
+      },
+      {
+        "name": "subcategories_old"
+      },
+      {
+        "name": "tags"
+      },
+      {
+        "name": "treatment_before_afters"
+      },
+      {
+        "name": "treatment_cautions"
+      },
+      {
+        "name": "treatment_details"
+      },
+      {
+        "name": "treatment_faqs"
+      },
+      {
+        "name": "treatment_flows"
+      },
+      {
+        "name": "treatment_option_mappings"
+      },
+      {
+        "name": "treatment_options"
+      },
+      {
+        "name": "treatment_plans"
+      },
+      {
+        "name": "treatment_tags"
+      },
+      {
+        "name": "treatments"
+      },
+      {
+        "name": "treatments_backup"
+      }
+    ],
+    "success": true,
+    "meta": {
+      "duration": 0
+    }
+  }
+]
+---
+
+--- 2025-12-25T07:38:45.868Z debug
+Metrics dispatcher: Posting data {"deviceId":"feeee171-b95e-46da-8ba6-d1d9f814192f","event":"wrangler command completed","timestamp":1766648325868,"properties":{"amplitude_session_id":1766648325617,"amplitude_event_id":1,"wranglerVersion":"4.51.0","osPlatform":"Mac OS","osVersion":"Darwin Kernel Version 25.2.0: Tue Nov 18 21:09:56 PST 2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6041","nodeVersion":20,"isFirstUsage":false,"configFileType":"toml","isCI":false,"isPagesCI":false,"isWorkersCI":false,"isInteractive":false,"hasAssets":false,"argsUsed":["command","config","local"],"argsCombination":"command, config, local","command":"wrangler d1 execute","args":{},"durationMs":263,"durationSeconds":0.263,"durationMinutes":0.004383333333333334}}
+---

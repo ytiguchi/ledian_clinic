@@ -5,6 +5,7 @@ export interface Props {
 }
 
 const { title, description = 'レディアンクリニック 社内管理サイト' } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://ledian-clinic-internal.pages.dev');
 ---
 
 <!doctype html>
@@ -15,6 +16,11 @@ const { title, description = 'レディアンクリニック 社内管理サイ�
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
+    <!-- クローリング防止 -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <!-- Canonical URL -->
+    <link rel="canonical" href={canonicalURL.href} />
     <title>{title}</title>
   </head>
   <body>
