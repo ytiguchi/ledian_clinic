@@ -1,0 +1,1053 @@
+---
+import Layout from '../../../components/Layout.astro';
+
+const { id } = Astro.params;
+---
+
+<Layout>
+  <div class="edit-launch-page" data-launch-id={id}>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <a href="/launches" class="back-link">← 発売予定商品一覧</a>
+        <h1 class="page-title" id="pageTitle">読み込み中...</h1>
+      </div>
+      <div class="header-actions">
+        <span class="launch-status" id="statusBadge"></span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="details">基本情報</button>
+      <button class="tab" data-tab="tasks">タスク</button>
+      <button class="tab" data-tab="systems">システム登録</button>
+    </div>
+
+    <!-- Tab Content: Details -->
+    <div class="tab-content active" id="tab-details">
+      <form id="launchForm" class="form-container">
+        <div class="form-section">
+          <h2 class="section-title">基本情報</h2>
+          
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="label required">商品名</label>
+              <input type="text" name="name" class="input" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="label">説明</label>
+              <textarea name="description" class="textarea" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="label">ステータス</label>
+              <select name="status" class="select" id="statusSelect">
+                <option value="planning">企画中</option>
+                <option value="pricing">料金決定中</option>
+                <option value="protocol">プロトコル策定中</option>
+                <option value="training">研修中</option>
+                <option value="ready">発売準備完了</option>
+                <option value="launched">発売済み</option>
+                <option value="cancelled">中止</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="label">予定カテゴリ</label>
+              <select name="target_category_id" class="select" id="categorySelect">
+                <option value="">選択してください</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="label">サブカテゴリ名</label>
+              <input type="text" name="target_subcategory_name" class="input">
+            </div>
+
+            <div class="form-group">
+              <label class="label">主担当</label>
+              <input type="text" name="owner_name" class="input">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-title">料金情報</h2>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="label">予定価格（税抜）</label>
+              <div class="input-group">
+                <span class="input-prefix">¥</span>
+                <input type="number" name="planned_price" class="input">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label">予定価格（税込）</label>
+              <div class="input-group">
+                <span class="input-prefix">¥</span>
+                <input type="number" name="planned_price_taxed" class="input">
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="label">料金備考</label>
+              <textarea name="price_notes" class="textarea" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-title">プロトコル・研修</h2>
+          
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="label">プロトコル備考</label>
+              <textarea name="protocol_notes" class="textarea" rows="2"></textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="label">研修備考</label>
+              <textarea name="training_notes" class="textarea" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2 class="section-title">スケジュール</h2>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="label">発売予定日</label>
+              <input type="date" name="target_launch_date" class="input">
+            </div>
+
+            <div class="form-group">
+              <label class="label">優先度</label>
+              <select name="priority" class="select">
+                <option value="0">通常</option>
+                <option value="5">やや高い</option>
+                <option value="10">高い</option>
+                <option value="15">最優先</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-group full-width">
+            <label class="label">備考</label>
+            <textarea name="notes" class="textarea" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-danger" id="deleteBtn">削除</button>
+          <div style="flex: 1;"></div>
+          <a href="/launches" class="btn btn-secondary">キャンセル</a>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tab Content: Tasks -->
+    <div class="tab-content" id="tab-tasks">
+      <div class="tasks-container">
+        <div class="tasks-header">
+          <h2 class="section-title" style="margin: 0;">タスク一覧</h2>
+          <button class="btn btn-sm btn-primary" id="addTaskBtn">+ タスク追加</button>
+        </div>
+        <div id="tasksList" class="tasks-list">
+          <div class="loading">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content: Systems -->
+    <div class="tab-content" id="tab-systems">
+      <div class="systems-container">
+        <div class="system-card">
+          <div class="system-header">
+            <h3>WEB サイト</h3>
+            <span class="system-status" id="webStatus">未登録</span>
+          </div>
+          <p class="system-desc">公開サイトへの商品登録</p>
+          <div id="webRegisteredAt" class="system-date"></div>
+        </div>
+
+        <div class="system-card">
+          <div class="system-header">
+            <h3>スマレジ</h3>
+            <span class="system-status" id="smaregiStatus">未登録</span>
+          </div>
+          <p class="system-desc">POSレジへの商品登録</p>
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <input type="text" id="smaregiCode" class="input" placeholder="商品コード">
+          </div>
+          <div id="smaregiRegisteredAt" class="system-date"></div>
+        </div>
+
+        <div class="system-card">
+          <div class="system-header">
+            <h3>メディカルフォース</h3>
+            <span class="system-status" id="mfStatus">未登録</span>
+          </div>
+          <p class="system-desc">電子カルテへの商品登録</p>
+          <div class="form-group" style="margin-top: 0.5rem;">
+            <input type="text" id="mfId" class="input" placeholder="商品ID">
+          </div>
+          <div id="mfRegisteredAt" class="system-date"></div>
+        </div>
+      </div>
+
+      <div class="launch-section" id="launchSection" style="display: none;">
+        <div class="launch-card">
+          <h2>🚀 発売処理</h2>
+          <p>すべての準備が完了したら、この商品を発売して既存の商品一覧にマージします。</p>
+          
+          <div class="form-grid" style="margin-top: 1rem;">
+            <div class="form-group">
+              <label class="label required">カテゴリ</label>
+              <select id="launchCategoryId" class="select" required>
+                <option value="">選択してください</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label required">サブカテゴリ名</label>
+              <input type="text" id="launchSubcategoryName" class="input" required>
+            </div>
+            <div class="form-group">
+              <label class="label required">スラッグ（URL用）</label>
+              <input type="text" id="launchSubcategorySlug" class="input" placeholder="例: kuma-tori" required>
+            </div>
+            <div class="form-group">
+              <label class="label">プラン名</label>
+              <input type="text" id="launchPlanName" class="input" value="1回">
+            </div>
+          </div>
+
+          <div class="launch-checklist">
+            <label class="checkbox-item">
+              <input type="checkbox" id="launchWebRegister"> WEBサイトにも登録する
+            </label>
+          </div>
+
+          <button class="btn btn-success btn-lg" id="launchBtn">
+            🎉 発売する（商品一覧にマージ）
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div class="modal" id="addTaskModal">
+    <div class="modal-content">
+      <h3>タスク追加</h3>
+      <form id="addTaskForm">
+        <div class="form-group">
+          <label class="label">タスク種別</label>
+          <select name="task_type" class="select" required>
+            <option value="pricing">料金決定</option>
+            <option value="protocol">プロトコル策定</option>
+            <option value="training_material">研修資料作成</option>
+            <option value="training_session">研修実施</option>
+            <option value="web_register">WEB登録</option>
+            <option value="smaregi_register">スマレジ登録</option>
+            <option value="medical_force_register">メディカルフォース登録</option>
+            <option value="photo_prepare">写真準備</option>
+            <option value="marketing">マーケティング準備</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="label required">タイトル</label>
+          <input type="text" name="title" class="input" required>
+        </div>
+        <div class="form-group">
+          <label class="label">期限</label>
+          <input type="date" name="due_date" class="input">
+        </div>
+        <div class="form-group">
+          <label class="label">担当者</label>
+          <input type="text" name="assignee" class="input">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+          <button type="submit" class="btn btn-primary">追加</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .edit-launch-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 900px;
+  }
+
+  .back-link {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .launch-status {
+    padding: 0.375rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--color-bg);
+    padding: 0.25rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--color-text-secondary);
+  }
+
+  .tab:hover {
+    background: var(--color-bg-hover);
+  }
+
+  .tab.active {
+    background: var(--color-accent);
+    color: var(--color-primary);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Form */
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-section {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .form-group.full-width {
+    grid-column: span 2;
+  }
+
+  .label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .label.required::after {
+    content: ' *';
+    color: var(--color-error);
+  }
+
+  .input, .select, .textarea {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    background: var(--color-bg);
+  }
+
+  .input:focus, .select:focus, .textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .input-prefix {
+    padding: 0.625rem 0.75rem;
+    background: var(--color-bg-hover);
+    border: 1px solid var(--color-border);
+    border-right: none;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    color: var(--color-text-muted);
+  }
+
+  .input-group .input {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    flex: 1;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .btn-danger {
+    background: var(--color-error-light);
+    color: #b91c1c;
+    border: 1px solid transparent;
+  }
+
+  .btn-danger:hover {
+    background: var(--color-error);
+    color: white;
+  }
+
+  /* Tasks */
+  .tasks-container {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .task-item.completed {
+    opacity: 0.6;
+  }
+
+  .task-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  .task-info {
+    flex: 1;
+  }
+
+  .task-title {
+    font-weight: 500;
+  }
+
+  .task-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+  }
+
+  .task-type-badge {
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+    background: var(--color-bg-hover);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+  }
+
+  /* Systems */
+  .systems-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .system-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+  }
+
+  .system-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .system-header h3 {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .system-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .system-status.registered {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .system-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .system-date {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+  }
+
+  /* Launch Section */
+  .launch-section {
+    margin-top: 2rem;
+  }
+
+  .launch-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid #86efac;
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+  }
+
+  .launch-card h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+  }
+
+  .launch-card p {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .launch-checklist {
+    margin: 1rem 0;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .btn-success {
+    background: #10b981;
+    color: white;
+    border: none;
+  }
+
+  .btn-success:hover {
+    background: #059669;
+  }
+
+  .btn-lg {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal.open {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--color-bg);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .modal-content h3 {
+    margin: 0 0 1rem 0;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group.full-width {
+      grid-column: span 1;
+    }
+
+    .systems-container {
+      grid-template-columns: 1fr;
+    }
+
+    .tabs {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+  const launchId = document.querySelector('.edit-launch-page')?.getAttribute('data-launch-id');
+  let launchData: any = null;
+  let tasksData: any[] = [];
+
+  const statusLabels: Record<string, string> = {
+    planning: '企画中',
+    pricing: '料金決定中',
+    protocol: 'プロトコル策定中',
+    training: '研修中',
+    ready: '発売準備完了',
+    launched: '発売済み',
+    cancelled: '中止'
+  };
+
+  const taskTypeLabels: Record<string, string> = {
+    pricing: '料金',
+    protocol: 'プロトコル',
+    training_material: '研修資料',
+    training_session: '研修',
+    web_register: 'WEB',
+    smaregi_register: 'スマレジ',
+    medical_force_register: 'MF',
+    photo_prepare: '写真',
+    marketing: 'マーケ',
+    other: 'その他'
+  };
+
+  async function loadData() {
+    try {
+      const res = await fetch(`/api/product-launches/${launchId}`);
+      const data = await res.json();
+      
+      if (data.error) {
+        alert(data.message || data.error);
+        return;
+      }
+
+      launchData = data.launch;
+      tasksData = data.tasks || [];
+      
+      populateForm();
+      renderTasks();
+      updateSystemsTab();
+      updateStatusBadge();
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      
+      const selects = ['categorySelect', 'launchCategoryId'];
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId) as HTMLSelectElement;
+        if (select && data.categories) {
+          data.categories.forEach((cat: { id: number; name: string }) => {
+            const option = document.createElement('option');
+            option.value = String(cat.id);
+            option.textContent = cat.name;
+            select.appendChild(option);
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
+  function populateForm() {
+    if (!launchData) return;
+
+    document.getElementById('pageTitle')!.textContent = launchData.name;
+
+    const form = document.getElementById('launchForm') as HTMLFormElement;
+    
+    (form.querySelector('[name="name"]') as HTMLInputElement).value = launchData.name || '';
+    (form.querySelector('[name="description"]') as HTMLTextAreaElement).value = launchData.description || '';
+    (form.querySelector('[name="status"]') as HTMLSelectElement).value = launchData.status || 'planning';
+    (form.querySelector('[name="target_category_id"]') as HTMLSelectElement).value = launchData.target_category_id || '';
+    (form.querySelector('[name="target_subcategory_name"]') as HTMLInputElement).value = launchData.target_subcategory_name || '';
+    (form.querySelector('[name="owner_name"]') as HTMLInputElement).value = launchData.owner_name || '';
+    (form.querySelector('[name="planned_price"]') as HTMLInputElement).value = launchData.planned_price || '';
+    (form.querySelector('[name="planned_price_taxed"]') as HTMLInputElement).value = launchData.planned_price_taxed || '';
+    (form.querySelector('[name="price_notes"]') as HTMLTextAreaElement).value = launchData.price_notes || '';
+    (form.querySelector('[name="protocol_notes"]') as HTMLTextAreaElement).value = launchData.protocol_notes || '';
+    (form.querySelector('[name="training_notes"]') as HTMLTextAreaElement).value = launchData.training_notes || '';
+    (form.querySelector('[name="target_launch_date"]') as HTMLInputElement).value = launchData.target_launch_date?.split('T')[0] || '';
+    (form.querySelector('[name="priority"]') as HTMLSelectElement).value = String(launchData.priority || 0);
+    (form.querySelector('[name="notes"]') as HTMLTextAreaElement).value = launchData.notes || '';
+
+    // Launch form defaults
+    (document.getElementById('launchSubcategoryName') as HTMLInputElement).value = launchData.target_subcategory_name || launchData.name || '';
+    (document.getElementById('launchCategoryId') as HTMLSelectElement).value = launchData.target_category_id || '';
+  }
+
+  function updateStatusBadge() {
+    if (!launchData) return;
+    const badge = document.getElementById('statusBadge')!;
+    badge.textContent = statusLabels[launchData.status] || launchData.status;
+    badge.className = `launch-status status-${launchData.status}`;
+    badge.style.cssText = getStatusStyle(launchData.status);
+
+    // Show launch section if ready
+    const launchSection = document.getElementById('launchSection');
+    if (launchSection) {
+      launchSection.style.display = launchData.status === 'ready' ? 'block' : 'none';
+    }
+  }
+
+  function getStatusStyle(status: string): string {
+    const styles: Record<string, string> = {
+      planning: 'background: #f3f4f6; color: #374151;',
+      pricing: 'background: #fef3c7; color: #92400e;',
+      protocol: 'background: #dbeafe; color: #1e40af;',
+      training: 'background: #e0e7ff; color: #3730a3;',
+      ready: 'background: #d1fae5; color: #065f46;',
+      launched: 'background: #10b981; color: white;',
+      cancelled: 'background: #fee2e2; color: #991b1b;'
+    };
+    return styles[status] || '';
+  }
+
+  function renderTasks() {
+    const list = document.getElementById('tasksList')!;
+    
+    if (tasksData.length === 0) {
+      list.innerHTML = '<div class="empty-state">タスクがありません</div>';
+      return;
+    }
+
+    list.innerHTML = tasksData.map(task => `
+      <div class="task-item ${task.is_completed ? 'completed' : ''}">
+        <input type="checkbox" class="task-checkbox" 
+          ${task.is_completed ? 'checked' : ''} 
+          onchange="toggleTask(${task.id}, this.checked)">
+        <div class="task-info">
+          <div class="task-title">${escapeHtml(task.title)}</div>
+          <div class="task-meta">
+            ${task.assignee ? `担当: ${escapeHtml(task.assignee)}` : ''}
+            ${task.due_date ? ` | 期限: ${formatDate(task.due_date)}` : ''}
+            ${task.completed_at ? ` | 完了: ${formatDate(task.completed_at)}` : ''}
+          </div>
+        </div>
+        <span class="task-type-badge">${taskTypeLabels[task.task_type] || task.task_type}</span>
+      </div>
+    `).join('');
+  }
+
+  function updateSystemsTab() {
+    if (!launchData) return;
+
+    // WEB
+    const webStatus = document.getElementById('webStatus')!;
+    const webDate = document.getElementById('webRegisteredAt')!;
+    if (launchData.web_registered_at) {
+      webStatus.textContent = '登録済み';
+      webStatus.classList.add('registered');
+      webDate.textContent = `登録日: ${formatDate(launchData.web_registered_at)}`;
+    }
+
+    // スマレジ
+    const smaregiStatus = document.getElementById('smaregiStatus')!;
+    const smaregiDate = document.getElementById('smaregiRegisteredAt')!;
+    const smaregiCode = document.getElementById('smaregiCode') as HTMLInputElement;
+    if (launchData.smaregi_registered_at) {
+      smaregiStatus.textContent = '登録済み';
+      smaregiStatus.classList.add('registered');
+      smaregiDate.textContent = `登録日: ${formatDate(launchData.smaregi_registered_at)}`;
+    }
+    smaregiCode.value = launchData.smaregi_product_code || '';
+
+    // メディカルフォース
+    const mfStatus = document.getElementById('mfStatus')!;
+    const mfDate = document.getElementById('mfRegisteredAt')!;
+    const mfId = document.getElementById('mfId') as HTMLInputElement;
+    if (launchData.medical_force_registered_at) {
+      mfStatus.textContent = '登録済み';
+      mfStatus.classList.add('registered');
+      mfDate.textContent = `登録日: ${formatDate(launchData.medical_force_registered_at)}`;
+    }
+    mfId.value = launchData.medical_force_product_id || '';
+  }
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
+    
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    const data: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      if (key === 'planned_price' || key === 'planned_price_taxed' || key === 'priority' || key === 'target_category_id') {
+        data[key] = value ? parseInt(value as string) : null;
+      } else {
+        data[key] = value || null;
+      }
+    });
+
+    try {
+      const res = await fetch(`/api/product-launches/${launchId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      
+      if (res.ok && result.success) {
+        alert('保存しました');
+        loadData();
+      } else {
+        alert(result.error || '保存に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('保存に失敗しました');
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('この発売予定商品を削除しますか？')) return;
+
+    try {
+      const res = await fetch(`/api/product-launches/${launchId}`, { method: 'DELETE' });
+      if (res.ok) {
+        window.location.href = '/launches';
+      } else {
+        alert('削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+      alert('削除に失敗しました');
+    }
+  }
+
+  async function toggleTask(taskId: number, isCompleted: boolean) {
+    try {
+      await fetch(`/api/product-launches/${launchId}/tasks`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId, is_completed: isCompleted })
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error toggling task:', error);
+    }
+  }
+
+  async function handleAddTask(e: Event) {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    const data: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      data[key] = value || null;
+    });
+
+    try {
+      const res = await fetch(`/api/product-launches/${launchId}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        closeModal();
+        form.reset();
+        loadData();
+      } else {
+        alert('追加に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error adding task:', error);
+      alert('追加に失敗しました');
+    }
+  }
+
+  async function handleLaunch() {
+    const categoryId = (document.getElementById('launchCategoryId') as HTMLSelectElement).value;
+    const subcategoryName = (document.getElementById('launchSubcategoryName') as HTMLInputElement).value;
+    const subcategorySlug = (document.getElementById('launchSubcategorySlug') as HTMLInputElement).value;
+    const planName = (document.getElementById('launchPlanName') as HTMLInputElement).value || '1回';
+    const webRegister = (document.getElementById('launchWebRegister') as HTMLInputElement).checked;
+    const smaregiCode = (document.getElementById('smaregiCode') as HTMLInputElement).value;
+    const mfId = (document.getElementById('mfId') as HTMLInputElement).value;
+
+    if (!categoryId || !subcategoryName || !subcategorySlug) {
+      alert('カテゴリ、サブカテゴリ名、スラッグは必須です');
+      return;
+    }
+
+    if (!confirm(`「${launchData.name}」を発売し、商品一覧にマージしますか？`)) return;
+
+    try {
+      const res = await fetch(`/api/product-launches/${launchId}/launch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category_id: parseInt(categoryId),
+          subcategory_name: subcategoryName,
+          subcategory_slug: subcategorySlug,
+          plan_name: planName,
+          web_register: webRegister,
+          smaregi_product_code: smaregiCode || null,
+          medical_force_product_id: mfId || null
+        })
+      });
+
+      const result = await res.json();
+      
+      if (res.ok && result.success) {
+        alert(result.message || '発売しました！');
+        window.location.href = '/launches';
+      } else {
+        alert(result.error || '発売処理に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error launching:', error);
+      alert('発売処理に失敗しました');
+    }
+  }
+
+  function openModal() {
+    document.getElementById('addTaskModal')!.classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('addTaskModal')!.classList.remove('open');
+  }
+
+  function formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Tab switching
+  function setupTabs() {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        tab.classList.add('active');
+        const tabId = (tab as HTMLElement).dataset.tab;
+        document.getElementById(`tab-${tabId}`)?.classList.add('active');
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+    loadData();
+    setupTabs();
+
+    document.getElementById('launchForm')?.addEventListener('submit', handleSubmit);
+    document.getElementById('deleteBtn')?.addEventListener('click', handleDelete);
+    document.getElementById('addTaskBtn')?.addEventListener('click', openModal);
+    document.getElementById('addTaskForm')?.addEventListener('submit', handleAddTask);
+    document.getElementById('launchBtn')?.addEventListener('click', handleLaunch);
+
+    // Check URL for action=launch
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'launch') {
+      document.querySelector('[data-tab="systems"]')?.dispatchEvent(new Event('click'));
+    }
+  });
+
+  (window as any).toggleTask = toggleTask;
+  (window as any).closeModal = closeModal;
+</script>
+

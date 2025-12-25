@@ -1,0 +1,318 @@
+---
+import Layout from '../../components/Layout.astro';
+---
+
+<Layout>
+  <div class="new-launch-page">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <a href="/launches" class="back-link">← 発売予定商品一覧</a>
+        <h1 class="page-title">新規商品登録</h1>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="launchForm" class="form-container">
+      <div class="form-section">
+        <h2 class="section-title">基本情報</h2>
+        
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label class="label required">商品名</label>
+            <input type="text" name="name" class="input" placeholder="例: クマ取り（経結膜脱脂）" required>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="label">説明</label>
+            <textarea name="description" class="textarea" rows="3" 
+              placeholder="商品の概要や特徴を入力"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="label">予定カテゴリ</label>
+            <select name="target_category_id" class="select" id="categorySelect">
+              <option value="">選択してください</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="label">サブカテゴリ名</label>
+            <input type="text" name="target_subcategory_name" class="input" 
+              placeholder="例: クマ取り">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">料金情報（予定）</h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="label">予定価格（税抜）</label>
+            <div class="input-group">
+              <span class="input-prefix">¥</span>
+              <input type="number" name="planned_price" class="input" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="label">予定価格（税込）</label>
+            <div class="input-group">
+              <span class="input-prefix">¥</span>
+              <input type="number" name="planned_price_taxed" class="input" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="label">料金備考</label>
+            <textarea name="price_notes" class="textarea" rows="2" 
+              placeholder="料金に関する補足事項"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">スケジュール・担当</h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="label">発売予定日</label>
+            <input type="date" name="target_launch_date" class="input">
+          </div>
+
+          <div class="form-group">
+            <label class="label">主担当</label>
+            <input type="text" name="owner_name" class="input" placeholder="例: 院長">
+          </div>
+
+          <div class="form-group">
+            <label class="label">優先度</label>
+            <select name="priority" class="select">
+              <option value="0">通常</option>
+              <option value="5">やや高い</option>
+              <option value="10">高い</option>
+              <option value="15">最優先</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-group full-width">
+          <label class="label">備考</label>
+          <textarea name="notes" class="textarea" rows="3" 
+            placeholder="その他メモ"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="/launches" class="btn btn-secondary">キャンセル</a>
+        <button type="submit" class="btn btn-primary">登録する</button>
+      </div>
+    </form>
+  </div>
+</Layout>
+
+<style>
+  .new-launch-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 800px;
+  }
+
+  .back-link {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  .back-link:hover {
+    color: var(--color-accent);
+  }
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .form-section {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .form-group.full-width {
+    grid-column: span 2;
+  }
+
+  .label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .label.required::after {
+    content: ' *';
+    color: var(--color-error);
+  }
+
+  .input, .select, .textarea {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    background: var(--color-bg);
+    transition: border-color var(--transition-fast);
+  }
+
+  .input:focus, .select:focus, .textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+
+  .textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .input-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .input-prefix {
+    padding: 0.625rem 0.75rem;
+    background: var(--color-bg-hover);
+    border: 1px solid var(--color-border);
+    border-right: none;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .input-group .input {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    flex: 1;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group.full-width {
+      grid-column: span 1;
+    }
+  }
+</style>
+
+<script>
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      
+      const select = document.getElementById('categorySelect') as HTMLSelectElement;
+      if (select && data.categories) {
+        data.categories.forEach((cat: { id: number; name: string }) => {
+          const option = document.createElement('option');
+          option.value = String(cat.id);
+          option.textContent = cat.name;
+          select.appendChild(option);
+        });
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  }
+
+  // 税抜価格から税込価格を自動計算
+  function setupPriceCalculation() {
+    const priceInput = document.querySelector('input[name="planned_price"]') as HTMLInputElement;
+    const priceTaxedInput = document.querySelector('input[name="planned_price_taxed"]') as HTMLInputElement;
+
+    priceInput?.addEventListener('input', () => {
+      const price = parseInt(priceInput.value) || 0;
+      priceTaxedInput.value = String(Math.round(price * 1.1));
+    });
+  }
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
+    
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    const data: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      if (value) {
+        if (key === 'planned_price' || key === 'planned_price_taxed' || key === 'priority' || key === 'target_category_id') {
+          data[key] = parseInt(value as string) || null;
+        } else {
+          data[key] = value;
+        }
+      }
+    });
+
+    try {
+      const res = await fetch('/api/product-launches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      
+      if (res.ok && result.success) {
+        window.location.href = `/launches/${result.id}/edit`;
+      } else {
+        alert(result.error || '登録に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error creating launch:', error);
+      alert('登録に失敗しました');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
+    setupPriceCalculation();
+    
+    const form = document.getElementById('launchForm');
+    form?.addEventListener('submit', handleSubmit);
+  });
+</script>
+
