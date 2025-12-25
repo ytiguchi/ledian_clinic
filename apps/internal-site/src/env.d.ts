@@ -5,7 +5,7 @@
 // Cloudflare bindings
 interface Env {
   DB: D1Database;
-  ASSETS: R2Bucket;  // 症例写真・カウンセリング資料保管用
+  STORAGE: R2Bucket;  // 症例写真・カウンセリング資料保管用
   // Cloudflare Access headers (if using Access)
   CF_Access_Auth_Email?: string;
   CF_Access_Auth_Groups?: string;

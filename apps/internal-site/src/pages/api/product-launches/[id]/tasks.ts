@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '../../../../lib/db';
+import { getDB } from '../../../../lib/db';
 
 // タスク一覧取得
 export const GET: APIRoute = async ({ params, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const { id } = params;
 
     const tasks = await db.prepare(`
@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 // タスク追加
 export const POST: APIRoute = async ({ params, request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
 
@@ -84,7 +84,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
 // タスク更新（完了/未完了切り替え等）
 export const PUT: APIRoute = async ({ request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const body = await request.json();
 
     const { task_id, is_completed, completed_by, title, description, due_date, assignee } = body;
@@ -148,7 +148,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
 // タスク削除
 export const DELETE: APIRoute = async ({ request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const url = new URL(request.url);
     const taskId = url.searchParams.get('task_id');
 

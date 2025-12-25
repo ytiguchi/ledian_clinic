@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '../../../../lib/db';
+import { getDB } from '../../../../lib/db';
 
 // 発売処理（subcategories + treatment_plans にマージ）
 export const POST: APIRoute = async ({ params, request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
 

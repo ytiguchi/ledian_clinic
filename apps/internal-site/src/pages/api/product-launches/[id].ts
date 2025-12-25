@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '../../../lib/db';
+import { getDB } from '../../../lib/db';
 
 // 発売予定商品詳細取得
 export const GET: APIRoute = async ({ params, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const { id } = params;
 
     const launch = await db.prepare(`
@@ -48,7 +48,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 // 発売予定商品更新
 export const PUT: APIRoute = async ({ params, request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
 
@@ -152,7 +152,7 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
 // 発売予定商品削除
 export const DELETE: APIRoute = async ({ params, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const { id } = params;
 
     await db.prepare('DELETE FROM product_launches WHERE id = ?').bind(id).run();

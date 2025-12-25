@@ -17,6 +17,6 @@ id = "ca140e5a5a1b4712956b3b33a463d873"
 # プレビュー環境は廃止。本番環境のみ使用
 
 [[r2_buckets]]
-binding = "ASSETS"
+binding = "STORAGE"
 bucket_name = "ledian-clinic-assets"
 # 症例写真・カウンセリング資料保管用

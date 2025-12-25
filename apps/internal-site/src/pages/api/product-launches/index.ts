@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { getDb } from '../../../lib/db';
+import { getDB } from '../../../lib/db';
 
 // 発売予定商品一覧取得
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
 
@@ -48,7 +48,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
 // 新規発売予定商品作成
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    const db = getDb(locals);
+    const db = getDB(locals.runtime.env);
     const body = await request.json();
 
     const {
