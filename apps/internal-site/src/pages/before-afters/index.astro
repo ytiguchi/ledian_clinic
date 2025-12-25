@@ -141,7 +141,7 @@ import Layout from '../../components/Layout.astro';
     gap: 1rem;
     width: 100%;
     max-width: 100%;
-    align-items: start;
+    align-items: stretch;
     box-sizing: border-box;
   }
 
@@ -253,6 +253,7 @@ import Layout from '../../components/Layout.astro';
     flex: 1;
     min-height: 0;
     gap: 0.75rem;
+    width: 100%;
   }
 
   /* Image Comparison - Side by Side */
@@ -263,6 +264,8 @@ import Layout from '../../components/Layout.astro';
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    height: 200px;
+    flex-shrink: 0;
   }
 
   .image-panel {
@@ -272,6 +275,7 @@ import Layout from '../../components/Layout.astro';
     min-width: 0;
     width: 100%;
     max-width: 100%;
+    height: 100%;
   }
 
   .image-label {
@@ -297,13 +301,13 @@ import Layout from '../../components/Layout.astro';
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    aspect-ratio: 3/4;
+    flex: 1;
+    min-height: 0;
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid var(--color-border-light);
     background: var(--color-bg-secondary);
     position: relative;
-    flex-shrink: 0;
   }
 
   .image-wrapper img {
