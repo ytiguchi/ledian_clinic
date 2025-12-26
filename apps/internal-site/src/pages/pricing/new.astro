@@ -13,6 +13,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     </div>
 
     <form class="bg-white rounded-lg shadow p-6 space-y-6" id="pricePlanForm">
+      <div id="formError" class="hidden text-red-500 whitespace-pre-line"></div>
       <!-- 基本情報 -->
       <div>
         <h3 class="text-xl font-semibold mb-4">基本情報</h3>
@@ -152,17 +153,50 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
   let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
 
+  const showFormError = (message: string, fields?: Array<{ message: string }>) => {
+    const formError = document.getElementById('formError');
+    if (formError) {
+      if (fields && fields.length > 0) {
+        const details = fields.map(field => `- ${field.message}`).join('\n');
+        formError.textContent = `${message}\n${details}`;
+      } else {
+        formError.textContent = message;
+      }
+      formError.classList.remove('hidden');
+    }
+  };
+
+  const clearFormError = () => {
+    const formError = document.getElementById('formError');
+    if (formError) {
+      formError.textContent = '';
+      formError.classList.add('hidden');
+    }
+  };
+
+  const fetchJson = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`${res.status}: ${res.statusText}`);
+    }
+    return res.json();
+  };
+
+  const setSelectOptions = (
+    select: HTMLSelectElement | null,
+    options: Array<{ id: string; name: string }>,
+    placeholder = '選択してください'
+  ) => {
+    if (!select) return;
+    select.innerHTML = `<option value="">${placeholder}</option>` +
+      options.map(option => `<option value="${option.id}">${option.name}</option>`).join('');
+  };
+
   async function loadCategories() {
     try {
-      const res = await fetch('/api/categories');
-      const data = await res.json();
+      const data = await fetchJson('/api/categories');
       categories = data.categories || [];
-      
-      const select = document.getElementById('categorySelect') as HTMLSelectElement;
-      if (select) {
-        select.innerHTML = '<option value="">選択してください</option>' +
-          categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
-      }
+      setSelectOptions(document.getElementById('categorySelect') as HTMLSelectElement, categories);
     } catch (error) {
       console.error('カテゴリ読み込みエラー:', error);
     }
@@ -170,15 +204,9 @@ const taxRate = getTaxRate(Astro.locals.runtime);
 
   async function loadSubcategories(categoryId: string) {
     try {
-      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
-      const data = await res.json();
+      const data = await fetchJson(`/api/subcategories?category_id=${categoryId}`);
       subcategories = data.subcategories || [];
-      
-      const select = document.getElementById('subcategorySelect') as HTMLSelectElement;
-      if (select) {
-        select.innerHTML = '<option value="">選択してください</option>' +
-          subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
-      }
+      setSelectOptions(document.getElementById('subcategorySelect') as HTMLSelectElement, subcategories);
     } catch (error) {
       console.error('サブカテゴリ読み込みエラー:', error);
     }
@@ -186,15 +214,9 @@ const taxRate = getTaxRate(Astro.locals.runtime);
 
   async function loadTreatments(subcategoryId: string) {
     try {
-      const res = await fetch(`/api/treatments?subcategory_id=${subcategoryId}`);
-      const data = await res.json();
+      const data = await fetchJson(`/api/treatments?subcategory_id=${subcategoryId}`);
       treatments = data.treatments || [];
-      
-      const select = document.getElementById('treatmentSelect') as HTMLSelectElement;
-      if (select) {
-        select.innerHTML = '<option value="">選択してください</option>' +
-          treatments.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-      }
+      setSelectOptions(document.getElementById('treatmentSelect') as HTMLSelectElement, treatments);
     } catch (error) {
       console.error('施術読み込みエラー:', error);
     }
@@ -211,8 +233,8 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       const categoryId = (e.target as HTMLSelectElement).value;
       if (categoryId) {
         loadSubcategories(categoryId);
-        subcategorySelect.innerHTML = '<option value="">選択してください</option>';
-        treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+        setSelectOptions(subcategorySelect, []);
+        setSelectOptions(treatmentSelect, []);
       }
     });
 
@@ -220,7 +242,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       const subcategoryId = (e.target as HTMLSelectElement).value;
       if (subcategoryId) {
         loadTreatments(subcategoryId);
-        treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+        setSelectOptions(treatmentSelect, []);
       }
     });
 
@@ -228,6 +250,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearFormError();
       const formData = new FormData(form);
       
       const data = {
@@ -254,11 +277,11 @@ const taxRate = getTaxRate(Astro.locals.runtime);
           window.location.href = '/pricing';
         } else {
           const error = await res.json();
-          alert(`保存に失敗しました: ${error.message || 'Unknown error'}`);
+          showFormError(`保存に失敗しました: ${error.message || 'Unknown error'}`, error.fields);
         }
       } catch (error) {
         console.error('保存エラー:', error);
-        alert('保存に失敗しました');
+        showFormError('保存に失敗しました');
       }
     });
 

@@ -175,7 +175,10 @@ INSERT INTO treatment_tags_new (
 SELECT
     tt.id,
     tt.subcategory_id,
-    tt.tag_id, tt.is_primary, tt.sort_order, tt.created_at
+    tt.tag_id, 
+    0, -- tt.is_primary (columns missing in some environments)
+    0, -- tt.sort_order (columns missing in some environments)
+    tt.created_at
 FROM treatment_tags tt
 WHERE EXISTS (
     SELECT 1 FROM treatments WHERE treatments.id = tt.subcategory_id

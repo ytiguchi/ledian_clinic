@@ -33,9 +33,14 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     // ファイルタイプチェック
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    ];
     if (!allowedTypes.includes(file.type)) {
-      return new Response(JSON.stringify({ error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed' }), {
+      return new Response(JSON.stringify({ error: 'Invalid file type. Only images, PDF, DOCX, and PPTX are allowed' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -51,9 +56,23 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     // ファイル名を生成（UUID + 元の拡張子）
-    const fileExt = file.name.split('.').pop() || 'jpg';
-    const fileName = `${type}/${crypto.randomUUID()}.${fileExt}`;
-    const fileKey = `before-afters/${fileName}`;
+    const fileExt = file.name.split('.').pop() || 'file';
+    const uuid = crypto.randomUUID();
+    const fileName = `${uuid}.${fileExt}`;
+    
+    // タイプに応じたパス設定
+    let fileKey = `${type}/${fileName}`;
+    
+    if (type === 'before-after' || type === 'treatment') {
+      // 既存の画像アップロードは before-afters/ プレフィックスを維持
+      fileKey = `before-afters/${type}/${fileName}`;
+    } else if (type === 'counseling') {
+      fileKey = `counseling/${fileName}`;
+    } else if (type === 'protocol') {
+      fileKey = `protocols/${fileName}`;
+    } else if (type === 'training') {
+      fileKey = `training/${fileName}`;
+    }
 
     // R2にアップロード
     await storage.put(fileKey, file.stream(), {

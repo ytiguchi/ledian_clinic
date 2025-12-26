@@ -112,48 +112,78 @@ export const GET: APIRoute = async ({ locals, params }) => {
         beforeAfters = await queryDB<{
           id: string;
           treatment_id: string;
+          title: string | null;
           before_image_url: string | null;
           after_image_url: string | null;
-          caption: string | null;
+          description: string | null;
           patient_age: number | null;
           patient_gender: string | null;
           treatment_count: number | null;
           created_at: string | null;
         }>(
           db,
-          `SELECT id, treatment_id, before_image_url, after_image_url, caption, patient_age, patient_gender, treatment_count, created_at
+          `SELECT id, treatment_id,
+                  caption AS title,
+                  before_image_url, after_image_url,
+                  treatment_content AS description,
+                  patient_age, patient_gender, treatment_count, created_at
            FROM treatment_before_afters
-           WHERE treatment_id IN (${placeholders}) AND is_published = 1
+           WHERE treatment_id IN (${placeholders})
            ORDER BY created_at DESC
            LIMIT 10`,
           params
         );
+        if (beforeAfters.length === 0) {
+          beforeAfters = await queryDB<{
+            id: string;
+            treatment_id: string;
+            title: string | null;
+            before_image_url: string | null;
+            after_image_url: string | null;
+            description: string | null;
+            patient_age: number | null;
+            patient_gender: string | null;
+            treatment_count: number | null;
+            created_at: string | null;
+          }>(
+            db,
+            `SELECT id, treatment_id, title, before_image_url, after_image_url, description,
+                    patient_age, patient_gender, treatment_count, created_at
+             FROM before_afters
+             WHERE treatment_id IN (${placeholders})
+             ORDER BY created_at DESC
+             LIMIT 10`,
+            params
+          );
+        }
       } catch (e) {
         // Table might not exist
-        console.warn('treatment_before_afters query failed:', e);
+        console.warn('before_afters query failed:', e);
       }
     }
 
-    // Get training modules linked to this subcategory
+    // Get counseling materials linked to this subcategory
     let trainingModules: any[] = [];
     try {
       trainingModules = await queryDB<{
         id: string;
         title: string;
         description: string | null;
+        file_url: string | null;
+        file_type: string | null;
         difficulty_level: string | null;
         estimated_minutes: number | null;
         sort_order: number;
       }>(
         db,
-        `SELECT id, title, description, difficulty_level, estimated_minutes, sort_order
-         FROM training_modules
+        `SELECT id, title, description, file_url, file_type, difficulty_level, estimated_minutes, sort_order
+         FROM counseling_materials
          WHERE subcategory_id = ? AND is_published = 1
          ORDER BY sort_order`,
         [id]
       );
     } catch (e) {
-      console.warn('training_modules query failed:', e);
+      console.warn('counseling_materials query failed:', e);
     }
 
     // Get protocols linked to this subcategory (via treatments)

@@ -61,13 +61,13 @@ export const normalizePricingInput = (
   const price = parseNullableNumber(data.price);
 
   if (!treatmentId) {
-    errors.push({ field: 'treatment_id', message: 'treatment_id is required' });
+    errors.push({ field: 'treatment_id', message: '施術は必須です' });
   }
   if (!planName) {
-    errors.push({ field: 'plan_name', message: 'plan_name is required' });
+    errors.push({ field: 'plan_name', message: 'プラン名は必須です' });
   }
   if (price === null) {
-    errors.push({ field: 'price', message: 'price is required' });
+    errors.push({ field: 'price', message: '税抜価格は必須です' });
   }
   if (errors.length > 0) {
     return { values: null, errors };

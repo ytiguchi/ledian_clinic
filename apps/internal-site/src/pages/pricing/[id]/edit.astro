@@ -20,6 +20,7 @@ export const prerender = false;
 
     <form class="bg-white rounded-lg shadow p-6 space-y-6 hidden" id="pricePlanForm">
       <input type="hidden" name="id" id="planId" />
+      <div id="formError" class="hidden text-red-500 whitespace-pre-line"></div>
 
       <!-- 基本情報 -->
       <div>
@@ -42,6 +43,7 @@ export const prerender = false;
             <select name="treatment" id="treatmentSelect" class="w-full px-4 py-2 border rounded-lg" required>
               <option value="">選択してください</option>
             </select>
+            <div class="field-error hidden text-red-500 text-sm mt-1" data-field="treatment_id"></div>
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">プラン名</label>
@@ -53,6 +55,7 @@ export const prerender = false;
               class="w-full px-4 py-2 border rounded-lg"
               required
             />
+            <div class="field-error hidden text-red-500 text-sm mt-1" data-field="plan_name"></div>
           </div>
         </div>
       </div>
@@ -71,6 +74,7 @@ export const prerender = false;
               class="w-full px-4 py-2 border rounded-lg"
               required
             />
+            <div class="field-error hidden text-red-500 text-sm mt-1" data-field="price"></div>
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">税込価格（円）</label>
@@ -182,21 +186,37 @@ export const prerender = false;
   let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
   let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
 
+  const fetchJson = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`${res.status}: ${res.statusText}`);
+    }
+    return res.json();
+  };
+
+  const setSelectOptions = (
+    select: HTMLSelectElement | null,
+    options: Array<{ id: string; name: string }>,
+    placeholder = '選択してください'
+  ) => {
+    if (!select) return;
+    select.innerHTML = `<option value="">${placeholder}</option>` +
+      options.map(option => `<option value="${option.id}">${option.name}</option>`).join('');
+  };
+
   async function loadData() {
     try {
       // カテゴリ一覧取得
-      const catRes = await fetch('/api/categories');
-      const catData = await catRes.json();
+      const catData = await fetchJson('/api/categories');
       categories = catData.categories || [];
-      populateCategories();
+      setSelectOptions(document.getElementById('categorySelect') as HTMLSelectElement, categories);
 
       // プランデータ取得
-      const planRes = await fetch(`/api/pricing-id/${planId}`);
-      if (!planRes.ok) {
+      const planData = await fetchJson(`/api/pricing-id/${planId}`);
+      const plan = planData.plan as PlanData;
+      if (!plan) {
         throw new Error('プランが見つかりません');
       }
-      const planData = await planRes.json();
-      const plan = planData.plan as PlanData;
 
       // サブカテゴリ取得（カテゴリ選択後に）
       await loadSubcategories(plan.category_id);
@@ -204,9 +224,7 @@ export const prerender = false;
       await loadTreatments(plan.subcategory_id);
 
       // フォームに値を設定（選択肢を読み込んだ後）
-      setTimeout(() => {
-        populateForm(plan);
-      }, 100);
+      populateForm(plan);
 
       // フォームを表示
       document.getElementById('loadingMessage')?.classList.add('hidden');
@@ -224,8 +242,8 @@ export const prerender = false;
         const categoryId = (e.target as HTMLSelectElement).value;
         if (categoryId) {
           loadSubcategories(categoryId);
-          subcategorySelect.innerHTML = '<option value="">選択してください</option>';
-          treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+          setSelectOptions(subcategorySelect, []);
+          setSelectOptions(treatmentSelect, []);
         }
       });
 
@@ -233,7 +251,7 @@ export const prerender = false;
         const subcategoryId = (e.target as HTMLSelectElement).value;
         if (subcategoryId) {
           loadTreatments(subcategoryId);
-          treatmentSelect.innerHTML = '<option value="">選択してください</option>';
+          setSelectOptions(treatmentSelect, []);
         }
       });
     } catch (error) {
@@ -245,25 +263,49 @@ export const prerender = false;
     }
   }
 
-  function populateCategories() {
-    const select = document.getElementById('categorySelect') as HTMLSelectElement;
-    if (select) {
-      select.innerHTML = '<option value="">選択してください</option>' +
-        categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+  const showFormError = (message: string, fields?: Array<{ message: string }>) => {
+    const formError = document.getElementById('formError');
+    if (formError) {
+      if (fields && fields.length > 0) {
+        const details = fields.map(field => `- ${field.message}`).join('\n');
+        formError.textContent = `${message}\n${details}`;
+      } else {
+        formError.textContent = message;
+      }
+      formError.classList.remove('hidden');
     }
-  }
+  };
+
+  const clearFieldErrors = () => {
+    document.querySelectorAll<HTMLDivElement>('.field-error').forEach(node => {
+      node.textContent = '';
+      node.classList.add('hidden');
+    });
+  };
+
+  const showFieldErrors = (fields?: Array<{ field: string; message: string }>) => {
+    if (!fields || fields.length === 0) return;
+    fields.forEach(field => {
+      const target = document.querySelector<HTMLDivElement>(`.field-error[data-field="${field.field}"]`);
+      if (!target) return;
+      target.textContent = field.message;
+      target.classList.remove('hidden');
+    });
+  };
+
+  const clearFormError = () => {
+    const formError = document.getElementById('formError');
+    if (formError) {
+      formError.textContent = '';
+      formError.classList.add('hidden');
+    }
+  };
 
   async function loadSubcategories(categoryId: string) {
     try {
-      const res = await fetch(`/api/subcategories?category_id=${categoryId}`);
-      const data = await res.json();
+      const data = await fetchJson(`/api/subcategories?category_id=${categoryId}`);
       subcategories = data.subcategories || [];
-      
-      const select = document.getElementById('subcategorySelect') as HTMLSelectElement;
-      if (select) {
-        select.innerHTML = '<option value="">選択してください</option>' +
-          subcategories.map(sub => `<option value="${sub.id}">${sub.name}</option>`).join('');
-      }
+      setSelectOptions(document.getElementById('subcategorySelect') as HTMLSelectElement, subcategories);
     } catch (error) {
       console.error('サブカテゴリ読み込みエラー:', error);
     }
@@ -271,15 +313,9 @@ export const prerender = false;
 
   async function loadTreatments(subcategoryId: string) {
     try {
-      const res = await fetch(`/api/treatments?subcategory_id=${subcategoryId}`);
-      const data = await res.json();
+      const data = await fetchJson(`/api/treatments?subcategory_id=${subcategoryId}`);
       treatments = data.treatments || [];
-      
-      const select = document.getElementById('treatmentSelect') as HTMLSelectElement;
-      if (select) {
-        select.innerHTML = '<option value="">選択してください</option>' +
-          treatments.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
-      }
+      setSelectOptions(document.getElementById('treatmentSelect') as HTMLSelectElement, treatments);
     } catch (error) {
       console.error('施術読み込みエラー:', error);
     }
@@ -320,6 +356,8 @@ export const prerender = false;
     const form = document.getElementById('pricePlanForm');
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearFormError();
+      clearFieldErrors();
       const formData = new FormData(form as HTMLFormElement);
       
       const data = {
@@ -346,11 +384,12 @@ export const prerender = false;
           window.location.href = '/pricing';
         } else {
           const error = await res.json();
-          alert(`更新に失敗しました: ${error.message || 'Unknown error'}`);
+          showFormError(`更新に失敗しました: ${error.message || 'Unknown error'}`, error.fields);
+          showFieldErrors(error.fields);
         }
       } catch (error) {
         console.error('更新エラー:', error);
-        alert('更新に失敗しました');
+        showFormError('更新に失敗しました');
       }
     });
 

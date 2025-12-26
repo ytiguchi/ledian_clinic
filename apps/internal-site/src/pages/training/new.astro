@@ -1,0 +1,35 @@
+---
+import Layout from '../../components/Layout.astro';
+import TrainingMaterialForm from '../../components/TrainingMaterialForm.astro';
+import { getDB, queryFirst } from '../../lib/db';
+
+// URLパラメータからサブカテゴリIDを取得
+const subcategoryId = Astro.url.searchParams.get('subcategory');
+let categoryId = null;
+
+// サブカテゴリIDがある場合、カテゴリIDを取得
+if (subcategoryId && Astro.locals.runtime?.env) {
+  try {
+    const db = getDB(Astro.locals.runtime.env);
+    const subcategory = await queryFirst<{ category_id: string }>(
+      db,
+      'SELECT category_id FROM subcategories WHERE id = ?',
+      [subcategoryId]
+    );
+    if (subcategory) {
+      categoryId = subcategory.category_id;
+    }
+  } catch (e) {
+    console.error('Error fetching category for subcategory:', e);
+  }
+}
+---
+
+<Layout>
+  <TrainingMaterialForm 
+    mode="new" 
+    subcategoryId={subcategoryId} 
+    categoryId={categoryId}
+  />
+</Layout>
+

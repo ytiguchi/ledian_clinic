@@ -117,6 +117,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       <div class="modal-body">
         <form id="editPlanForm">
           <input type="hidden" id="editPlanId" />
+          <div id="editFormError" class="hidden form-error"></div>
           
           <!-- 基本情報 -->
           <div class="form-section">
@@ -396,6 +397,20 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     color: var(--color-text-muted);
   }
 
+  .form-error {
+    padding: 0.75rem 1rem;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-md);
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.95rem;
+  }
+
+  .form-error ul {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+  }
+
   /* Responsive */
   @media (max-width: 1024px) {
     .filter-grid {
@@ -423,6 +438,118 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     .table {
       min-width: 800px;
     }
+  }
+
+  /* Modal Styles */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal.hidden {
+    display: none;
+  }
+
+  .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+    background: var(--color-bg-secondary);
+  }
+
+  .modal-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    padding: 0.25rem;
+    line-height: 1;
+  }
+
+  .modal-close:hover {
+    color: var(--color-text);
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .form-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border-light);
+    margin-top: 1rem;
+  }
+
+  .textarea {
+    min-height: 80px;
+    resize: vertical;
   }
 </style>
 
@@ -1005,7 +1132,27 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       modal.classList.add('hidden');
       const form = document.getElementById('editPlanForm');
       if (form) form.reset();
+      clearEditFormError();
     }
+  }
+
+  function clearEditFormError() {
+    const errorBox = document.getElementById('editFormError');
+    if (!errorBox) return;
+    errorBox.textContent = '';
+    errorBox.classList.add('hidden');
+  }
+
+  function showEditFormError(message, fields) {
+    const errorBox = document.getElementById('editFormError');
+    if (!errorBox) return;
+    if (fields && fields.length > 0) {
+      const items = fields.map(field => `<li>${escapeHtml(field.message)}</li>`).join('');
+      errorBox.innerHTML = `<div>${escapeHtml(message)}</div><ul>${items}</ul>`;
+    } else {
+      errorBox.textContent = message;
+    }
+    errorBox.classList.remove('hidden');
   }
 
   async function savePlan() {
@@ -1014,6 +1161,8 @@ const taxRate = getTaxRate(Astro.locals.runtime);
 
     const planId = document.getElementById('editPlanId').value;
     if (!planId) return;
+
+    clearEditFormError();
 
     const data = {
       treatment_id: document.getElementById('editTreatmentId').value || null,
@@ -1041,11 +1190,11 @@ const taxRate = getTaxRate(Astro.locals.runtime);
         await refreshData();
       } else {
         const error = await res.json();
-        alert(`更新に失敗しました: ${error.message || 'Unknown error'}`);
+        showEditFormError(`更新に失敗しました: ${error.message || 'Unknown error'}`, error.fields);
       }
     } catch (error) {
       console.error('保存エラー:', error);
-      alert('更新に失敗しました');
+      showEditFormError('更新に失敗しました');
     }
   }
 
