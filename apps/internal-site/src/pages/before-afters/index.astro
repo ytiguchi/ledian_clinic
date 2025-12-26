@@ -137,7 +137,7 @@ import Layout from '../../components/Layout.astro';
   /* Cases List - Absolute 2 Column Grid */
   .cases-list {
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: calc(50% - 0.5rem) calc(50% - 0.5rem) !important;
     gap: 1rem;
     width: 100%;
     max-width: 100%;
@@ -161,9 +161,9 @@ import Layout from '../../components/Layout.astro';
     animation: fadeIn 0.3s ease-out backwards;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
+    width: calc(50% - 0.5rem);
+    max-width: calc(50% - 0.5rem);
+    min-width: calc(50% - 0.5rem);
     box-sizing: border-box;
     height: 100%;
     min-height: 500px;
@@ -508,13 +508,25 @@ import Layout from '../../components/Layout.astro';
 
   @media (min-width: 901px) {
     .cases-list {
-      grid-template-columns: 1fr 1fr !important;
+      grid-template-columns: calc(50% - 0.5rem) calc(50% - 0.5rem) !important;
+    }
+    
+    .case-card {
+      width: calc(50% - 0.5rem) !important;
+      max-width: calc(50% - 0.5rem) !important;
+      min-width: calc(50% - 0.5rem) !important;
     }
   }
 
   @media (max-width: 900px) {
     .cases-list {
       grid-template-columns: 1fr !important;
+    }
+    
+    .case-card {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 100% !important;
     }
     
     .image-comparison {
