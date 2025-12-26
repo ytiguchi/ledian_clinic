@@ -6,6 +6,8 @@ export default defineConfig({
   outDir: "./dist",
   output: "server",
   adapter: cloudflare({
+    // Cloudflare Workers runtime can't use `sharp`. Allow build by passing through images.
+    imageService: "passthrough",
     platformProxy: {
       enabled: true
     }

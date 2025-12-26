@@ -97,16 +97,16 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     // 3. treatment_plans に全料金プランをコピー
     let copiedPlansCount = 0;
     for (const plan of plansToCreate) {
-      await db.prepare(`
-        INSERT INTO treatment_plans (
+    await db.prepare(`
+      INSERT INTO treatment_plans (
           treatment_id, plan_name, plan_type, sessions, quantity,
           price, price_taxed, price_per_session, price_per_session_taxed,
           supply_cost, staff_cost, total_cost, cost_rate,
           staff_discount_rate, staff_price,
           sort_order, is_active, is_public, is_recommended, notes
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)
-      `).bind(
-        treatmentId,
+    `).bind(
+      treatmentId,
         plan.plan_name,
         plan.plan_type || 'single',
         plan.sessions || 1,
@@ -124,7 +124,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
         plan.sort_order || copiedPlansCount,
         plan.is_recommended || 0,
         plan.notes || null
-      ).run();
+    ).run();
       copiedPlansCount++;
     }
 

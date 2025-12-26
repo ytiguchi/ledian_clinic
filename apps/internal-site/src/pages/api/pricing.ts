@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../lib/db';
+import { getTaxRate, toTaxedPrice } from '../../lib/pricing';
 import type { PricePlan, PricingResponse } from '../../types/api';
 
 export const prerender = false;
@@ -206,7 +207,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
       return jsonResponse(400, { error: 'price is required' });
     }
 
-    const priceTaxed = parseNullableNumber(data.price_taxed) ?? Math.round(price * 1.1);
+    const taxRate = getTaxRate(locals?.runtime);
+    const priceTaxed = toTaxedPrice(price, taxRate);
+    const pricePerSession = parseNullableNumber(data.price_per_session);
+    const pricePerSessionTaxed =
+      pricePerSession === null ? null : toTaxedPrice(pricePerSession, taxRate);
     
     const result = await db.prepare(`
       INSERT INTO treatment_plans (
@@ -224,8 +229,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
       normalizeString(data.quantity) || null,
       price,
       priceTaxed,
-      parseNullableNumber(data.price_per_session),
-      parseNullableNumber(data.price_per_session_taxed),
+      pricePerSession,
+      pricePerSessionTaxed,
       parseNullableNumber(data.cost_rate),
       parseNullableNumber(data.supply_cost),
       parseNullableNumber(data.staff_cost),

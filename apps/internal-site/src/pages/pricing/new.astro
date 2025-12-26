@@ -1,5 +1,8 @@
 ---
 import Layout from '../../components/Layout.astro';
+import { getTaxRate } from '../../lib/pricing';
+
+const taxRate = getTaxRate(Astro.locals.runtime);
 ---
 
 <Layout>
@@ -143,6 +146,9 @@ import Layout from '../../components/Layout.astro';
 </Layout>
 
 <script>
+  const taxRate = ${taxRate};
+  const toTaxedPrice = (amount) => Math.round(amount * (1 + taxRate));
+
   let categories: Array<{ id: string; name: string }> = [];
   let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
   let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
@@ -264,9 +270,8 @@ import Layout from '../../components/Layout.astro';
     priceInput?.addEventListener('input', (e) => {
       const price = Number((e.target as HTMLInputElement).value);
       if (priceTaxedInput && price > 0) {
-        priceTaxedInput.value = Math.round(price * 1.1).toString();
+        priceTaxedInput.value = toTaxedPrice(price).toString();
       }
     });
   });
 </script>
-

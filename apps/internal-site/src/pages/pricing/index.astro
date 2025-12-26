@@ -1,5 +1,8 @@
 ---
 import Layout from '../../components/Layout.astro';
+import { getTaxRate } from '../../lib/pricing';
+
+const taxRate = getTaxRate(Astro.locals.runtime);
 ---
 
 <Layout>
@@ -424,6 +427,9 @@ import Layout from '../../components/Layout.astro';
 </style>
 
 <script>
+  const taxRate = ${taxRate};
+  const toTaxedPrice = (amount) => Math.round(amount * (1 + taxRate));
+
   const planTypeLabels = {
     'single': '単発',
     'course': 'コース',
@@ -1039,7 +1045,7 @@ import Layout from '../../components/Layout.astro';
     editPriceInput?.addEventListener('input', () => {
       const price = Number((editPriceInput as HTMLInputElement).value);
       if (editPriceTaxedInput && price > 0) {
-        (editPriceTaxedInput as HTMLInputElement).value = Math.round(price * 1.1).toString();
+        (editPriceTaxedInput as HTMLInputElement).value = toTaxedPrice(price).toString();
       }
     });
 

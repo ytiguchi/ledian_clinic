@@ -71,6 +71,10 @@ import Layout from '../../components/Layout.astro';
             <select name="target_category_id" class="select" id="categorySelect">
               <option value="">選択してください</option>
             </select>
+            <div class="inline-create">
+              <input type="text" id="newCategoryName" class="input input-sm" placeholder="カテゴリを新規作成（例: 美容外科）">
+              <button type="button" class="btn btn-secondary btn-sm" id="createCategoryBtn">作成</button>
+            </div>
             <span class="input-hint">発売時に選択し直せます</span>
           </div>
 
@@ -104,10 +108,10 @@ import Layout from '../../components/Layout.astro';
               <option value="10">高い</option>
               <option value="15">最優先</option>
             </select>
-          </div>
+      </div>
 
           <div class="form-group">
-            <label class="label">備考</label>
+          <label class="label">備考</label>
             <input type="text" name="notes" class="input" placeholder="メモがあれば">
           </div>
         </div>
@@ -416,6 +420,8 @@ import Layout from '../../components/Layout.astro';
       
       const select = document.getElementById('categorySelect') as HTMLSelectElement;
       if (select && data.categories) {
+        // reset options (keep placeholder)
+        select.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
         data.categories.forEach((cat: { id: number; name: string }) => {
           const option = document.createElement('option');
           option.value = String(cat.id);
@@ -428,13 +434,54 @@ import Layout from '../../components/Layout.astro';
     }
   }
 
+  async function createCategory() {
+    const input = document.getElementById('newCategoryName') as HTMLInputElement | null;
+    const btn = document.getElementById('createCategoryBtn') as HTMLButtonElement | null;
+    const select = document.getElementById('categorySelect') as HTMLSelectElement | null;
+    if (!input || !btn || !select) return;
+
+    const name = input.value.trim();
+    if (!name) {
+      alert('カテゴリ名を入力してください');
+      return;
+    }
+
+    btn.disabled = true;
+    const prevText = btn.textContent;
+    btn.textContent = '作成中...';
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      const result = await res.json();
+      if (!res.ok || !result?.success) {
+        alert(result?.error || 'カテゴリ作成に失敗しました');
+        return;
+      }
+
+      input.value = '';
+      await loadCategories();
+      if (result.category?.id != null) {
+        select.value = String(result.category.id);
+      }
+    } catch (e) {
+      console.error('Error creating category:', e);
+      alert('カテゴリ作成に失敗しました');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prevText || '作成';
+    }
+  }
+
   async function handleSubmit(e: Event) {
     e.preventDefault();
     
     const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
     submitBtn.disabled = true;
     submitBtn.textContent = '登録中...';
-
+    
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     
@@ -444,8 +491,10 @@ import Layout from '../../components/Layout.astro';
     
     formData.forEach((value, key) => {
       if (value) {
-        if (key === 'priority' || key === 'target_category_id') {
-          data[key] = parseInt(value as string) || null;
+        if (key === 'priority') {
+          data[key] = parseInt(value as string) || 0;
+        } else if (key === 'target_category_id') {
+          data[key] = String(value);
         } else {
           data[key] = value;
         }
@@ -492,5 +541,27 @@ import Layout from '../../components/Layout.astro';
     
     const form = document.getElementById('launchForm');
     form?.addEventListener('submit', handleSubmit);
+    document.getElementById('createCategoryBtn')?.addEventListener('click', createCategory);
   });
 </script>
+
+<style>
+  .inline-create {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    align-items: center;
+  }
+
+  .input-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+</style>

@@ -73,12 +73,12 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
     };
 
     const status = getValue('status');
-    
+
     // ステータス変更時に完了日を更新
     let pricingCompletedAt = getValue('pricing_completed_at');
     let protocolCompletedAt = getValue('protocol_completed_at');
     let trainingCompletedAt = getValue('training_completed_at');
-
+    
     if (status !== currentLaunch.status) {
       const now = new Date().toISOString();
       if (status === 'protocol' && !pricingCompletedAt) pricingCompletedAt = now;

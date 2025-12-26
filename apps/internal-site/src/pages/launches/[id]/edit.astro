@@ -117,14 +117,14 @@ const { id } = Astro.params;
             <div class="form-group">
               <label class="label">主担当</label>
               <input type="text" name="owner_name" class="input" placeholder="例: 院長">
-            </div>
+        </div>
 
             <div class="form-group">
               <label class="label">発売予定日</label>
               <input type="date" name="target_launch_date" class="input">
+              </div>
+              </div>
             </div>
-          </div>
-        </div>
 
         <div class="form-section">
           <h2 class="section-title">📝 備考・メモ</h2>
@@ -133,7 +133,7 @@ const { id } = Astro.params;
             <div class="form-group full-width">
               <label class="label">料金備考</label>
               <textarea name="price_notes" class="textarea" rows="2" placeholder="料金に関する補足（薬剤選定中など）"></textarea>
-            </div>
+        </div>
 
             <div class="form-group full-width">
               <label class="label">プロトコル備考</label>
@@ -148,9 +148,9 @@ const { id } = Astro.params;
             <div class="form-group full-width">
               <label class="label">その他備考</label>
               <textarea name="notes" class="textarea" rows="2" placeholder="その他のメモ"></textarea>
-            </div>
           </div>
         </div>
+            </div>
 
         <div class="form-actions">
           <div style="flex: 1;"></div>
@@ -163,9 +163,9 @@ const { id } = Astro.params;
             </svg>
             保存
           </button>
-        </div>
+            </div>
       </form>
-    </div>
+          </div>
 
     <!-- Tab Content: Plans -->
     <div class="tab-content" id="tab-plans">
@@ -241,38 +241,38 @@ const { id } = Astro.params;
           <h2 class="section-title">📡 外部システム登録</h2>
           <div class="systems-grid">
             <div class="system-item">
-              <div class="system-header">
+          <div class="system-header">
                 <span class="system-name">WEB サイト</span>
-                <span class="system-status" id="webStatus">未登録</span>
-              </div>
+            <span class="system-status" id="webStatus">未登録</span>
+          </div>
               <label class="checkbox-label">
                 <input type="checkbox" id="launchWebRegister">
                 発売時にWEB登録済みにする
               </label>
-            </div>
-            
+        </div>
+
             <div class="system-item">
-              <div class="system-header">
+          <div class="system-header">
                 <span class="system-name">スマレジ</span>
-                <span class="system-status" id="smaregiStatus">未登録</span>
-              </div>
+            <span class="system-status" id="smaregiStatus">未登録</span>
+          </div>
               <input type="text" id="smaregiCode" class="input input-sm" placeholder="商品コード">
-            </div>
-            
+        </div>
+
             <div class="system-item">
-              <div class="system-header">
+          <div class="system-header">
                 <span class="system-name">メディカルフォース</span>
-                <span class="system-status" id="mfStatus">未登録</span>
-              </div>
+            <span class="system-status" id="mfStatus">未登録</span>
+          </div>
               <input type="text" id="mfId" class="input input-sm" placeholder="商品ID">
-            </div>
           </div>
         </div>
+      </div>
 
         <!-- Launch Action -->
         <div class="launch-action-card" id="launchActionCard">
           <div class="launch-preview">
-            <h2>🚀 発売処理</h2>
+          <h2>🚀 発売処理</h2>
             <p>この商品を発売すると、以下の処理が自動的に行われます：</p>
             <ul class="launch-steps">
               <li>サブカテゴリ「<span id="previewSubcat">-</span>」を作成</li>
@@ -283,25 +283,29 @@ const { id } = Astro.params;
 
           <div class="launch-form">
             <div class="form-grid">
-              <div class="form-group">
-                <label class="label required">カテゴリ</label>
-                <select id="launchCategoryId" class="select" required>
-                  <option value="">選択してください</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="label required">サブカテゴリ名</label>
-                <input type="text" id="launchSubcategoryName" class="input" required>
-              </div>
-              <div class="form-group">
-                <label class="label required">スラッグ（URL用）</label>
-                <input type="text" id="launchSubcategorySlug" class="input" placeholder="例: kuma-tori" required>
-              </div>
-              <div class="form-group">
-                <label class="label">施術名（デフォルト: サブカテゴリと同じ）</label>
-                <input type="text" id="launchTreatmentName" class="input" placeholder="サブカテゴリ名と同じ場合は空欄">
+            <div class="form-group">
+              <label class="label required">カテゴリ</label>
+              <select id="launchCategoryId" class="select" required>
+                <option value="">選択してください</option>
+              </select>
+              <div class="inline-create">
+                <input type="text" id="newCategoryNameLaunch" class="input input-sm" placeholder="カテゴリを新規作成（例: 美容外科）">
+                <button type="button" class="btn btn-secondary btn-sm" id="createCategoryBtnLaunch">作成</button>
               </div>
             </div>
+            <div class="form-group">
+              <label class="label required">サブカテゴリ名</label>
+              <input type="text" id="launchSubcategoryName" class="input" required>
+            </div>
+            <div class="form-group">
+              <label class="label required">スラッグ（URL用）</label>
+              <input type="text" id="launchSubcategorySlug" class="input" placeholder="例: kuma-tori" required>
+            </div>
+            <div class="form-group">
+                <label class="label">施術名（デフォルト: サブカテゴリと同じ）</label>
+                <input type="text" id="launchTreatmentName" class="input" placeholder="サブカテゴリ名と同じ場合は空欄">
+            </div>
+          </div>
 
             <button class="btn btn-launch" id="launchBtn" disabled>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -311,7 +315,7 @@ const { id } = Astro.params;
               発売する（施術一覧にマージ）
             </button>
           </div>
-        </div>
+          </div>
 
         <!-- Already Launched -->
         <div class="launched-card" id="launchedCard" style="display: none;">
@@ -734,6 +738,13 @@ const { id } = Astro.params;
   .input-sm {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
+  }
+
+  .inline-create {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    align-items: center;
   }
 
   .input-group {
@@ -1283,7 +1294,7 @@ const { id } = Astro.params;
   let tasksData: any[] = [];
 
   const statusOrder = ['planning', 'pricing', 'protocol', 'training', 'ready', 'launched'];
-  
+
   const statusLabels: Record<string, string> = {
     planning: '企画中',
     pricing: '料金決定中',
@@ -1348,7 +1359,9 @@ const { id } = Astro.params;
       selects.forEach(selectId => {
         const select = document.getElementById(selectId) as HTMLSelectElement;
         if (select && data.categories) {
-          data.categories.forEach((cat: { id: number; name: string }) => {
+          // reset options (keep placeholder)
+          select.querySelectorAll('option:not(:first-child)').forEach(o => o.remove());
+          data.categories.forEach((cat: { id: string | number; name: string }) => {
             const option = document.createElement('option');
             option.value = String(cat.id);
             option.textContent = cat.name;
@@ -1358,6 +1371,52 @@ const { id } = Astro.params;
       });
     } catch (error) {
       console.error('Error loading categories:', error);
+    }
+  }
+
+  async function createCategoryFromLaunchTab() {
+    const input = document.getElementById('newCategoryNameLaunch') as HTMLInputElement | null;
+    const btn = document.getElementById('createCategoryBtnLaunch') as HTMLButtonElement | null;
+    if (!input || !btn) return;
+
+    const name = input.value.trim();
+    if (!name) {
+      alert('カテゴリ名を入力してください');
+      return;
+    }
+
+    btn.disabled = true;
+    const prev = btn.textContent;
+    btn.textContent = '作成中...';
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      const result = await res.json();
+      if (!res.ok || !result?.success) {
+        alert(result?.error || 'カテゴリ作成に失敗しました');
+        return;
+      }
+
+      input.value = '';
+      await loadCategories();
+
+      const newId = result.category?.id != null ? String(result.category.id) : '';
+      if (newId) {
+        const selectA = document.getElementById('launchCategoryId') as HTMLSelectElement | null;
+        const selectB = document.getElementById('categorySelect') as HTMLSelectElement | null;
+        if (selectA) selectA.value = newId;
+        if (selectB) selectB.value = newId;
+      }
+      updateLaunchTab();
+    } catch (e) {
+      console.error('Error creating category:', e);
+      alert('カテゴリ作成に失敗しました');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = prev || '作成';
     }
   }
 
@@ -1474,16 +1533,18 @@ const { id } = Astro.params;
 
     // Update checklist
     const hasPlans = plansData.length > 0;
-    const hasCategory = !!launchData.target_category_id;
-    const hasSubcat = !!launchData.target_subcategory_name;
+    const currentCategory = (document.getElementById('launchCategoryId') as HTMLSelectElement | null)?.value || '';
+    const currentSubcat = (document.getElementById('launchSubcategoryName') as HTMLInputElement | null)?.value || '';
+    const hasCategory = !!currentCategory;
+    const hasSubcat = !!currentSubcat;
 
     updateChecklistItem('checkPlans', hasPlans);
     updateChecklistItem('checkCategory', hasCategory);
     updateChecklistItem('checkSubcat', hasSubcat);
 
     // Update preview
-    document.getElementById('previewSubcat')!.textContent = launchData.target_subcategory_name || launchData.name || '-';
-    document.getElementById('previewTreatment')!.textContent = launchData.target_subcategory_name || launchData.name || '-';
+    document.getElementById('previewSubcat')!.textContent = currentSubcat || launchData.target_subcategory_name || launchData.name || '-';
+    document.getElementById('previewTreatment')!.textContent = currentSubcat || launchData.target_subcategory_name || launchData.name || '-';
     document.getElementById('previewPlanCount')!.textContent = String(plansData.length);
 
     // Show/hide launch cards
@@ -1572,7 +1633,7 @@ const { id } = Astro.params;
     const data: Record<string, any> = {};
     formData.forEach((value, key) => {
       if (key === 'target_category_id') {
-        data[key] = value ? parseInt(value as string) : null;
+        data[key] = value ? String(value) : null;
       } else {
         data[key] = value || null;
       }
@@ -1738,7 +1799,7 @@ const { id } = Astro.params;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          category_id: parseInt(categoryId),
+          category_id: categoryId,
           subcategory_name: subcategoryName,
           subcategory_slug: subcategorySlug,
           treatment_name: treatmentName,
@@ -1829,6 +1890,9 @@ const { id } = Astro.params;
     document.getElementById('addTaskBtn')?.addEventListener('click', openTaskModal);
     document.getElementById('addTaskForm')?.addEventListener('submit', handleAddTask);
     document.getElementById('launchBtn')?.addEventListener('click', handleLaunch);
+    document.getElementById('launchCategoryId')?.addEventListener('change', updateLaunchTab);
+    document.getElementById('launchSubcategoryName')?.addEventListener('input', updateLaunchTab);
+    document.getElementById('createCategoryBtnLaunch')?.addEventListener('click', createCategoryFromLaunchTab);
 
     // Check URL params for tab navigation
     const urlParams = new URLSearchParams(window.location.search);
