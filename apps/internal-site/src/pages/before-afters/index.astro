@@ -506,6 +506,12 @@ import Layout from '../../components/Layout.astro';
     }
   }
 
+  @media (min-width: 901px) {
+    .cases-list {
+      grid-template-columns: 1fr 1fr !important;
+    }
+  }
+
   @media (max-width: 900px) {
     .cases-list {
       grid-template-columns: 1fr !important;
