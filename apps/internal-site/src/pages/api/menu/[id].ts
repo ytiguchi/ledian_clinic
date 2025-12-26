@@ -112,18 +112,17 @@ export const GET: APIRoute = async ({ locals, params }) => {
         beforeAfters = await queryDB<{
           id: string;
           treatment_id: string;
-          title: string | null;
           before_image_url: string | null;
           after_image_url: string | null;
-          description: string | null;
+          caption: string | null;
           patient_age: number | null;
           patient_gender: string | null;
           treatment_count: number | null;
           created_at: string | null;
         }>(
           db,
-          `SELECT id, treatment_id, title, before_image_url, after_image_url, description, patient_age, patient_gender, treatment_count, created_at
-           FROM before_afters
+          `SELECT id, treatment_id, before_image_url, after_image_url, caption, patient_age, patient_gender, treatment_count, created_at
+           FROM treatment_before_afters
            WHERE treatment_id IN (${placeholders}) AND is_published = 1
            ORDER BY created_at DESC
            LIMIT 10`,
@@ -131,7 +130,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
         );
       } catch (e) {
         // Table might not exist
-        console.warn('before_afters query failed:', e);
+        console.warn('treatment_before_afters query failed:', e);
       }
     }
 

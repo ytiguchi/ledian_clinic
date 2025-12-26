@@ -27,7 +27,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     let query = `
       SELECT 
         ba.id,
-        ba.treatment_id,
+        ba.subcategory_id,
         ba.before_image_url,
         ba.after_image_url,
         ba.caption,
@@ -43,15 +43,11 @@ export const GET: APIRoute = async ({ locals, url }) => {
         ba.is_published,
         ba.sort_order,
         ba.created_at,
-        t.name AS treatment_name,
-        t.slug AS treatment_slug,
-        sc.id AS subcategory_id,
         sc.name AS subcategory_name,
         c.id AS category_id,
         c.name AS category_name
       FROM treatment_before_afters ba
-      JOIN treatments t ON ba.treatment_id = t.id
-      JOIN subcategories sc ON t.subcategory_id = sc.id
+      JOIN subcategories sc ON ba.subcategory_id = sc.id
       JOIN categories c ON sc.category_id = c.id
       WHERE 1=1
     `;
@@ -69,7 +65,8 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
 
     if (treatmentId) {
-      query += ' AND ba.treatment_id = ?';
+      // treatmentIdは後方互換のためsubcategory_idとして扱う
+      query += ' AND ba.subcategory_id = ?';
       params.push(treatmentId);
     }
     
@@ -86,7 +83,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
     const result = await stmt.all<{
       id: string;
-      treatment_id: string;
+      subcategory_id: string;
       before_image_url: string;
       after_image_url: string;
       caption: string | null;
@@ -102,9 +99,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
       is_published: number;
       sort_order: number;
       created_at: string;
-      treatment_name: string;
-      treatment_slug: string;
-      subcategory_id: string;
       subcategory_name: string;
       category_id: string;
       category_name: string;
@@ -129,10 +123,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const db = getDB(locals.runtime.env);
     const data = await request.json();
     
-    // バリデーション
-    if (!data.treatment_id) {
-      return validationError('treatment_id is required', [
-        { field: 'treatment_id', message: 'treatment_id is required' },
+    // バリデーション - subcategory_id または treatment_id（後方互換）を受け付ける
+    const subcategoryId = data.subcategory_id || data.treatment_id;
+    if (!subcategoryId) {
+      return validationError('subcategory_id is required', [
+        { field: 'subcategory_id', message: 'subcategory_id is required' },
       ]);
     }
     if (!data.after_image_url) {
@@ -143,13 +138,13 @@ export const POST: APIRoute = async ({ locals, request }) => {
     
     const result = await db.prepare(`
       INSERT INTO treatment_before_afters (
-        treatment_id, before_image_url, after_image_url, caption,
+        subcategory_id, before_image_url, after_image_url, caption,
         treatment_content, treatment_duration, treatment_cost, treatment_cost_text, risks,
         patient_age, patient_gender, treatment_count, treatment_period,
         is_published, sort_order
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      data.treatment_id,
+      subcategoryId,
       data.before_image_url || '',
       data.after_image_url,
       data.caption || null,

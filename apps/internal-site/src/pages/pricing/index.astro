@@ -123,8 +123,8 @@ const taxRate = getTaxRate(Astro.locals.runtime);
             <h3 class="form-section-title">基本情報</h3>
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">サブカテゴリ *</label>
-                <select id="editSubcategoryId" class="select" required>
+                <label class="form-label">施術 *</label>
+                <select id="editTreatmentId" class="select" required>
                   <option value="">選択してください</option>
                 </select>
               </div>
@@ -441,6 +441,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   let medicationPlans = [];
   let categories = [];
   let subcategories = [];
+  let treatments = [];
   let searchQuery = '';
   let selectedCategoryId = '';
   let selectedSubcategoryId = '';
@@ -503,6 +504,17 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       subcategories.map(sub => `<option value="${sub.id}">${escapeHtml(sub.category_name)} - ${escapeHtml(sub.name)}</option>`).join('');
   }
 
+  function renderTreatmentOptions(selectedId = '') {
+    const treatmentSelect = document.getElementById('editTreatmentId');
+    if (!treatmentSelect) return;
+    treatmentSelect.innerHTML = '<option value="">選択してください</option>' +
+      treatments.map(treatment => {
+        const label = `${treatment.category_name} - ${treatment.subcategory_name} - ${treatment.name}`;
+        const selected = treatment.id === selectedId ? 'selected' : '';
+        return `<option value="${treatment.id}" ${selected}>${escapeHtml(label)}</option>`;
+      }).join('');
+  }
+
   async function loadCategories() {
     const result = await fetchJson<CategoriesResponse>('/api/categories');
     if (!result.ok) {
@@ -511,7 +523,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       showError(`カテゴリの読み込みに失敗しました: ${result.error}`);
       return;
     }
-    categories = result.data.categories || [];
+    categories = (result.data && result.data.categories) || [];
     renderCategoryOptions();
   }
 
@@ -530,8 +542,20 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       showError(`サブカテゴリの読み込みに失敗しました: ${result.error}`);
       return;
     }
-    subcategories = result.data.subcategories || [];
+    subcategories = (result.data && result.data.subcategories) || [];
     renderSubcategoryOptions();
+  }
+
+  async function loadTreatments() {
+    const result = await fetchJson<{ treatments: any[] }>('/api/treatments');
+    if (!result.ok) {
+      treatments = [];
+      renderTreatmentOptions();
+      showError(`施術の読み込みに失敗しました: ${result.error}`);
+      return;
+    }
+    treatments = (result.data && result.data.treatments) || [];
+    renderTreatmentOptions();
   }
 
   async function fetchPricing() {
@@ -549,7 +573,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     if (!result.ok) {
       return { ok: false, error: result.error };
     }
-    return { ok: true, data: result.data.plans || [] };
+    return { ok: true, data: (result.data && result.data.plans) || [] };
   }
 
   async function fetchMedicationPlans() {
@@ -561,39 +585,50 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     if (!result.ok) {
       return { ok: false, error: result.error };
     }
-    return { ok: true, data: result.data.plans || [] };
+    return { ok: true, data: (result.data && result.data.plans) || [] };
   }
 
   async function refreshData() {
-    const [pricingResult, medicationResult] = await Promise.all([
-      fetchPricing(),
-      fetchMedicationPlans()
-    ]);
+    console.log('Starting refreshData...');
+    try {
+      const [pricingResult, medicationResult] = await Promise.all([
+        fetchPricing(),
+        fetchMedicationPlans()
+      ]);
 
-    const errors = [];
+      console.log('Results received:', { 
+        pricing: pricingResult.ok ? `${pricingResult.data.length} plans` : pricingResult.error,
+        medication: medicationResult.ok ? `${medicationResult.data.length} plans` : medicationResult.error
+      });
 
-    if (pricingResult.ok) {
-      plans = pricingResult.data;
-    } else {
-      plans = [];
-      errors.push(`料金データ: ${pricingResult.error}`);
-    }
+      const errors = [];
 
-    if (medicationResult.ok) {
-      medicationPlans = medicationResult.data;
-    } else {
-      medicationPlans = [];
-      errors.push(`薬剤料金: ${medicationResult.error}`);
-    }
+      if (pricingResult.ok) {
+        plans = pricingResult.data || [];
+      } else {
+        plans = [];
+        errors.push(`料金データ: ${pricingResult.error}`);
+      }
 
-    totalItems = plans.length + medicationPlans.length;
-    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(totalItems / itemsPerPage)));
+      if (medicationResult.ok) {
+        medicationPlans = medicationResult.data || [];
+      } else {
+        medicationPlans = [];
+        errors.push(`薬剤料金: ${medicationResult.error}`);
+      }
 
-    renderTable();
-    renderPagination();
+      totalItems = plans.length + medicationPlans.length;
+      currentPage = Math.min(currentPage, Math.max(1, Math.ceil(totalItems / itemsPerPage)));
 
-    if (errors.length > 0 && plans.length === 0 && medicationPlans.length === 0) {
-      showError(`データの読み込みに失敗しました: ${errors.join(' / ')}`);
+      renderTable();
+      renderPagination();
+
+      if (errors.length > 0 && plans.length === 0 && medicationPlans.length === 0) {
+        showError(`データの読み込みに失敗しました: ${errors.join(' / ')}`);
+      }
+    } catch (error) {
+      console.error('Error in refreshData:', error);
+      showError(`データの更新中にエラーが発生しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -628,179 +663,188 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   }
 
   function renderTable() {
-    const tbody = document.getElementById('priceTableBody');
-    if (!tbody) return;
-
-    if (plans.length === 0 && medicationPlans.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="12">
-            <div class="empty-state">
-              <div class="empty-state-icon">📋</div>
-              <div class="empty-state-title">データが見つかりませんでした</div>
-              <div class="empty-state-desc">検索条件を変更してください</div>
-            </div>
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    const { items: paginatedItems, startIndex } = getPaginatedItems();
-
-    // ページネーション表示用のデータを分離
-    const paginatedMedicationPlans = [];
-    const paginatedPlans = [];
-    
-    paginatedItems.forEach((item, index) => {
-      if (item.medication_name) {
-        paginatedMedicationPlans.push(item);
-      } else {
-        paginatedPlans.push(item);
+    console.log('Starting renderTable...', { plansCount: plans.length, medicationPlansCount: medicationPlans.length });
+    try {
+      const tbody = document.getElementById('priceTableBody');
+      if (!tbody) {
+        console.error('priceTableBody element not found');
+        return;
       }
-    });
 
-    // カテゴリでグループ化
-    const groupedPlans = paginatedPlans.reduce((acc, plan) => {
-      const categoryId = plan.category_id;
-      if (!acc[categoryId]) {
-        acc[categoryId] = {
-          categoryName: plan.category_name,
-          plans: []
-        };
-      }
-      acc[categoryId].plans.push(plan);
-      return acc;
-    }, {});
-
-    // カテゴリごとにテーブル行を生成
-    let html = '';
-    
-    // 薬剤料金を先に表示
-    if (paginatedMedicationPlans.length > 0) {
-      paginatedMedicationPlans.forEach((mp) => {
-        html += `
-          <tr class="medication-row">
-            <td>
-              <div class="category-info">
-                <span class="category-name">薬剤料金</span>
-              </div>
-            </td>
-            <td>
-              <div class="treatment-info">
-                <span class="subcategory-name">-</span>
-              </div>
-            </td>
-            <td>
-              <div class="treatment-info">
-                <span class="treatment-name">${escapeHtml(mp.medication_name)}</span>
-              </div>
-            </td>
-            <td>
-              <span class="plan-name">${escapeHtml(mp.quantity)}${(() => {
-                // quantityに既に単位（cc、mg、ml、単位）が含まれている場合は単位を追加しない
-                if (!mp.quantity) return '';
-                const hasUnit = /(cc|mg|ml|単位)/.test(mp.quantity);
-                return hasUnit ? '' : (mp.medication_unit || 'cc');
-              })()}</span>
-            </td>
-            <td class="text-center">
-              <span class="plan-type-badge plan-type-single">薬剤</span>
-            </td>
-            <td class="text-center">
-              ${mp.sessions ? `<span>${mp.sessions}回</span>` : '<span class="text-muted">-</span>'}
-            </td>
-            <td class="text-right">
-              <span class="price-regular">¥${mp.price.toLocaleString()}</span>
-            </td>
-            <td class="text-right">
-              <span class="price-regular">¥${mp.price_taxed.toLocaleString()}</span>
-            </td>
-            <td class="text-right">
-              <span class="text-muted">-</span>
-            </td>
-            <td class="text-right">
-              <span class="text-muted">-</span>
-            </td>
-            <td class="notes-cell">
-              <span class="text-muted">-</span>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <span class="text-muted">-</span>
+      if (plans.length === 0 && medicationPlans.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12">
+              <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-title">データが見つかりませんでした</div>
+                <div class="empty-state-desc">検索条件を変更してください</div>
               </div>
             </td>
           </tr>
         `;
-      });
-    }
-    
-    // 通常の料金プランを表示
-    Object.keys(groupedPlans).forEach((categoryId) => {
-      const group = groupedPlans[categoryId];
-      
-      group.plans.forEach((plan, planIndex) => {
-        const isFirstInCategory = planIndex === 0;
-        const rowspan = group.plans.length;
-        
-        html += '<tr>';
-        
-        // カテゴリ名（最初の行のみ、rowspanで結合）
-        if (isFirstInCategory) {
-          html += `<td rowspan="${rowspan}" class="category-cell">
-            <div class="category-info">
-              <span class="category-name">${escapeHtml(group.categoryName)}</span>
-            </div>
-          </td>`;
-        }
-        
-        // サブカテゴリ（治療法グループ）
-        html += `
-          <td>
-            <div class="treatment-info">
-              <span class="subcategory-name">${escapeHtml(plan.subcategory_name)}</span>
-            </div>
-          </td>
-          <td>
-            <div class="treatment-info">
-              <span class="treatment-name">${escapeHtml(plan.treatment_name || '')}</span>
-            </div>
-          </td>
-          <td>
-            <span class="plan-name">${escapeHtml(plan.plan_name)}</span>
-          </td>
-          <td class="text-center">
-            <span class="plan-type-badge plan-type-${plan.plan_type}">${planTypeLabels[plan.plan_type] || plan.plan_type}</span>
-          </td>
-          <td class="text-center">
-            ${plan.sessions ? `<span>${plan.sessions}回</span>` : '<span class="text-muted">-</span>'}
-          </td>
-          <td class="text-right">
-            <span class="price-regular">¥${plan.price.toLocaleString()}</span>
-          </td>
-          <td class="text-right">
-            <span class="price-regular">¥${plan.price_taxed.toLocaleString()}</span>
-          </td>
-          <td class="text-right">
-            ${plan.cost_rate !== null && plan.cost_rate !== undefined ? `<span>${typeof plan.cost_rate === 'number' ? plan.cost_rate.toFixed(1) : plan.cost_rate}%</span>` : '<span class="text-muted">-</span>'}
-          </td>
-          <td class="text-right">
-            ${plan.total_cost !== null && plan.total_cost !== undefined ? `<span>¥${plan.total_cost.toLocaleString()}</span>` : '<span class="text-muted">-</span>'}
-          </td>
-          <td class="notes-cell">
-            ${plan.notes ? `<span class="notes-text" title="${escapeHtml(plan.notes)}">${escapeHtml(plan.notes)}</span>` : '<span class="text-muted">-</span>'}
-          </td>
-          <td>
-            <div class="action-buttons">
-              <button onclick="openEditModal('${plan.id}')" class="action-btn action-btn-edit">編集</button>
-              <button onclick="deletePlan('${plan.id}')" class="action-btn action-btn-delete">削除</button>
-            </div>
-          </td>
-        </tr>`;
-      });
-    });
+        return;
+      }
 
-    tbody.innerHTML = html;
+      const { items: paginatedItems, startIndex } = getPaginatedItems();
+      console.log(`Rendering ${paginatedItems.length} items for page ${currentPage}`);
+
+      // ページネーション表示用のデータを分離
+      const paginatedMedicationPlans = [];
+      const paginatedPlans = [];
+      
+      paginatedItems.forEach((item) => {
+        if (item && item.medication_name) {
+          paginatedMedicationPlans.push(item);
+        } else if (item) {
+          paginatedPlans.push(item);
+        }
+      });
+
+      // カテゴリでグループ化
+      const groupedPlans = paginatedPlans.reduce((acc, plan) => {
+        if (!plan) return acc;
+        const categoryId = plan.category_id || 'unknown';
+        if (!acc[categoryId]) {
+          acc[categoryId] = {
+            categoryName: plan.category_name || '未分類',
+            plans: []
+          };
+        }
+        acc[categoryId].plans.push(plan);
+        return acc;
+      }, {});
+
+      // カテゴリごとにテーブル行を生成
+      let html = '';
+      
+      // 薬剤料金を先に表示
+      if (paginatedMedicationPlans.length > 0) {
+        paginatedMedicationPlans.forEach((mp) => {
+          html += `
+            <tr class="medication-row">
+              <td>
+                <div class="category-info">
+                  <span class="category-name">薬剤料金</span>
+                </div>
+              </td>
+              <td>
+                <div class="treatment-info">
+                  <span class="subcategory-name">-</span>
+                </div>
+              </td>
+              <td>
+                <div class="treatment-info">
+                  <span class="treatment-name">${escapeHtml(mp.medication_name || '')}</span>
+                </div>
+              </td>
+              <td>
+                <span class="plan-name">${escapeHtml(mp.quantity || '')}${(() => {
+                  if (!mp.quantity) return '';
+                  const hasUnit = /(cc|mg|ml|単位)/.test(mp.quantity);
+                  return hasUnit ? '' : (mp.medication_unit || 'cc');
+                })()}</span>
+              </td>
+              <td class="text-center">
+                <span class="plan-type-badge plan-type-single">薬剤</span>
+              </td>
+              <td class="text-center">
+                ${mp.sessions ? `<span>${mp.sessions}回</span>` : '<span class="text-muted">-</span>'}
+              </td>
+              <td class="text-right">
+                <span class="price-regular">¥${(mp.price || 0).toLocaleString()}</span>
+              </td>
+              <td class="text-right">
+                <span class="price-regular">¥${(mp.price_taxed || 0).toLocaleString()}</span>
+              </td>
+              <td class="text-right">
+                <span class="text-muted">-</span>
+              </td>
+              <td class="text-right">
+                <span class="text-muted">-</span>
+              </td>
+              <td class="notes-cell">
+                <span class="text-muted">-</span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <span class="text-muted">-</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+      }
+      
+      // 通常の料金プランを表示
+      Object.keys(groupedPlans).forEach((categoryId) => {
+        const group = groupedPlans[categoryId];
+        
+        group.plans.forEach((plan, planIndex) => {
+          const isFirstInCategory = planIndex === 0;
+          const rowspan = group.plans.length;
+          
+          html += '<tr>';
+          
+          if (isFirstInCategory) {
+            html += `<td rowspan="${rowspan}" class="category-cell">
+              <div class="category-info">
+                <span class="category-name">${escapeHtml(group.categoryName)}</span>
+              </div>
+            </td>`;
+          }
+          
+          html += `
+            <td>
+              <div class="treatment-info">
+                <span class="subcategory-name">${escapeHtml(plan.subcategory_name || '')}</span>
+              </div>
+            </td>
+            <td>
+              <div class="treatment-info">
+                <span class="treatment-name">${escapeHtml(plan.treatment_name || '')}</span>
+              </div>
+            </td>
+            <td>
+              <span class="plan-name">${escapeHtml(plan.plan_name || '')}</span>
+            </td>
+            <td class="text-center">
+              <span class="plan-type-badge plan-type-${plan.plan_type || 'single'}">${planTypeLabels[plan.plan_type] || plan.plan_type || '単発'}</span>
+            </td>
+            <td class="text-center">
+              ${plan.sessions ? `<span>${plan.sessions}回</span>` : '<span class="text-muted">-</span>'}
+            </td>
+            <td class="text-right">
+              <span class="price-regular">¥${(plan.price || 0).toLocaleString()}</span>
+            </td>
+            <td class="text-right">
+              <span class="price-regular">¥${(plan.price_taxed || 0).toLocaleString()}</span>
+            </td>
+            <td class="text-right">
+              ${plan.cost_rate !== null && plan.cost_rate !== undefined ? `<span>${typeof plan.cost_rate === 'number' ? plan.cost_rate.toFixed(1) : plan.cost_rate}%</span>` : '<span class="text-muted">-</span>'}
+            </td>
+            <td class="text-right">
+              ${plan.total_cost !== null && plan.total_cost !== undefined ? `<span>¥${plan.total_cost.toLocaleString()}</span>` : '<span class="text-muted">-</span>'}
+            </td>
+            <td class="notes-cell">
+              ${plan.notes ? `<span class="notes-text" title="${escapeHtml(plan.notes)}">${escapeHtml(plan.notes)}</span>` : '<span class="text-muted">-</span>'}
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button onclick="openEditModal('${plan.id}')" class="action-btn action-btn-edit">編集</button>
+                <button onclick="deletePlan('${plan.id}')" class="action-btn action-btn-delete">削除</button>
+              </div>
+            </td>
+          </tr>`;
+        });
+      });
+
+      tbody.innerHTML = html;
+      console.log('Table rendered successfully');
+    } catch (error) {
+      console.error('Error in renderTable:', error);
+      showError(`テーブルの描画中にエラーが発生しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   function renderPagination() {
@@ -932,6 +976,10 @@ const taxRate = getTaxRate(Astro.locals.runtime);
 
       // フォームに値を設定
       document.getElementById('editPlanId').value = plan.id;
+      if (treatments.length === 0) {
+        await loadTreatments();
+      }
+      renderTreatmentOptions(plan.treatment_id || '');
       document.getElementById('editPlanName').value = plan.plan_name || '';
       document.getElementById('editPlanType').value = plan.plan_type || 'single';
       document.getElementById('editSessions').value = plan.sessions || '';
@@ -942,15 +990,6 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       document.getElementById('editStaffCost').value = plan.staff_cost || '';
       document.getElementById('editTotalCost').value = plan.total_cost || '';
       document.getElementById('editNotes').value = plan.notes || '';
-
-      // サブカテゴリ選択肢を設定
-      const subcategorySelect = document.getElementById('editSubcategoryId');
-      if (subcategorySelect) {
-        subcategorySelect.innerHTML = '<option value="">選択してください</option>' +
-          subcategories.map(sub => 
-            `<option value="${sub.id}" ${sub.id === plan.subcategory_id ? 'selected' : ''}>${escapeHtml(sub.category_name)} - ${escapeHtml(sub.name)}</option>`
-          ).join('');
-      }
 
       // モーダルを表示
       modal.classList.remove('hidden');
@@ -977,7 +1016,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     if (!planId) return;
 
     const data = {
-      subcategory_id: document.getElementById('editSubcategoryId').value,
+      treatment_id: document.getElementById('editTreatmentId').value || null,
       plan_name: document.getElementById('editPlanName').value,
       plan_type: document.getElementById('editPlanType').value,
       sessions: document.getElementById('editSessions').value ? Number(document.getElementById('editSessions').value) : null,
@@ -1014,6 +1053,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     setLoading(true);
     loadCategories()
       .then(() => loadSubcategories())
+      .then(() => loadTreatments())
       .then(() => refreshData())
       .finally(() => setLoading(false));
 

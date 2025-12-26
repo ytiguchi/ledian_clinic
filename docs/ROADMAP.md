@@ -64,7 +64,8 @@
   - キャンペーン
   - アクセス/クリニック情報
   - お知らせ一覧/詳細
-  - Before/After一覧/詳細
+  - 記事/コラム一覧/詳細
+  - 症例一覧/詳細（Before/After）
   - よくある質問（FAQ）
   - 予約/問い合わせ導線（フォーム or 外部リンク）
 - [ ] 各ページの必須データ項目を列挙（D1のテーブル/カラム対応表を作成）
@@ -74,6 +75,14 @@
 - [ ] 公開フラグの名称を決定（例: `is_published`）と対象テーブルの洗い出し
 - [ ] 公開/非公開の運用ルール（管理画面の挙動）を定義
 - [ ] 公開サイト側のフィルタ条件を定義（例: `WHERE is_published = 1`）
+
+### スキーマ統合（P0）
+- [ ] 統合スキーマの正本を決定（`database/schema_d1_full.sql` を基準に統一）
+- [ ] 主キー型の統一（`product_launches` 系: INTEGER vs TEXT を決める）
+- [ ] 参照キーの統一（`treatment_plans`/content系: `treatment_id` vs `subcategory_id`）
+- [ ] 症例テーブルの名称統一（`before_afters` vs `treatment_before_afters`）
+- [ ] 記事コンテンツ（`articles`）の追加に向けたマイグレーション作成
+- [ ] 統一方針ドキュメント作成（`docs/SCHEMA_UNIFICATION.md`）
 
 ### 画像/アセット
 

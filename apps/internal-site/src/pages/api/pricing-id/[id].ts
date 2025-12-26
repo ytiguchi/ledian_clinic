@@ -39,6 +39,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
       supply_cost: number | null;
       staff_cost: number | null;
       total_cost: number | null;
+      notes: string | null;
       subcategory_id: string;
       subcategory_name: string;
       category_id: string;
@@ -53,7 +54,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
           c.id AS category_id,
           c.name AS category_name
         FROM treatment_plans tp
-        JOIN subcategories sc ON tp.subcategory_id = sc.id
+        JOIN treatments t ON tp.treatment_id = t.id
+        JOIN subcategories sc ON t.subcategory_id = sc.id
         JOIN categories c ON sc.category_id = c.id
         WHERE tp.id = ?
       `,
@@ -93,7 +95,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
       db,
       `
         UPDATE treatment_plans SET
-          subcategory_id = ?,
+          treatment_id = ?,
           plan_name = ?,
           plan_type = ?,
           sessions = ?,
@@ -111,7 +113,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         WHERE id = ?
       `,
       [
-        normalized.values.subcategoryId,
+        normalized.values.treatmentId,
         normalized.values.planName,
         normalized.values.planType,
         normalized.values.sessions,

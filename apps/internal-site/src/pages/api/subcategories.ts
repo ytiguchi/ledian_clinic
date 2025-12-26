@@ -38,6 +38,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
     
     query += ' ORDER BY sc.sort_order';
     
+    console.log('Fetching subcategories with query:', query);
+    console.log('Parameters:', params);
+
     // queryDBの代わりに直接prepareとbindを使用
     let stmt = db.prepare(query);
     if (params.length > 0) {

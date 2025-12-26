@@ -13,7 +13,7 @@ export const parseNullableNumber = (value: unknown) => {
 };
 
 export type PricingInput = {
-  subcategory_id?: unknown;
+  treatment_id?: unknown;
   plan_name?: unknown;
   plan_type?: unknown;
   sessions?: unknown;
@@ -30,7 +30,7 @@ export type PricingInput = {
 };
 
 type NormalizedPricingInput = {
-  subcategoryId: string;
+  treatmentId: string;
   planName: string;
   planType: string;
   sessions: number | null;
@@ -47,7 +47,7 @@ type NormalizedPricingInput = {
 };
 
 type PricingValidationError = {
-  field: 'subcategory_id' | 'plan_name' | 'price';
+  field: 'treatment_id' | 'plan_name' | 'price';
   message: string;
 };
 
@@ -56,12 +56,12 @@ export const normalizePricingInput = (
   taxRate: number
 ): { values: NormalizedPricingInput | null; errors: PricingValidationError[] } => {
   const errors: PricingValidationError[] = [];
-  const subcategoryId = normalizeString(data.subcategory_id);
+  const treatmentId = normalizeString(data.treatment_id);
   const planName = normalizeString(data.plan_name);
   const price = parseNullableNumber(data.price);
 
-  if (!subcategoryId) {
-    errors.push({ field: 'subcategory_id', message: 'subcategory_id is required' });
+  if (!treatmentId) {
+    errors.push({ field: 'treatment_id', message: 'treatment_id is required' });
   }
   if (!planName) {
     errors.push({ field: 'plan_name', message: 'plan_name is required' });
@@ -88,7 +88,7 @@ export const normalizePricingInput = (
 
   return {
     values: {
-      subcategoryId,
+      treatmentId,
       planName,
       planType,
       sessions,

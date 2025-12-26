@@ -27,20 +27,16 @@ export const GET: APIRoute = async ({ locals, params }) => {
     const result = await db.prepare(`
       SELECT 
         ba.*,
-        t.name AS treatment_name,
-        t.slug AS treatment_slug,
-        sc.id AS subcategory_id,
         sc.name AS subcategory_name,
         c.id AS category_id,
         c.name AS category_name
       FROM treatment_before_afters ba
-      JOIN treatments t ON ba.treatment_id = t.id
-      JOIN subcategories sc ON t.subcategory_id = sc.id
+      JOIN subcategories sc ON ba.subcategory_id = sc.id
       JOIN categories c ON sc.category_id = c.id
       WHERE ba.id = ?
     `).bind(id).first<{
       id: string;
-      treatment_id: string;
+      subcategory_id: string;
       before_image_url: string;
       after_image_url: string;
       caption: string | null;
@@ -56,9 +52,6 @@ export const GET: APIRoute = async ({ locals, params }) => {
       is_published: number;
       sort_order: number;
       created_at: string;
-      treatment_name: string;
-      treatment_slug: string;
-      subcategory_id: string;
       subcategory_name: string;
       category_id: string;
       category_name: string;
@@ -87,10 +80,11 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     const idResponse = requireParam(id, 'Before/After ID');
     if (idResponse) return idResponse;
     
-    // バリデーション
-    if (!data.treatment_id) {
-      return validationError('treatment_id is required', [
-        { field: 'treatment_id', message: 'treatment_id is required' },
+    // バリデーション - subcategory_id または treatment_id（後方互換）を受け付ける
+    const subcategoryId = data.subcategory_id || data.treatment_id;
+    if (!subcategoryId) {
+      return validationError('subcategory_id is required', [
+        { field: 'subcategory_id', message: 'subcategory_id is required' },
       ]);
     }
     if (!data.after_image_url) {
@@ -101,7 +95,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     
     const result = await db.prepare(`
       UPDATE treatment_before_afters SET
-        treatment_id = ?,
+        subcategory_id = ?,
         before_image_url = ?,
         after_image_url = ?,
         caption = ?,
@@ -119,7 +113,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         updated_at = datetime('now')
       WHERE id = ?
     `).bind(
-      data.treatment_id,
+      subcategoryId,
       data.before_image_url || '',
       data.after_image_url,
       data.caption || null,

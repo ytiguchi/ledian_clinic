@@ -18,12 +18,18 @@
 - [ ] 公開向けクエリに必要なインデックス確認・追加方針
 
 #### P0の具体タスク
-- [ ] 公開サイトのページ一覧を確定（トップ/施術一覧・詳細/料金/キャンペーン/アクセス/お知らせ/BeforeAfter）
+- [ ] 公開サイトのページ一覧を確定（トップ/施術一覧・詳細/料金/キャンペーン/アクセス/お知らせ/記事/症例）
 - [ ] 各ページの必須データ項目を列挙（D1のテーブル/カラム対応表を作成）
 - [ ] 既存D1の対応状況を確認（不足項目・NULL許容の整理）
 - [ ] 公開フラグの名称を決定（例: `is_published`）と対象テーブルの洗い出し
 - [ ] 公開/非公開の運用ルール（管理画面の挙動）を定義
 - [ ] 公開サイト側のフィルタ条件を定義（例: `WHERE is_published = 1`）
+- [ ] 統合スキーマの正本を決定（`database/schema_d1_full.sql` を基準に統一）
+- [ ] 主キー型の統一（`product_launches` 系: INTEGER vs TEXT を決める）
+- [ ] 参照キーの統一（`treatment_plans`/content系: `treatment_id` vs `subcategory_id`）
+- [ ] 症例テーブルの名称統一（`before_afters` vs `treatment_before_afters`）
+- [ ] 記事コンテンツ（`articles`）の追加に向けたマイグレーション作成
+- [ ] 統一方針ドキュメント作成（`docs/SCHEMA_UNIFICATION.md`）
 
 ### API整備（read-only想定）
 - [ ] 公開サイト用の読み取りAPI方針を決定（共通read-only or 直接D1）

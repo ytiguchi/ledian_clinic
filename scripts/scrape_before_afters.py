@@ -428,15 +428,15 @@ def generate_sql(cases: List[BeforeAfterCase], output_path: Path):
             before_url = case.before_image_url if case.before_image_url else ""
             
             lines.append(f"""INSERT INTO treatment_before_afters (
-    id, treatment_id, before_image_url, after_image_url, 
+    id, subcategory_id, before_image_url, after_image_url, 
     caption, patient_age, patient_gender, treatment_count, treatment_period,
     is_published, sort_order
 ) VALUES (
     '{case_id}',
-    (SELECT id FROM treatments WHERE slug = '{escape_sql(slug)}' LIMIT 1),
+    (SELECT id FROM subcategories WHERE slug = '{escape_sql(slug)}' LIMIT 1),
     '{escape_sql(before_url)}',
     '{escape_sql(case.after_image_url)}',
-    {sql_str(case.caption[:200] if case.caption else None)},
+    {sql_str(case.caption)},
     {sql_str(case.patient_age)},
     {sql_str(case.patient_gender)},
     {sql_str(case.treatment_count)},

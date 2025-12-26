@@ -21,7 +21,7 @@ const getSearchParam = (url: URL, key: string) => {
   return trimmed;
 };
 
-const getSelectColumns = (hasTreatmentId: boolean) =>
+const getSelectColumns = () =>
   [
     'tp.id',
     'tp.plan_name',
@@ -37,51 +37,35 @@ const getSelectColumns = (hasTreatmentId: boolean) =>
     'tp.staff_cost',
     'tp.total_cost',
     'tp.notes',
-    hasTreatmentId ? 't.id AS treatment_id' : 'sc.id AS treatment_id',
-    hasTreatmentId ? 't.name AS treatment_name' : 'sc.name AS treatment_name',
-    hasTreatmentId ? 't.slug AS treatment_slug' : 'sc.slug AS treatment_slug',
-    hasTreatmentId ? 't.description AS treatment_description' : 'NULL AS treatment_description',
+    't.id AS treatment_id',
+    't.name AS treatment_name',
+    't.slug AS treatment_slug',
+    't.description AS treatment_description',
     'sc.id AS subcategory_id',
     'sc.name AS subcategory_name',
     'c.id AS category_id',
     'c.name AS category_name',
   ].join(',\n          ');
 
-const getFromClause = (hasTreatmentId: boolean) =>
-  hasTreatmentId
-    ? `FROM treatment_plans tp
+const getFromClause = () => `FROM treatment_plans tp
         JOIN treatments t ON tp.treatment_id = t.id
         JOIN subcategories sc ON t.subcategory_id = sc.id
-        JOIN categories c ON sc.category_id = c.id`
-    : `FROM treatment_plans tp
-        JOIN subcategories sc ON tp.subcategory_id = sc.id
         JOIN categories c ON sc.category_id = c.id`;
 
-const SEARCH_FIELDS_WITH_TREATMENT = [
+const SEARCH_FIELDS = [
   't.name',
   'sc.name',
   'tp.plan_name',
   'c.name',
 ] as const;
-const SEARCH_FIELDS_WITHOUT_TREATMENT = [
-  'sc.name',
-  'tp.plan_name',
-  'c.name',
-] as const;
 
-const getSearchFields = (hasTreatmentId: boolean) =>
-  hasTreatmentId ? SEARCH_FIELDS_WITH_TREATMENT : SEARCH_FIELDS_WITHOUT_TREATMENT;
+const getOrderBy = () =>
+  ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order';
 
-const getOrderBy = (hasTreatmentId: boolean) =>
-  hasTreatmentId
-    ? ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order'
-    : ' ORDER BY c.sort_order, sc.sort_order, tp.sort_order';
-
-const buildPricingQuery = (hasTreatmentId: boolean) => {
-  const selectColumns = getSelectColumns(hasTreatmentId);
-  const fromClause = getFromClause(hasTreatmentId);
-  const searchFields = getSearchFields(hasTreatmentId);
-  const orderBy = getOrderBy(hasTreatmentId);
+const buildPricingQuery = () => {
+  const selectColumns = getSelectColumns();
+  const fromClause = getFromClause();
+  const orderBy = getOrderBy();
 
   const query = `
         SELECT 
@@ -90,7 +74,7 @@ const buildPricingQuery = (hasTreatmentId: boolean) => {
         WHERE tp.is_active = 1
       `;
 
-  return { query, searchFields, orderBy };
+  return { query, searchFields: SEARCH_FIELDS, orderBy };
 };
 
 const appendCondition = (
@@ -138,20 +122,6 @@ const applySearchFilter = (
   );
 };
 
-const hasTreatmentIdColumn = async (db: ReturnType<typeof getDB>) => {
-  try {
-    const checkResult = await db.prepare(`
-      PRAGMA table_info(treatment_plans)
-    `).all<{ name: string }>();
-    if (checkResult.success && checkResult.results) {
-      return checkResult.results.some(col => col.name === 'treatment_id');
-    }
-  } catch (error) {
-    console.warn('Could not check table structure, assuming 3-tier structure:', error);
-  }
-  return false;
-};
-
 export const GET: APIRoute = async ({ locals, url }) => {
   if (!locals?.runtime?.env) {
     // 開発環境（npm run dev）では空配列を返す
@@ -166,8 +136,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const categoryId = getSearchParam(url, 'category_id');
     const subcategoryId = getSearchParam(url, 'subcategory_id');
     const search = getSearchParam(url, 'search');
-    const hasTreatmentId = await hasTreatmentIdColumn(db);
-    const built = buildPricingQuery(hasTreatmentId);
+    const built = buildPricingQuery();
 
     query = built.query;
     params = [];
@@ -178,6 +147,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     query += built.orderBy;
     
+    console.log('Fetching pricing with query:', query);
+    console.log('Parameters:', params);
+
     let stmt = db.prepare(query);
     if (params.length > 0) {
       stmt = stmt.bind(...params);
@@ -232,14 +204,14 @@ export const POST: APIRoute = async ({ locals, request }) => {
     
     const result = await db.prepare(`
       INSERT INTO treatment_plans (
-        id, subcategory_id, plan_name, plan_type, sessions, quantity,
+        id, treatment_id, plan_name, plan_type, sessions, quantity,
         price, price_taxed, price_per_session, price_per_session_taxed,
         cost_rate, supply_cost, staff_cost, total_cost,
         sort_order, is_active
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `).bind(
       crypto.randomUUID(),
-      normalized.values.subcategoryId,
+      normalized.values.treatmentId,
       normalized.values.planName,
       normalized.values.planType,
       normalized.values.sessions,
