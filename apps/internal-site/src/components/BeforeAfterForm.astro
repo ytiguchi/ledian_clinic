@@ -1,0 +1,971 @@
+---
+import TreatmentSelector from './TreatmentSelector.astro';
+
+export interface Props {
+  mode: 'new' | 'edit';
+  beforeAfterId?: string;
+}
+
+const { mode, beforeAfterId } = Astro.props;
+const isEdit = mode === 'edit';
+---
+
+<div class="max-w-4xl mx-auto space-y-6">
+  <!-- ヘッダー -->
+  <div class="page-header-card">
+    <a href="/before-afters" class="back-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      症例写真管理に戻る
+    </a>
+    <div class="page-title-row">
+      <div class="page-icon">📸</div>
+      <div>
+        <h2 class="page-title">{isEdit ? '症例写真編集' : '新規症例写真追加'}</h2>
+        <p class="page-subtitle">
+          {isEdit
+            ? '登録済みのビフォーアフター写真を編集できます'
+            : 'ビフォーアフター写真を登録して、施術の効果をアピールしましょう'}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="loadingMessage" class:list={[isEdit ? '' : 'hidden', 'bg-white rounded-lg shadow p-8 text-center']}>
+    <p class="text-gray-500">データを読み込み中...</p>
+  </div>
+
+  <form id="beforeAfterForm" class:list={[isEdit ? 'hidden' : '', 'form-container']} data-mode={mode}>
+    {isEdit && <input type="hidden" name="id" id="beforeAfterId" value={beforeAfterId} />}
+
+    <!-- 基本情報 - カテゴリ選択 -->
+    <TreatmentSelector
+      id="before-after-selector"
+      requiredCategory={false}
+      requiredSubcategory={true}
+      requiredTreatment={true}
+      showTreatmentStep={true}
+    />
+
+    <!-- 画像モード選択 -->
+    <div>
+      <h3 class="text-xl font-semibold mb-4">画像 <span class="text-red-500">*</span></h3>
+      
+      <!-- モード切替タブ -->
+      <div class="image-mode-tabs mb-4">
+        <button type="button" class="mode-tab active" data-mode="before-after">
+          📸 施術前/施術後（2枚）
+        </button>
+        <button type="button" class="mode-tab" data-mode="single">
+          🖼️ レタッチ後のみ（1枚）
+        </button>
+      </div>
+
+      <!-- Before/After モード -->
+      <div class="image-mode" id="mode-before-after">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2">施術前画像</label>
+            <input
+              type="url"
+              name="beforeImageUrl"
+              id="beforeImageUrl"
+              placeholder="画像URLを入力するか、ファイルをアップロードしてください"
+              class="w-full px-4 py-2 border rounded-lg mb-2"
+            />
+            <div class="upload-area" data-upload-target="before">
+              <div class="upload-area-content">
+                <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p class="upload-text">画像をドラッグ&ドロップ</p>
+                <p class="upload-hint">またはクリックしてファイルを選択</p>
+                <input
+                  type="file"
+                  id="beforeFile"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  class="hidden"
+                />
+              </div>
+            </div>
+            <div class="preview-container mt-2 aspect-square bg-gray-100 rounded overflow-hidden relative">
+              <div class="preview-placeholder" data-placeholder="before">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>施術前画像</span>
+              </div>
+              <img id="beforePreview" alt="施術前プレビュー" class="preview-image" />
+              <div class="upload-progress hidden" data-progress="before">
+                <div class="flex items-center justify-center h-full bg-black bg-opacity-50 text-white">
+                  <div class="text-center">
+                    <div class="spinner"></div>
+                    <p class="mt-2">アップロード中...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">施術後画像</label>
+            <input
+              type="url"
+              name="afterImageUrl"
+              id="afterImageUrl"
+              placeholder="画像URLを入力するか、ファイルをアップロードしてください"
+              class="w-full px-4 py-2 border rounded-lg mb-2"
+              required
+            />
+            <div class="upload-area" data-upload-target="after">
+              <div class="upload-area-content">
+                <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p class="upload-text">画像をドラッグ&ドロップ</p>
+                <p class="upload-hint">またはクリックしてファイルを選択</p>
+                <input
+                  type="file"
+                  id="afterFile"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  class="hidden"
+                />
+              </div>
+            </div>
+            <div class="preview-container mt-2 aspect-square bg-gray-100 rounded overflow-hidden relative">
+              <div class="preview-placeholder" data-placeholder="after">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>施術後画像</span>
+              </div>
+              <img id="afterPreview" alt="施術後プレビュー" class="preview-image" />
+              <div class="upload-progress hidden" data-progress="after">
+                <div class="flex items-center justify-center h-full bg-black bg-opacity-50 text-white">
+                  <div class="text-center">
+                    <div class="spinner"></div>
+                    <p class="mt-2">アップロード中...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 単一画像モード -->
+      <div class="image-mode hidden" id="mode-single">
+        <div class="max-w-md">
+          <label class="block text-sm font-medium mb-2">レタッチ後画像</label>
+          <p class="text-sm text-gray-500 mb-3">施術後のレタッチ済み画像のみをアップロードします</p>
+          <input
+            type="url"
+            name="singleImageUrl"
+            id="singleImageUrl"
+            placeholder="画像URLを入力するか、ファイルをアップロードしてください"
+            class="w-full px-4 py-2 border rounded-lg mb-2"
+          />
+          <div class="upload-area" data-upload-target="single">
+            <div class="upload-area-content">
+              <svg class="upload-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p class="upload-text">画像をドラッグ&ドロップ</p>
+              <p class="upload-hint">またはクリックしてファイルを選択</p>
+              <input
+                type="file"
+                id="singleFile"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                class="hidden"
+              />
+            </div>
+          </div>
+          <div class="preview-container mt-2 aspect-video bg-gray-100 rounded overflow-hidden relative">
+            <div class="preview-placeholder" data-placeholder="single">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>レタッチ後画像</span>
+            </div>
+            <img id="singlePreview" alt="レタッチ後プレビュー" class="preview-image" />
+            <div class="upload-progress hidden" data-progress="single">
+              <div class="flex items-center justify-center h-full bg-black bg-opacity-50 text-white">
+                <div class="text-center">
+                  <div class="spinner"></div>
+                  <p class="mt-2">アップロード中...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 詳細情報 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="section-icon detail-icon">📋</div>
+        <div>
+          <h3 class="section-title">詳細情報</h3>
+          <p class="section-desc">患者情報と施術の詳細を記入してください</p>
+        </div>
+      </div>
+      <div class="section-content">
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">✍️</span>
+            説明文（キャプション）
+          </label>
+          <textarea
+            name="caption"
+            id="caption"
+            rows="2"
+            placeholder="症例の説明を入力してください"
+            class="form-textarea"
+          ></textarea>
+        </div>
+        <div class="info-cards">
+          <div class="info-card">
+            <label class="info-card-label">👤 患者年齢</label>
+            <div class="input-with-suffix compact">
+              <input
+                type="number"
+                name="patientAge"
+                id="patientAge"
+                min="0"
+                max="150"
+                placeholder="--"
+                class="form-input text-center"
+              />
+              <span class="input-suffix">歳</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <label class="info-card-label">⚧️ 性別</label>
+            <div class="gender-buttons">
+              <input type="hidden" name="patientGender" id="patientGender" />
+              <button type="button" class="gender-btn" data-value="女性">👩 女性</button>
+              <button type="button" class="gender-btn" data-value="男性">👨 男性</button>
+            </div>
+          </div>
+          <div class="info-card">
+            <label class="info-card-label">🔢 施術回数</label>
+            <div class="input-with-suffix compact">
+              <input
+                type="number"
+                name="treatmentCount"
+                id="treatmentCount"
+                min="1"
+                placeholder="--"
+                class="form-input text-center"
+              />
+              <span class="input-suffix">回</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <label class="info-card-label">📅 施術期間</label>
+            <input
+              type="text"
+              name="treatmentPeriod"
+              id="treatmentPeriod"
+              placeholder="例: 3ヶ月"
+              class="form-input text-center"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 公開設定 -->
+    <div class="form-section publish-section">
+      <div class="publish-card">
+        <div class="publish-info">
+          <div class="publish-icon">🌐</div>
+          <div>
+            <h4 class="publish-title">公開設定</h4>
+            <p class="publish-desc">ONにすると一般公開されます</p>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" name="isPublished" id="isPublished" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- アクション -->
+    <div class="action-bar">
+      <a href="/before-afters" class="btn-cancel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+        キャンセル
+      </a>
+      <button type="submit" class="btn-save">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        {isEdit ? '更新する' : '保存する'}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Styles moved from new page so edit/new match -->
+<style>
+  /* Page Header */
+  .page-header-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 1.25rem;
+    padding: 1.5rem 2rem;
+    color: white;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover {
+    color: #d4a853;
+  }
+  .page-title-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .page-icon {
+    font-size: 2.5rem;
+  }
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+  }
+  .page-subtitle {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0.25rem 0 0;
+  }
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Mode tabs + upload/preview styles (from new page) */
+  .image-mode-tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.375rem;
+    background: #e0e7ff;
+    border-radius: 0.75rem;
+    width: fit-content;
+    margin-bottom: 1rem;
+  }
+  .mode-tab {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4338ca;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .mode-tab:hover {
+    color: #3730a3;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  .mode-tab.active {
+    color: #1e293b;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .image-mode.hidden {
+    display: none;
+  }
+  .upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f8fafc;
+  }
+  .upload-area:hover {
+    border-color: #94a3b8;
+    background: #f1f5f9;
+  }
+  .upload-area.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  .upload-area-content {
+    pointer-events: none;
+  }
+  .upload-icon {
+    margin: 0 auto 0.5rem;
+    color: #94a3b8;
+  }
+  .upload-text {
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+  }
+  .upload-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+  .upload-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+  }
+  .upload-progress.hidden {
+    display: none !important;
+  }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .preview-container {
+    position: relative;
+  }
+  .preview-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #94a3b8;
+    pointer-events: none;
+  }
+  .preview-placeholder svg {
+    opacity: 0.5;
+  }
+  .preview-placeholder span {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .preview-placeholder.hidden {
+    display: none;
+  }
+  .preview-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .preview-image.loaded {
+    opacity: 1;
+  }
+
+  /* Detail + publish + actions (from new page) */
+  .form-section {
+    background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .form-section:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white;
+  }
+  .section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+  }
+  .detail-icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  }
+  .section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+  }
+  .section-desc {
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0.25rem 0 0;
+  }
+  .section-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .label-icon { font-size: 1rem; }
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 0.9375rem;
+    color: #1e293b;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+  .form-input:focus,
+  .form-textarea:focus {
+    border-color: #d4a853;
+    box-shadow: 0 0 0 4px rgba(212, 168, 83, 0.15);
+  }
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  .input-with-suffix {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-with-suffix .form-input { padding-right: 3rem; }
+  .input-suffix {
+    position: absolute;
+    right: 1rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    pointer-events: none;
+  }
+  .input-with-suffix.compact .form-input { padding-right: 2.5rem; }
+  .info-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  @media (max-width: 768px) {
+    .info-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  .info-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+  }
+  .info-card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .gender-buttons { display: flex; gap: 0.5rem; }
+  .gender-btn {
+    flex: 1;
+    padding: 0.625rem 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #64748b;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .gender-btn:hover {
+    border-color: #d4a853;
+    color: #d4a853;
+  }
+  .gender-btn.active {
+    background: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
+    border-color: #d4a853;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  .publish-section { background: transparent; border: none; }
+  .publish-section:hover { box-shadow: none; }
+  .publish-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+  }
+  .publish-info { display: flex; align-items: center; gap: 1rem; }
+  .publish-icon { font-size: 2rem; }
+  .publish-title { font-size: 1rem; font-weight: 700; color: white; margin: 0; }
+  .publish-desc { font-size: 0.8125rem; color: rgba(255, 255, 255, 0.6); margin: 0.25rem 0 0; }
+  .toggle-switch { position: relative; width: 56px; height: 30px; cursor: pointer; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.2); border-radius: 30px; transition: all 0.3s ease; }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(26px); }
+  .action-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f1f5f9;
+  }
+  .btn-cancel,
+  .btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  .btn-cancel {
+    color: #64748b;
+    background: white;
+    border: 2px solid #e2e8f0;
+  }
+  .btn-save {
+    color: #0f172a;
+    background: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(212, 168, 83, 0.3);
+  }
+</style>
+
+<script define:vars={{ mode, beforeAfterId }}>
+  let currentImageMode: 'before-after' | 'single' = 'before-after';
+
+  function setMode(mode: 'before-after' | 'single') {
+    currentImageMode = mode;
+    const tabs = document.querySelectorAll('.mode-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelector(`.mode-tab[data-mode="${mode}"]`)?.classList.add('active');
+    document.querySelectorAll('.image-mode').forEach(m => m.classList.add('hidden'));
+    document.getElementById(`mode-${mode}`)?.classList.remove('hidden');
+  }
+
+  function initModeSwitch() {
+    const tabs = document.querySelectorAll('.mode-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const m = tab.getAttribute('data-mode') as 'before-after' | 'single';
+        setMode(m);
+      });
+    });
+  }
+
+  function initGenderButtons(initial?: string | null) {
+    const genderButtons = document.querySelectorAll('.gender-btn');
+    const genderInput = document.getElementById('patientGender') as HTMLInputElement | null;
+    genderButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        genderButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (genderInput) genderInput.value = btn.getAttribute('data-value') || '';
+      });
+    });
+    if (initial && genderInput) {
+      genderInput.value = initial;
+      const btn = document.querySelector(`.gender-btn[data-value="${initial}"]`) as HTMLElement | null;
+      if (btn) btn.classList.add('active');
+    }
+  }
+
+  function setPreview(targetId: 'before' | 'after' | 'single', url: string) {
+    const preview = document.getElementById(`${targetId}Preview`) as HTMLImageElement | null;
+    const placeholder = document.querySelector(`[data-placeholder="${targetId}"]`) as HTMLElement | null;
+    if (!preview) return;
+    if (url) {
+      preview.src = url;
+      preview.classList.add('loaded');
+      placeholder?.classList.add('hidden');
+    } else {
+      preview.src = '';
+      preview.classList.remove('loaded');
+      placeholder?.classList.remove('hidden');
+    }
+  }
+
+  function initImageUpload(targetId: 'before' | 'after' | 'single') {
+    const fileInput = document.getElementById(`${targetId}File`) as HTMLInputElement | null;
+    const urlInputId =
+      targetId === 'before' ? 'beforeImageUrl' : targetId === 'after' ? 'afterImageUrl' : 'singleImageUrl';
+    const urlInput = document.getElementById(urlInputId) as HTMLInputElement | null;
+    const uploadArea = document.querySelector(`[data-upload-target="${targetId}"]`) as HTMLElement | null;
+    const progress = document.querySelector(`[data-progress="${targetId}"]`) as HTMLElement | null;
+    if (!fileInput || !urlInput || !uploadArea) return;
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) await uploadFile(file);
+    });
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer?.files[0];
+      if (file && file.type.startsWith('image/')) await uploadFile(file);
+    });
+
+    urlInput.addEventListener('input', () => {
+      setPreview(targetId, urlInput.value);
+    });
+
+    async function uploadFile(file: File) {
+      const placeholder = document.querySelector(`[data-placeholder="${targetId}"]`) as HTMLElement | null;
+      try {
+        const objectUrl = URL.createObjectURL(file);
+        setPreview(targetId, objectUrl);
+        placeholder?.classList.add('hidden');
+        progress?.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', 'before-after');
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'アップロードに失敗しました');
+        }
+        const result = await res.json();
+        const finalUrl = result.url || result.key;
+        urlInput.value = finalUrl;
+        setPreview(targetId, finalUrl);
+        URL.revokeObjectURL(objectUrl);
+      } catch (e) {
+        console.error('Upload error:', e);
+        alert(`アップロードに失敗しました: ${e instanceof Error ? e.message : 'Unknown error'}`);
+        setPreview(targetId, '');
+      } finally {
+        progress?.classList.add('hidden');
+      }
+    }
+  }
+
+  async function loadBeforeAfterForEdit() {
+    const loading = document.getElementById('loadingMessage');
+    const form = document.getElementById('beforeAfterForm');
+    try {
+      const res = await fetch(`/api/before-afters/${beforeAfterId}`);
+      if (!res.ok) throw new Error('症例写真が見つかりません');
+      const data = await res.json();
+      const ba = data.before_after as {
+        id: string;
+        subcategory_id: string;
+        category_id: string;
+        before_image_url: string;
+        after_image_url: string;
+        caption: string | null;
+        patient_age: number | null;
+        patient_gender: string | null;
+        treatment_count: number | null;
+        treatment_period: string | null;
+        is_published: number;
+      };
+
+      // selector initial set
+      const selectorApi = (window as any).getTreatmentSelector_before-after-selector?.();
+      if (selectorApi?.setSelection) {
+        await selectorApi.setSelection({
+          categoryId: ba.category_id,
+          subcategoryId: ba.subcategory_id,
+          treatmentId: null
+        });
+      }
+
+      // image mode
+      const hasBefore = !!(ba.before_image_url && ba.before_image_url.trim() !== '');
+      if (hasBefore) {
+        setMode('before-after');
+        (document.getElementById('beforeImageUrl') as HTMLInputElement).value = ba.before_image_url;
+        (document.getElementById('afterImageUrl') as HTMLInputElement).value = ba.after_image_url;
+        setPreview('before', ba.before_image_url);
+        setPreview('after', ba.after_image_url);
+      } else {
+        setMode('single');
+        (document.getElementById('singleImageUrl') as HTMLInputElement).value = ba.after_image_url;
+        setPreview('single', ba.after_image_url);
+      }
+
+      (document.getElementById('caption') as HTMLTextAreaElement).value = ba.caption || '';
+      if (ba.patient_age != null) (document.getElementById('patientAge') as HTMLInputElement).value = String(ba.patient_age);
+      if (ba.treatment_count != null) (document.getElementById('treatmentCount') as HTMLInputElement).value = String(ba.treatment_count);
+      if (ba.treatment_period) (document.getElementById('treatmentPeriod') as HTMLInputElement).value = ba.treatment_period;
+      (document.getElementById('isPublished') as HTMLInputElement).checked = ba.is_published === 1;
+      initGenderButtons(ba.patient_gender);
+
+      loading?.classList.add('hidden');
+      form?.classList.remove('hidden');
+    } catch (e) {
+      console.error('Load error:', e);
+      if (loading) loading.innerHTML = `<p class="text-red-500">データの読み込みに失敗しました: ${e instanceof Error ? e.message : 'Unknown error'}</p>`;
+    }
+  }
+
+  async function handleSubmit(e: Event) {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+
+    const subcategory = (formData.get('subcategory') as string) || '';
+    if (!subcategory) {
+      alert('サブカテゴリを選択してください');
+      return;
+    }
+
+    let beforeUrl: string | null = null;
+    let afterUrl: string | null = null;
+    if (currentImageMode === 'before-after') {
+      beforeUrl = (formData.get('beforeImageUrl') as string) || '';
+      afterUrl = (formData.get('afterImageUrl') as string) || '';
+      if (!beforeUrl || !afterUrl) {
+        alert('施術前と施術後の両方の画像をアップロードしてください');
+        return;
+      }
+    } else {
+      const singleUrl = (formData.get('singleImageUrl') as string) || '';
+      if (!singleUrl) {
+        alert('レタッチ後の画像をアップロードしてください');
+        return;
+      }
+      afterUrl = singleUrl;
+    }
+
+    const payload = {
+      subcategory_id: subcategory,
+      before_image_url: beforeUrl,
+      after_image_url: afterUrl,
+      caption: formData.get('caption') || null,
+      patient_age: formData.get('patientAge') ? Number(formData.get('patientAge')) : null,
+      patient_gender: formData.get('patientGender') || null,
+      treatment_count: formData.get('treatmentCount') ? Number(formData.get('treatmentCount')) : null,
+      treatment_period: formData.get('treatmentPeriod') || null,
+      is_published: formData.get('isPublished') === 'on',
+      sort_order: 0
+    };
+
+    const isEdit = mode === 'edit';
+    const url = isEdit ? `/api/before-afters/${beforeAfterId}` : '/api/before-afters';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (res.ok) {
+        alert(isEdit ? '更新しました' : '保存しました');
+        window.location.href = '/before-afters';
+      } else {
+        alert(`${isEdit ? '更新' : '保存'}に失敗しました: ${result.message || result.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Save error:', err);
+      alert(isEdit ? '更新に失敗しました' : '保存に失敗しました');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initModeSwitch();
+    initGenderButtons(null);
+    initImageUpload('before');
+    initImageUpload('after');
+    initImageUpload('single');
+    document.getElementById('beforeAfterForm')?.addEventListener('submit', handleSubmit);
+
+    if (mode === 'edit') {
+      loadBeforeAfterForEdit();
+    }
+  });
+</script>
+
+

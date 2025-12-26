@@ -402,7 +402,7 @@ const treatmentSectionId = `${id}-treatment-section`;
     document.dispatchEvent(event);
   }
 
-  async function loadCategories() {
+  async function loadCategories(): Promise<void> {
     try {
       const res = await fetch('/api/categories');
       const data = await res.json();
@@ -481,13 +481,13 @@ const treatmentSectionId = `${id}-treatment-section`;
     selectedSubcategoryId = null;
 
     // サブカテゴリを読み込み
-    loadSubcategories(categoryId);
+    void loadSubcategories(categoryId);
 
     // カスタムイベントを発火
     dispatchChangeEvent(`treatment-selector:category-change:${componentId}`, { categoryId });
   }
 
-  async function loadSubcategories(categoryId: string) {
+  async function loadSubcategories(categoryId: string): Promise<void> {
     const grid = document.getElementById(subcategoryGridId);
     if (!grid) return;
     
@@ -560,14 +560,14 @@ const treatmentSectionId = `${id}-treatment-section`;
         treatmentSection.classList.remove('hidden');
         treatmentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-      loadTreatments(subcategoryId);
+      void loadTreatments(subcategoryId);
     }
 
     // カスタムイベントを発火
     dispatchChangeEvent(`treatment-selector:subcategory-change:${componentId}`, { subcategoryId });
   }
 
-  async function loadTreatments(subcategoryId: string) {
+  async function loadTreatments(subcategoryId: string): Promise<void> {
     const select = document.getElementById(treatmentSelectId) as HTMLSelectElement;
     if (!select) return;
     select.innerHTML = '<option value="">施術を選択してください</option>';
@@ -604,11 +604,60 @@ const treatmentSectionId = `${id}-treatment-section`;
     }
   }
 
-  // 公開API（外部から値にアクセスするためのメソッド）
+  async function setSelection(next: {
+    categoryId?: string | null;
+    subcategoryId?: string | null;
+    treatmentId?: string | null;
+  }) {
+    const categoryId = next.categoryId ?? null;
+    const subcategoryId = next.subcategoryId ?? null;
+    const treatmentId = next.treatmentId ?? null;
+
+    // Ensure categories are loaded and selectable
+    if (categories.length === 0) {
+      await loadCategories();
+    }
+
+    if (categoryId) {
+      const grid = document.getElementById(categoryGridId);
+      const card = grid?.querySelector(`[data-category-id="${categoryId}"]`) as HTMLElement | null;
+      if (card) {
+        selectCategory(categoryId, card);
+      }
+      await loadSubcategories(categoryId);
+    }
+
+    if (subcategoryId) {
+      const subGrid = document.getElementById(subcategoryGridId);
+      const subCard = subGrid?.querySelector(`[data-subcategory-id="${subcategoryId}"]`) as HTMLElement | null;
+      if (subCard) {
+        selectSubcategory(subcategoryId, subCard);
+      } else if (categoryId) {
+        // If not found due to timing, try once after reload
+        await loadSubcategories(categoryId);
+        const retry = subGrid?.querySelector(`[data-subcategory-id="${subcategoryId}"]`) as HTMLElement | null;
+        if (retry) selectSubcategory(subcategoryId, retry);
+      }
+      if (showTreatmentStep) {
+        await loadTreatments(subcategoryId);
+      }
+    }
+
+    if (showTreatmentStep && treatmentId) {
+      const select = document.getElementById(treatmentSelectId) as HTMLSelectElement | null;
+      if (select) {
+        select.value = treatmentId;
+        selectedTreatmentId = treatmentId;
+      }
+    }
+  }
+
+  // 公開API（外部から値にアクセス/設定するためのメソッド）
   window[`getTreatmentSelector_${componentId}`] = () => ({
     getCategoryId: () => selectedCategoryId,
     getSubcategoryId: () => selectedSubcategoryId,
     getTreatmentId: () => selectedTreatmentId,
+    setSelection,
   });
 
   // 初期化
