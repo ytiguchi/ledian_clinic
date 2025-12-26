@@ -385,6 +385,12 @@ const safeBeforeAfterId = beforeAfterId || '';
   </form>
 </div>
 
+<!-- 画像モーダル -->
+<div class="image-modal-overlay" id="imageModal">
+  <button class="image-modal-close" id="imageModalClose">&times;</button>
+  <img class="image-modal-content" id="imageModalImg" src="" alt="拡大画像" />
+</div>
+
 <!-- Styles moved from new page so edit/new match -->
 <style>
   /* Page Header */
@@ -526,6 +532,8 @@ const safeBeforeAfterId = beforeAfterId || '';
   }
   .preview-container {
     position: relative;
+    min-height: 200px;
+    display: block;
   }
   .preview-placeholder {
     position: absolute;
@@ -787,6 +795,55 @@ const safeBeforeAfterId = beforeAfterId || '';
     background: linear-gradient(135deg, #d4a853 0%, #e9c97a 100%);
     border: none;
     box-shadow: 0 4px 15px rgba(212, 168, 83, 0.3);
+  }
+
+  /* 画像モーダル */
+  .image-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    cursor: zoom-out;
+  }
+  .image-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .image-modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+  }
+  .image-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+  }
+  .image-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .preview-image.loaded {
+    cursor: zoom-in;
   }
 </style>
 
@@ -1127,12 +1184,93 @@ const safeBeforeAfterId = beforeAfterId || '';
     }
   }
 
+  // 画像モーダル機能
+  function initImageModal() {
+    var modal = document.getElementById('imageModal');
+    var modalImg = document.getElementById('imageModalImg');
+    var modalClose = document.getElementById('imageModalClose');
+    if (!modal || !modalImg) return;
+
+    // プレビュー画像のクリックでモーダル表示
+    document.querySelectorAll('.preview-image').forEach(function(img) {
+      img.addEventListener('click', function() {
+        if (this.src && this.classList.contains('loaded')) {
+          modalImg.src = this.src;
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      });
+    });
+
+    // モーダルを閉じる
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    modal.addEventListener('click', closeModal);
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+
+    // ESCキーで閉じる
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  }
+
+  // URL入力時にプレビューを更新
+  function initUrlPreview(targetId) {
+    var urlInputId = targetId === 'before' ? 'beforeImageUrl' : targetId === 'after' ? 'afterImageUrl' : 'singleImageUrl';
+    var urlInput = document.getElementById(urlInputId);
+    if (!urlInput) return;
+
+    // 入力時にプレビュー更新（デバウンス付き）
+    var debounceTimer = null;
+    urlInput.addEventListener('input', function(e) {
+      var url = e.target.value.trim();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() {
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+          setPreview(targetId, url);
+        } else {
+          setPreview(targetId, null);
+        }
+      }, 300);
+    });
+
+    // ペースト時にも即座にプレビュー
+    urlInput.addEventListener('paste', function(e) {
+      setTimeout(function() {
+        var url = urlInput.value.trim();
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+          setPreview(targetId, url);
+        }
+      }, 50);
+    });
+
+    // 初期値がある場合はプレビュー表示
+    var initialUrl = urlInput.value.trim();
+    if (initialUrl && (initialUrl.startsWith('http://') || initialUrl.startsWith('https://'))) {
+      setPreview(targetId, initialUrl);
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     initModeSwitch();
     initGenderButtons(null);
     initImageUpload('before');
     initImageUpload('after');
     initImageUpload('single');
+    
+    // URL入力プレビュー初期化
+    initUrlPreview('before');
+    initUrlPreview('after');
+    initUrlPreview('single');
+    
+    // 画像モーダル初期化
+    initImageModal();
+    
     var formEl = document.getElementById('beforeAfterForm');
     if (formEl) formEl.addEventListener('submit', handleSubmit);
 
