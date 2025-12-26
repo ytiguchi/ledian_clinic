@@ -8,6 +8,8 @@ export interface Props {
 
 const { mode, beforeAfterId } = Astro.props;
 const isEdit = mode === 'edit';
+// define:varsでundefinedを渡すと構文エラーになるので空文字にフォールバック
+const safeBeforeAfterId = beforeAfterId || '';
 ---
 
 <div class="max-w-4xl mx-auto space-y-6">
@@ -200,6 +202,7 @@ const isEdit = mode === 'edit';
               <span>レタッチ後画像</span>
             </div>
             <img id="singlePreview" alt="レタッチ後プレビュー" class="preview-image" />
+            <div class="preview-meta hidden" data-preview-meta="single"></div>
             <div class="upload-progress hidden" data-progress="single">
               <div class="flex items-center justify-center h-full bg-black bg-opacity-50 text-white">
                 <div class="text-center">
@@ -557,6 +560,21 @@ const isEdit = mode === 'edit';
   .preview-image.loaded {
     opacity: 1;
   }
+  .preview-meta {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.72);
+    color: #f8fafc;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .preview-meta.hidden {
+    display: none;
+  }
 
   /* Detail + publish + actions (from new page) */
   .form-section {
@@ -772,211 +790,295 @@ const isEdit = mode === 'edit';
   }
 </style>
 
-<script define:vars={{ mode, beforeAfterId }}>
-  let currentImageMode: 'before-after' | 'single' = 'before-after';
+<script define:vars={{ mode, safeBeforeAfterId }}>
+  var currentImageMode = 'before-after';
 
-  function setMode(mode: 'before-after' | 'single') {
-    currentImageMode = mode;
-    const tabs = document.querySelectorAll('.mode-tab');
-    tabs.forEach(t => t.classList.remove('active'));
-    document.querySelector(`.mode-tab[data-mode="${mode}"]`)?.classList.add('active');
-    document.querySelectorAll('.image-mode').forEach(m => m.classList.add('hidden'));
-    document.getElementById(`mode-${mode}`)?.classList.remove('hidden');
+  function setMode(m) {
+    currentImageMode = m;
+    var tabs = document.querySelectorAll('.mode-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    var activeTab = document.querySelector('.mode-tab[data-mode="' + m + '"]');
+    if (activeTab) activeTab.classList.add('active');
+    document.querySelectorAll('.image-mode').forEach(function(el) { el.classList.add('hidden'); });
+    var modeEl = document.getElementById('mode-' + m);
+    if (modeEl) modeEl.classList.remove('hidden');
   }
 
   function initModeSwitch() {
-    const tabs = document.querySelectorAll('.mode-tab');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const m = tab.getAttribute('data-mode') as 'before-after' | 'single';
+    var tabs = document.querySelectorAll('.mode-tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var m = tab.getAttribute('data-mode');
         setMode(m);
       });
     });
   }
 
-  function initGenderButtons(initial?: string | null) {
-    const genderButtons = document.querySelectorAll('.gender-btn');
-    const genderInput = document.getElementById('patientGender') as HTMLInputElement | null;
-    genderButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        genderButtons.forEach(b => b.classList.remove('active'));
+  function initGenderButtons(initial) {
+    var genderButtons = document.querySelectorAll('.gender-btn');
+    var genderInput = document.getElementById('patientGender');
+    genderButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        genderButtons.forEach(function(b) { b.classList.remove('active'); });
         btn.classList.add('active');
         if (genderInput) genderInput.value = btn.getAttribute('data-value') || '';
       });
     });
     if (initial && genderInput) {
       genderInput.value = initial;
-      const btn = document.querySelector(`.gender-btn[data-value="${initial}"]`) as HTMLElement | null;
+      var btn = document.querySelector('.gender-btn[data-value="' + initial + '"]');
       if (btn) btn.classList.add('active');
     }
   }
 
-  function setPreview(targetId: 'before' | 'after' | 'single', url: string) {
-    const preview = document.getElementById(`${targetId}Preview`) as HTMLImageElement | null;
-    const placeholder = document.querySelector(`[data-placeholder="${targetId}"]`) as HTMLElement | null;
-    if (!preview) return;
+  function setPreview(targetId, url) {
+    console.log('setPreview called:', { targetId, url, elementId: targetId + 'Preview' });
+    var preview = document.getElementById(targetId + 'Preview');
+    var placeholder = document.querySelector('[data-placeholder="' + targetId + '"]');
+    console.log('Preview element found:', !!preview, 'Placeholder found:', !!placeholder);
+    if (!preview) {
+      console.warn('Preview element not found for:', targetId);
+      return;
+    }
     if (url) {
+      preview.onload = function() {
+        updatePreviewMeta(targetId, preview.naturalWidth, preview.naturalHeight);
+      };
+      preview.onerror = function() {
+        updatePreviewMeta(targetId, null, null);
+      };
       preview.src = url;
       preview.classList.add('loaded');
-      placeholder?.classList.add('hidden');
+      if (placeholder) placeholder.classList.add('hidden');
+      console.log('Image preview set to:', url);
     } else {
       preview.src = '';
       preview.classList.remove('loaded');
-      placeholder?.classList.remove('hidden');
+      updatePreviewMeta(targetId, null, null);
+      if (placeholder) placeholder.classList.remove('hidden');
+      console.log('Image preview cleared');
     }
   }
 
-  function initImageUpload(targetId: 'before' | 'after' | 'single') {
-    const fileInput = document.getElementById(`${targetId}File`) as HTMLInputElement | null;
-    const urlInputId =
-      targetId === 'before' ? 'beforeImageUrl' : targetId === 'after' ? 'afterImageUrl' : 'singleImageUrl';
-    const urlInput = document.getElementById(urlInputId) as HTMLInputElement | null;
-    const uploadArea = document.querySelector(`[data-upload-target="${targetId}"]`) as HTMLElement | null;
-    const progress = document.querySelector(`[data-progress="${targetId}"]`) as HTMLElement | null;
+  function updatePreviewMeta(targetId, width, height) {
+    var meta = document.querySelector('[data-preview-meta="' + targetId + '"]');
+    if (!meta) return;
+    if (!width || !height) {
+      meta.textContent = '';
+      meta.classList.add('hidden');
+      return;
+    }
+    meta.textContent = width + ' × ' + height + ' px';
+    meta.classList.remove('hidden');
+  }
+
+  function initImageUpload(targetId) {
+    var fileInput = document.getElementById(targetId + 'File');
+    var urlInputId = targetId === 'before' ? 'beforeImageUrl' : targetId === 'after' ? 'afterImageUrl' : 'singleImageUrl';
+    var urlInput = document.getElementById(urlInputId);
+    var uploadArea = document.querySelector('[data-upload-target="' + targetId + '"]');
+    var progress = document.querySelector('[data-progress="' + targetId + '"]');
     if (!fileInput || !urlInput || !uploadArea) return;
 
-    fileInput.addEventListener('change', async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
+    fileInput.addEventListener('change', async function(e) {
+      var file = e.target.files && e.target.files[0];
       if (file) await uploadFile(file);
     });
 
-    uploadArea.addEventListener('click', () => fileInput.click());
-    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-    uploadArea.addEventListener('drop', async (e) => {
+    uploadArea.addEventListener('click', function() { fileInput.click(); });
+    uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', function() { uploadArea.classList.remove('dragover'); });
+    uploadArea.addEventListener('drop', async function(e) {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
-      const file = e.dataTransfer?.files[0];
+      var file = e.dataTransfer && e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) await uploadFile(file);
     });
 
-    urlInput.addEventListener('input', () => {
+    urlInput.addEventListener('input', function() {
       setPreview(targetId, urlInput.value);
     });
 
-    async function uploadFile(file: File) {
-      const placeholder = document.querySelector(`[data-placeholder="${targetId}"]`) as HTMLElement | null;
+    async function uploadFile(file) {
+      var placeholderInner = document.querySelector('[data-placeholder="' + targetId + '"]');
       try {
-        const objectUrl = URL.createObjectURL(file);
+        var objectUrl = URL.createObjectURL(file);
         setPreview(targetId, objectUrl);
-        placeholder?.classList.add('hidden');
-        progress?.classList.remove('hidden');
+        if (placeholderInner) placeholderInner.classList.add('hidden');
+        if (progress) progress.classList.remove('hidden');
 
-        const formData = new FormData();
+        var formData = new FormData();
         formData.append('file', file);
         formData.append('type', 'before-after');
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        var res = await fetch('/api/upload', { method: 'POST', body: formData });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
+          var err = await res.json().catch(function() { return {}; });
           throw new Error(err.message || 'アップロードに失敗しました');
         }
-        const result = await res.json();
-        const finalUrl = result.url || result.key;
+        var result = await res.json();
+        var finalUrl = result.url || result.key;
         urlInput.value = finalUrl;
         setPreview(targetId, finalUrl);
         URL.revokeObjectURL(objectUrl);
       } catch (e) {
         console.error('Upload error:', e);
-        alert(`アップロードに失敗しました: ${e instanceof Error ? e.message : 'Unknown error'}`);
+        alert('アップロードに失敗しました: ' + (e && e.message ? e.message : 'Unknown error'));
         setPreview(targetId, '');
       } finally {
-        progress?.classList.add('hidden');
+        if (progress) progress.classList.add('hidden');
       }
     }
+  }
+
+  // captionから【セクション】を抽出するヘルパー
+  function parseCaptionSections(caption) {
+    if (!caption) return { treatmentContent: '', treatmentDuration: '', treatmentCostText: '', risks: '', remaining: '' };
+    
+    // 改行を正規化
+    let text = caption.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
+    
+    let treatmentContent = '';
+    let treatmentDuration = '';
+    let treatmentCostText = '';
+    let risks = '';
+    
+    // 【医療内容】または【治療内容】を抽出
+    const contentMatch = text.match(/【(?:医療内容|治療内容)】\s*([\s\S]*?)(?=【|$)/);
+    if (contentMatch) treatmentContent = contentMatch[1].trim();
+    
+    // 【治療期間・回数】または【期間・回数】を抽出
+    const durationMatch = text.match(/【(?:治療期間・回数|期間・回数|治療期間|期間|回数)】\s*([\s\S]*?)(?=【|$)/);
+    if (durationMatch) treatmentDuration = durationMatch[1].trim();
+    
+    // 【費用】を抽出
+    const costMatch = text.match(/【費用】\s*([\s\S]*?)(?=【|$)/);
+    if (costMatch) treatmentCostText = costMatch[1].trim();
+    
+    // 【リスク・副作用】を抽出
+    const risksMatch = text.match(/【リスク[・／]?副作用】\s*([\s\S]*?)(?=【|$)/);
+    if (risksMatch) risks = risksMatch[1].trim();
+    
+    // 抽出済みセクションを除いた残りをcaptionとして保持
+    let remaining = text
+      .replace(/【(?:医療内容|治療内容)】[\s\S]*?(?=【|$)/, '')
+      .replace(/【(?:治療期間・回数|期間・回数|治療期間|期間|回数)】[\s\S]*?(?=【|$)/, '')
+      .replace(/【費用】[\s\S]*?(?=【|$)/, '')
+      .replace(/【リスク[・／]?副作用】[\s\S]*?(?=【|$)/, '')
+      .trim();
+    
+    return { treatmentContent, treatmentDuration, treatmentCostText, risks, remaining };
+  }
+
+  // TreatmentSelectorの初期化を待つ
+  async function waitForSelector(maxWait) {
+    if (!maxWait) maxWait = 3000;
+    const start = Date.now();
+    while (Date.now() - start < maxWait) {
+      const api = window['getTreatmentSelector_before-after-selector'] && window['getTreatmentSelector_before-after-selector']();
+      if (api && api.setSelection) return api;
+      await new Promise(function(r) { setTimeout(r, 100); });
+    }
+    return null;
   }
 
   async function loadBeforeAfterForEdit() {
     const loading = document.getElementById('loadingMessage');
     const form = document.getElementById('beforeAfterForm');
     try {
-      const res = await fetch(`/api/before-afters/${beforeAfterId}`);
+      const res = await fetch('/api/before-afters/' + safeBeforeAfterId);
       if (!res.ok) throw new Error('症例写真が見つかりません');
       const data = await res.json();
-      const ba = data.before_after as {
-        id: string;
-        treatment_id: string;
-        category_id: string;
-        subcategory_id: string;
-        before_image_url: string;
-        after_image_url: string;
-        caption: string | null;
-        treatment_content: string | null;
-        treatment_duration: string | null;
-        treatment_cost: number | null;
-        treatment_cost_text: string | null;
-        risks: string | null;
-        patient_age: number | null;
-        patient_gender: string | null;
-        treatment_count: number | null;
-        treatment_period: string | null;
-        is_published: number;
-      };
+      const ba = data.before_after;
 
-      // selector initial set
-      const selectorApi = (window as any).getTreatmentSelector_before-after-selector?.();
-      if (selectorApi?.setSelection) {
+      // TreatmentSelectorの初期化を待ってから設定
+      const selectorApi = await waitForSelector();
+      if (selectorApi && selectorApi.setSelection) {
         await selectorApi.setSelection({
           categoryId: ba.category_id,
           subcategoryId: ba.subcategory_id,
           treatmentId: ba.treatment_id
         });
+      } else {
+        console.warn('TreatmentSelector not ready');
       }
 
       // image mode
-      const hasBefore = !!(ba.before_image_url && ba.before_image_url.trim() !== '');
+      console.log('Image data:', { before_image_url: ba.before_image_url, after_image_url: ba.after_image_url });
+      var hasBefore = !!(ba.before_image_url && ba.before_image_url.trim() !== '');
       if (hasBefore) {
         setMode('before-after');
-        (document.getElementById('beforeImageUrl') as HTMLInputElement).value = ba.before_image_url;
-        (document.getElementById('afterImageUrl') as HTMLInputElement).value = ba.after_image_url;
+        document.getElementById('beforeImageUrl').value = ba.before_image_url;
+        document.getElementById('afterImageUrl').value = ba.after_image_url;
         setPreview('before', ba.before_image_url);
         setPreview('after', ba.after_image_url);
       } else {
         setMode('single');
-        (document.getElementById('singleImageUrl') as HTMLInputElement).value = ba.after_image_url;
+        var singleUrlInput = document.getElementById('singleImageUrl');
+        if (singleUrlInput && ba.after_image_url) {
+          singleUrlInput.value = ba.after_image_url;
+        }
+        console.log('Setting single preview:', ba.after_image_url);
         setPreview('single', ba.after_image_url);
       }
 
-      (document.getElementById('caption') as HTMLTextAreaElement).value = ba.caption || '';
-      (document.getElementById('treatmentContent') as HTMLTextAreaElement).value = ba.treatment_content || '';
-      (document.getElementById('treatmentDuration') as HTMLTextAreaElement).value = ba.treatment_duration || '';
-      (document.getElementById('treatmentCostText') as HTMLTextAreaElement).value = ba.treatment_cost_text || '';
-      (document.getElementById('risks') as HTMLTextAreaElement).value = ba.risks || '';
-      if (ba.patient_age != null) (document.getElementById('patientAge') as HTMLInputElement).value = String(ba.patient_age);
-      if (ba.treatment_count != null) (document.getElementById('treatmentCount') as HTMLInputElement).value = String(ba.treatment_count);
-      if (ba.treatment_period) (document.getElementById('treatmentPeriod') as HTMLInputElement).value = ba.treatment_period;
-      (document.getElementById('isPublished') as HTMLInputElement).checked = ba.is_published === 1;
+      // 個別フィールドがなければcaptionからパース
+      var treatmentContent = ba.treatment_content || '';
+      var treatmentDuration = ba.treatment_duration || '';
+      var treatmentCostText = ba.treatment_cost_text || '';
+      var risks = ba.risks || '';
+      var captionText = ba.caption || '';
+
+      // 個別フィールドが空でcaptionに【】があればパース
+      if (!treatmentContent && !treatmentDuration && !treatmentCostText && !risks && captionText.indexOf('【') >= 0) {
+        var parsed = parseCaptionSections(captionText);
+        treatmentContent = parsed.treatmentContent;
+        treatmentDuration = parsed.treatmentDuration;
+        treatmentCostText = parsed.treatmentCostText;
+        risks = parsed.risks;
+        captionText = parsed.remaining;
+      }
+
+      document.getElementById('caption').value = captionText;
+      document.getElementById('treatmentContent').value = treatmentContent;
+      document.getElementById('treatmentDuration').value = treatmentDuration;
+      document.getElementById('treatmentCostText').value = treatmentCostText;
+      document.getElementById('risks').value = risks;
+      if (ba.patient_age != null) document.getElementById('patientAge').value = String(ba.patient_age);
+      if (ba.treatment_count != null) document.getElementById('treatmentCount').value = String(ba.treatment_count);
+      if (ba.treatment_period) document.getElementById('treatmentPeriod').value = ba.treatment_period;
+      document.getElementById('isPublished').checked = ba.is_published === 1;
       initGenderButtons(ba.patient_gender);
 
-      loading?.classList.add('hidden');
-      form?.classList.remove('hidden');
+      if (loading) loading.classList.add('hidden');
+      if (form) form.classList.remove('hidden');
     } catch (e) {
       console.error('Load error:', e);
-      if (loading) loading.innerHTML = `<p class="text-red-500">データの読み込みに失敗しました: ${e instanceof Error ? e.message : 'Unknown error'}</p>`;
+      if (loading) loading.innerHTML = '<p class="text-red-500">データの読み込みに失敗しました: ' + (e && e.message ? e.message : 'Unknown error') + '</p>';
     }
   }
 
-  async function handleSubmit(e: Event) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
+    var formEl = e.target;
+    var formData = new FormData(formEl);
 
-    const treatment = (formData.get('treatment') as string) || '';
+    var treatment = formData.get('treatment') || '';
     if (!treatment) {
       alert('施術を選択してください');
       return;
     }
 
-    let beforeUrl: string | null = null;
-    let afterUrl: string | null = null;
+    var beforeUrl = null;
+    var afterUrl = null;
     if (currentImageMode === 'before-after') {
-      beforeUrl = (formData.get('beforeImageUrl') as string) || '';
-      afterUrl = (formData.get('afterImageUrl') as string) || '';
+      beforeUrl = formData.get('beforeImageUrl') || '';
+      afterUrl = formData.get('afterImageUrl') || '';
       if (!beforeUrl || !afterUrl) {
         alert('施術前と施術後の両方の画像をアップロードしてください');
         return;
       }
     } else {
-      const singleUrl = (formData.get('singleImageUrl') as string) || '';
+      var singleUrl = formData.get('singleImageUrl') || '';
       if (!singleUrl) {
         alert('レタッチ後の画像をアップロードしてください');
         return;
@@ -984,7 +1086,7 @@ const isEdit = mode === 'edit';
       afterUrl = singleUrl;
     }
 
-    const payload = {
+    var payload = {
       treatment_id: treatment,
       before_image_url: beforeUrl,
       after_image_url: afterUrl,
@@ -1002,41 +1104,41 @@ const isEdit = mode === 'edit';
       sort_order: 0
     };
 
-    const isEdit = mode === 'edit';
-    const url = isEdit ? `/api/before-afters/${beforeAfterId}` : '/api/before-afters';
-    const method = isEdit ? 'PUT' : 'POST';
+    var isEditMode = mode === 'edit';
+    var apiUrl = isEditMode ? '/api/before-afters/' + safeBeforeAfterId : '/api/before-afters';
+    var method = isEditMode ? 'PUT' : 'POST';
 
     try {
-      const res = await fetch(url, {
-        method,
+      var res = await fetch(apiUrl, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const result = await res.json().catch(() => ({}));
+      var result = await res.json().catch(function() { return {}; });
       if (res.ok) {
-        alert(isEdit ? '更新しました' : '保存しました');
+        alert(isEditMode ? '更新しました' : '保存しました');
         window.location.href = '/before-afters';
       } else {
-        alert(`${isEdit ? '更新' : '保存'}に失敗しました: ${result.message || result.error || 'Unknown error'}`);
+        alert((isEditMode ? '更新' : '保存') + 'に失敗しました: ' + (result.message || result.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Save error:', err);
-      alert(isEdit ? '更新に失敗しました' : '保存に失敗しました');
+      alert(isEditMode ? '更新に失敗しました' : '保存に失敗しました');
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', function() {
     initModeSwitch();
     initGenderButtons(null);
     initImageUpload('before');
     initImageUpload('after');
     initImageUpload('single');
-    document.getElementById('beforeAfterForm')?.addEventListener('submit', handleSubmit);
+    var formEl = document.getElementById('beforeAfterForm');
+    if (formEl) formEl.addEventListener('submit', handleSubmit);
 
     if (mode === 'edit') {
       loadBeforeAfterForEdit();
     }
   });
 </script>
-
 

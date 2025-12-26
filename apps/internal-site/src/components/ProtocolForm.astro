@@ -1,0 +1,411 @@
+---
+import TreatmentSelector from './TreatmentSelector.astro';
+
+export interface Props {
+  mode: 'new' | 'edit';
+  protocolId?: string;
+  subcategoryId?: string;
+  categoryId?: string;
+}
+
+const { mode, protocolId, subcategoryId: initialSubcategoryId, categoryId: initialCategoryId } = Astro.props;
+const isEdit = mode === 'edit';
+---
+
+<div class="max-w-4xl mx-auto space-y-6">
+  <!-- ヘッダー -->
+  <div class="page-header-card">
+    <a href="/menu" class="back-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      施術一覧に戻る
+    </a>
+    <div class="page-title-row">
+      <div class="page-icon">📋</div>
+      <div>
+        <h2 class="page-title">{isEdit ? '施術プロトコル編集' : '新規施術プロトコル追加'}</h2>
+        <p class="page-subtitle">
+          標準手順書（SOP）や注意事項などの技術資料をアップロードします
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <form id="protocolForm" class="form-container" data-mode={mode}>
+    {isEdit && <input type="hidden" name="id" id="protocolId" value={protocolId} />}
+    
+    <!-- 基本情報 - カテゴリ選択 -->
+    <TreatmentSelector
+      id="protocol-selector"
+      requiredCategory={false}
+      requiredSubcategory={true}
+      requiredTreatment={false}
+      showTreatmentStep={false}
+      initialCategoryId={initialCategoryId}
+      initialSubcategoryId={initialSubcategoryId}
+    />
+
+    <div class="form-section">
+      <h3 class="section-title">プロトコル情報</h3>
+      
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2">
+            <label for="title" class="field-label">プロトコルタイトル <span class="required">*</span></label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              class="form-input"
+              placeholder="例: オンダプロ 施術手順書"
+              required
+            />
+          </div>
+          <div>
+            <label for="version" class="field-label">バージョン</label>
+            <input
+              type="text"
+              id="version"
+              name="version"
+              class="form-input"
+              placeholder="例: 1.0"
+              value="1.0"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="description" class="field-label">説明（任意）</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            class="form-input"
+            placeholder="プロトコルの概要や、更新履歴などを記載してください"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3 class="section-title">ファイルアップロード</h3>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="field-label">プロトコルファイル (PDF, DOCX, PPTX) <span class="required">*</span></label>
+          <div class="upload-area" id="fileUploadArea">
+            <div class="upload-area-content">
+              <svg class="upload-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p class="upload-text">ファイルをドラッグ&ドロップ</p>
+              <p class="upload-hint">またはクリックしてファイルを選択 (10MBまで)</p>
+              <input
+                type="file"
+                id="protocolFile"
+                accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                class="hidden"
+              />
+            </div>
+            <div id="filePreview" class="hidden mt-4 p-4 bg-gray-50 rounded-lg flex items-center justify-between border">
+              <div class="flex items-center gap-3">
+                <span class="file-icon text-2xl">📋</span>
+                <div>
+                  <div id="fileName" class="font-medium text-sm text-gray-700 truncate max-w-[200px]"></div>
+                  <div id="fileSize" class="text-xs text-gray-500"></div>
+                </div>
+              </div>
+              <button type="button" id="removeFile" class="text-red-500 hover:text-red-700 p-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <input type="hidden" name="file_url" id="file_url" />
+          <input type="hidden" name="file_type" id="file_type" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions mt-8 flex justify-end gap-4">
+      <button type="button" class="btn btn-secondary px-6" onclick="history.back()">キャンセル</button>
+      <button type="submit" id="submitBtn" class="btn btn-primary px-8 bg-indigo-600 text-white rounded-lg py-3 font-semibold shadow-lg hover:bg-indigo-700 transition-colors">
+        プロトコルを登録する
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+  .page-header-card {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover {
+    color: #3b82f6;
+  }
+  .page-title-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .page-icon {
+    font-size: 2.5rem;
+  }
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0;
+  }
+  .page-subtitle {
+    color: #64748b;
+    font-size: 0.9375rem;
+    margin: 0.25rem 0 0 0;
+  }
+
+  .form-container {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  }
+
+  .form-section {
+    margin-bottom: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+  }
+  .form-section:first-of-type {
+    border-top: none;
+  }
+
+  .section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 1.5rem;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+  }
+
+  .required {
+    color: #ef4444;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.625rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .upload-area {
+    border: 2px dashed #e2e8f0;
+    border-radius: 1rem;
+    padding: 2.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .upload-area:hover, .upload-area.dragging {
+    border-color: #6366f1;
+    background: #f8fafc;
+  }
+
+  .upload-icon {
+    margin: 0 auto 1rem;
+    color: #94a3b8;
+  }
+  .upload-text {
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.25rem;
+  }
+  .upload-hint {
+    font-size: 0.8125rem;
+    color: #94a3b8;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+  .btn-secondary:hover {
+    background: #e2e8f0;
+  }
+</style>
+
+<script>
+  const protocolForm = document.getElementById('protocolForm');
+  const fileInput = document.getElementById('protocolFile');
+  const uploadArea = document.getElementById('fileUploadArea');
+  const filePreview = document.getElementById('filePreview');
+  const fileNameDisplay = document.getElementById('fileName');
+  const fileSizeDisplay = document.getElementById('fileSize');
+  const removeFileBtn = document.getElementById('removeFile');
+  const fileUrlInput = document.getElementById('file_url');
+  const fileTypeInput = document.getElementById('file_type');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // ファイルアップロード処理
+  uploadArea.addEventListener('click', () => fileInput.click());
+
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragging');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragging');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragging');
+    if (e.dataTransfer.files.length > 0) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      handleFile(fileInput.files[0]);
+    }
+  });
+
+  async function handleFile(file) {
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_SIZE) {
+      alert('ファイルサイズが10MBを超えています。');
+      return;
+    }
+
+    // アップロード中表示
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'アップロード中...';
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'protocol');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const data = await response.json();
+      
+      fileUrlInput.value = data.url;
+      fileTypeInput.value = file.type.includes('pdf') ? 'pdf' : 
+                          file.type.includes('word') ? 'docx' : 
+                          file.type.includes('presentation') ? 'pptx' : 'file';
+      
+      // プレビュー表示
+      fileNameDisplay.textContent = file.name;
+      fileSizeDisplay.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+      filePreview.classList.remove('hidden');
+      uploadArea.querySelector('.upload-area-content').classList.add('hidden');
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('ファイルのアップロードに失敗しました。');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = protocolForm.dataset.mode === 'edit' ? 'プロトコルを更新する' : 'プロトコルを登録する';
+    }
+  }
+
+  removeFileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    fileUrlInput.value = '';
+    fileTypeInput.value = '';
+    filePreview.classList.add('hidden');
+    uploadArea.querySelector('.upload-area-content').classList.remove('hidden');
+  });
+
+  // フォーム送信処理
+  protocolForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(protocolForm);
+    const data = Object.fromEntries(formData.entries());
+
+    // バリデーション
+    if (!data.subcategory_id) {
+      alert('サブカテゴリを選択してください。');
+      return;
+    }
+    if (!data.file_url) {
+      alert('ファイルをアップロードしてください。');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送信中...';
+
+    try {
+      const response = await fetch('/api/treatment-protocols', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error('Failed to save protocol');
+
+      const result = await response.json();
+      alert('プロトコルを登録しました。');
+      
+      // 施術詳細ページに戻る
+      window.location.href = `/menu/${data.subcategory_id}`;
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('プロトコルの保存に失敗しました。');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = protocolForm.dataset.mode === 'edit' ? 'プロトコルを更新する' : 'プロトコルを登録する';
+    }
+  });
+</script>
+

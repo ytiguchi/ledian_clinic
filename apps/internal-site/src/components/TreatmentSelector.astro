@@ -42,6 +42,11 @@ const categoryGridId = `${id}-category-grid`;
 const subcategoryGridId = `${id}-subcategory-grid`;
 const subcategorySectionId = `${id}-subcategory-section`;
 const treatmentSectionId = `${id}-treatment-section`;
+
+// define:varsでundefinedを渡すと構文エラーになるので空文字にフォールバック
+const safeInitialCategoryId = initialCategoryId || '';
+const safeInitialSubcategoryId = initialSubcategoryId || '';
+const safeInitialTreatmentId = initialTreatmentId || '';
 ---
 
 <div class="treatment-selector-wrapper">
@@ -356,14 +361,14 @@ const treatmentSectionId = `${id}-treatment-section`;
   subcategoryGridId,
   subcategorySectionId,
   treatmentSectionId,
-  initialCategoryId,
-  initialSubcategoryId,
-  initialTreatmentId,
+  initialCategoryId: safeInitialCategoryId,
+  initialSubcategoryId: safeInitialSubcategoryId,
+  initialTreatmentId: safeInitialTreatmentId,
   categoryIconsJson: JSON.stringify(categoryIcons),
   showTreatmentStep,
 }}>
   // デフォルトのカテゴリアイコン
-  const defaultCategoryIcons: Record<string, string> = {
+  var defaultCategoryIcons = {
     '肌診断': '🔬',
     'フォトフェイシャル': '💡',
     'リフトアップ': '✨',
@@ -389,20 +394,20 @@ const treatmentSectionId = `${id}-treatment-section`;
 
   const icons = { ...defaultCategoryIcons, ...JSON.parse(categoryIconsJson) };
 
-  let categories: Array<{ id: string; name: string }> = [];
-  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
-  let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
-  let selectedCategoryId: string | null = initialCategoryId || null;
-  let selectedSubcategoryId: string | null = initialSubcategoryId || null;
-  let selectedTreatmentId: string | null = initialTreatmentId || null;
+  let categories = [];
+  let subcategories = [];
+  let treatments = [];
+  let selectedCategoryId = initialCategoryId || null;
+  let selectedSubcategoryId = initialSubcategoryId || null;
+  let selectedTreatmentId = initialTreatmentId || null;
 
   // カスタムイベントを発火するヘルパー
-  function dispatchChangeEvent(eventName: string, detail: unknown) {
+  function dispatchChangeEvent(eventName, detail) {
     const event = new CustomEvent(eventName, { detail, bubbles: true });
     document.dispatchEvent(event);
   }
 
-  async function loadCategories(): Promise<void> {
+  async function loadCategories() {
     try {
       const res = await fetch('/api/categories');
       const data = await res.json();
@@ -422,14 +427,14 @@ const treatmentSectionId = `${id}-treatment-section`;
           card.addEventListener('click', () => {
             const categoryId = card.getAttribute('data-category-id');
             if (categoryId) {
-              selectCategory(categoryId, card as HTMLElement);
+              selectCategory(categoryId, card);
             }
           });
         });
 
         // 初期値が設定されている場合は選択状態にする
         if (initialCategoryId) {
-          const card = grid.querySelector(`[data-category-id="${initialCategoryId}"]`) as HTMLElement;
+          const card = grid.querySelector(`[data-category-id="${initialCategoryId}"]`);
           if (card) {
             selectCategory(initialCategoryId, card);
           }
@@ -444,11 +449,11 @@ const treatmentSectionId = `${id}-treatment-section`;
     }
   }
 
-  function selectCategory(categoryId: string, cardElement: HTMLElement) {
+  function selectCategory(categoryId, cardElement) {
     selectedCategoryId = categoryId;
     
     // hidden inputを更新
-    const input = document.getElementById(categoryInputId) as HTMLInputElement;
+    const input = document.getElementById(categoryInputId);
     if (input) input.value = categoryId;
     
     // 全カードから選択スタイルをリセット
@@ -472,7 +477,7 @@ const treatmentSectionId = `${id}-treatment-section`;
       if (treatmentSection) {
         treatmentSection.classList.add('hidden');
       }
-      const treatmentSelect = document.getElementById(treatmentSelectId) as HTMLSelectElement;
+      const treatmentSelect = document.getElementById(treatmentSelectId);
       if (treatmentSelect) {
         treatmentSelect.innerHTML = '<option value="">施術を選択してください</option>';
       }
@@ -487,7 +492,7 @@ const treatmentSectionId = `${id}-treatment-section`;
     dispatchChangeEvent(`treatment-selector:category-change:${componentId}`, { categoryId });
   }
 
-  async function loadSubcategories(categoryId: string): Promise<void> {
+  async function loadSubcategories(categoryId) {
     const grid = document.getElementById(subcategoryGridId);
     if (!grid) return;
     
@@ -520,14 +525,14 @@ const treatmentSectionId = `${id}-treatment-section`;
         card.addEventListener('click', () => {
           const subcategoryId = card.getAttribute('data-subcategory-id');
           if (subcategoryId) {
-            selectSubcategory(subcategoryId, card as HTMLElement);
+            selectSubcategory(subcategoryId, card);
           }
         });
       });
 
       // 初期値が設定されている場合は選択状態にする
       if (initialSubcategoryId) {
-        const card = grid.querySelector(`[data-subcategory-id="${initialSubcategoryId}"]`) as HTMLElement;
+        const card = grid.querySelector(`[data-subcategory-id="${initialSubcategoryId}"]`);
         if (card) {
           selectSubcategory(initialSubcategoryId, card);
         }
@@ -538,11 +543,11 @@ const treatmentSectionId = `${id}-treatment-section`;
     }
   }
 
-  function selectSubcategory(subcategoryId: string, element: HTMLElement) {
+  function selectSubcategory(subcategoryId, element) {
     selectedSubcategoryId = subcategoryId;
     
     // hidden inputを更新
-    const input = document.getElementById(subcategoryInputId) as HTMLInputElement;
+    const input = document.getElementById(subcategoryInputId);
     if (input) input.value = subcategoryId;
     
     // 全カードから選択スタイルをリセット
@@ -567,8 +572,8 @@ const treatmentSectionId = `${id}-treatment-section`;
     dispatchChangeEvent(`treatment-selector:subcategory-change:${componentId}`, { subcategoryId });
   }
 
-  async function loadTreatments(subcategoryId: string): Promise<void> {
-    const select = document.getElementById(treatmentSelectId) as HTMLSelectElement;
+  async function loadTreatments(subcategoryId) {
+    const select = document.getElementById(treatmentSelectId);
     if (!select) return;
     select.innerHTML = '<option value="">施術を選択してください</option>';
     selectedTreatmentId = null;
@@ -604,11 +609,7 @@ const treatmentSectionId = `${id}-treatment-section`;
     }
   }
 
-  async function setSelection(next: {
-    categoryId?: string | null;
-    subcategoryId?: string | null;
-    treatmentId?: string | null;
-  }) {
+  async function setSelection(next) {
     const categoryId = next.categoryId ?? null;
     const subcategoryId = next.subcategoryId ?? null;
     const treatmentId = next.treatmentId ?? null;
@@ -620,7 +621,7 @@ const treatmentSectionId = `${id}-treatment-section`;
 
     if (categoryId) {
       const grid = document.getElementById(categoryGridId);
-      const card = grid?.querySelector(`[data-category-id="${categoryId}"]`) as HTMLElement | null;
+      const card = grid?.querySelector(`[data-category-id="${categoryId}"]`);
       if (card) {
         selectCategory(categoryId, card);
       }
@@ -629,13 +630,13 @@ const treatmentSectionId = `${id}-treatment-section`;
 
     if (subcategoryId) {
       const subGrid = document.getElementById(subcategoryGridId);
-      const subCard = subGrid?.querySelector(`[data-subcategory-id="${subcategoryId}"]`) as HTMLElement | null;
+      const subCard = subGrid?.querySelector(`[data-subcategory-id="${subcategoryId}"]`);
       if (subCard) {
         selectSubcategory(subcategoryId, subCard);
       } else if (categoryId) {
         // If not found due to timing, try once after reload
         await loadSubcategories(categoryId);
-        const retry = subGrid?.querySelector(`[data-subcategory-id="${subcategoryId}"]`) as HTMLElement | null;
+        const retry = subGrid?.querySelector(`[data-subcategory-id="${subcategoryId}"]`);
         if (retry) selectSubcategory(subcategoryId, retry);
       }
       if (showTreatmentStep) {
@@ -644,7 +645,7 @@ const treatmentSectionId = `${id}-treatment-section`;
     }
 
     if (showTreatmentStep && treatmentId) {
-      const select = document.getElementById(treatmentSelectId) as HTMLSelectElement | null;
+      const select = document.getElementById(treatmentSelectId);
       if (select) {
         select.value = treatmentId;
         selectedTreatmentId = treatmentId;
@@ -660,9 +661,19 @@ const treatmentSectionId = `${id}-treatment-section`;
     setSelection,
   });
 
-  // 初期化
-  document.addEventListener('DOMContentLoaded', () => {
-    loadCategories();
-  });
+  // 初期化を確実に行うための関数
+  function init() {
+    console.log('Initializing TreatmentSelector:', componentId);
+    loadCategories().catch(err => {
+      console.error('Initialization error:', err);
+    });
+  }
+
+  // DOMの読み込み完了を待つ
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
 

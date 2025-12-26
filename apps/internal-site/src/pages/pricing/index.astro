@@ -106,100 +106,71 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     </div>
   </div>
 
-  <!-- Edit Modal -->
+  <!-- Edit Modal (シンプル価格編集) -->
   <div id="editModal" class="modal hidden">
     <div class="modal-backdrop" onclick="closeEditModal()"></div>
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">料金プラン編集</h2>
+    <div class="modal-content modal-compact">
+      <div class="modal-header modal-header-compact">
+        <h2 class="modal-title">💰 価格を編集</h2>
         <button onclick="closeEditModal()" class="modal-close">&times;</button>
       </div>
       <div class="modal-body">
         <form id="editPlanForm">
           <input type="hidden" id="editPlanId" />
+          <input type="hidden" id="editTreatmentId" />
+          <input type="hidden" id="editPlanName" />
+          <input type="hidden" id="editPlanType" />
+          <input type="hidden" id="editSessions" />
+          <input type="hidden" id="editCostRate" />
+          <input type="hidden" id="editSupplyCost" />
+          <input type="hidden" id="editStaffCost" />
+          <input type="hidden" id="editTotalCost" />
+          <input type="hidden" id="editNotes" />
           <div id="editFormError" class="hidden form-error"></div>
           
-          <!-- 基本情報 -->
-          <div class="form-section">
-            <h3 class="form-section-title">基本情報</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">施術 *</label>
-                <select id="editTreatmentId" class="select" required>
-                  <option value="">選択してください</option>
-                </select>
+          <!-- プラン情報表示 -->
+          <div class="plan-info-display">
+            <div class="plan-info-row">
+              <span class="plan-info-label">施術</span>
+              <span id="displayTreatmentName" class="plan-info-value"></span>
+            </div>
+            <div class="plan-info-row">
+              <span class="plan-info-label">プラン</span>
+              <span id="displayPlanName" class="plan-info-value"></span>
+            </div>
+          </div>
+
+          <!-- 価格入力 -->
+          <div class="price-edit-section">
+            <div class="price-input-group">
+              <label class="price-label">税抜価格</label>
+              <div class="price-input-wrapper">
+                <span class="price-prefix">¥</span>
+                <input type="number" id="editPrice" class="price-input" required />
               </div>
-              <div class="form-group">
-                <label class="form-label">プラン名 *</label>
-                <input type="text" id="editPlanName" class="input" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label">プラン種別 *</label>
-                <select id="editPlanType" class="select" required>
-                  <option value="single">単発</option>
-                  <option value="course">コース</option>
-                  <option value="trial">お試し</option>
-                  <option value="monitor">モニター</option>
-                  <option value="campaign">キャンペーン</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">回数</label>
-                <input type="number" id="editSessions" class="input" />
+              <div class="field-error hidden" data-field="price"></div>
+            </div>
+            <div class="price-arrow">→</div>
+            <div class="price-input-group">
+              <label class="price-label">税込価格</label>
+              <div class="price-input-wrapper">
+                <span class="price-prefix">¥</span>
+                <input type="number" id="editPriceTaxed" class="price-input" required />
               </div>
             </div>
           </div>
 
-          <!-- 価格情報 -->
-          <div class="form-section">
-            <h3 class="form-section-title">価格情報</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">税抜価格（円） *</label>
-                <input type="number" id="editPrice" class="input" required />
-              </div>
-              <div class="form-group">
-                <label class="form-label">税込価格（円） *</label>
-                <input type="number" id="editPriceTaxed" class="input" required />
-              </div>
-            </div>
-          </div>
-
-          <!-- 原価情報 -->
-          <div class="form-section">
-            <h3 class="form-section-title">原価情報</h3>
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">原価率（%）</label>
-                <input type="number" id="editCostRate" class="input" step="0.1" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">備品原価（円）</label>
-                <input type="number" id="editSupplyCost" class="input" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">人件費（円）</label>
-                <input type="number" id="editStaffCost" class="input" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">原価合計（円）</label>
-                <input type="number" id="editTotalCost" class="input" />
-              </div>
-            </div>
-          </div>
-
-          <!-- 備考 -->
-          <div class="form-section">
-            <h3 class="form-section-title">備考</h3>
-            <div class="form-group">
-              <textarea id="editNotes" class="textarea" rows="3"></textarea>
-            </div>
-          </div>
+          <p class="tax-hint">💡 税抜価格を入力すると税込価格が自動計算されます</p>
 
           <!-- アクション -->
-          <div class="form-actions">
-            <button type="button" onclick="closeEditModal()" class="btn btn-secondary">キャンセル</button>
-            <button type="submit" class="btn btn-primary">更新</button>
+          <div class="form-actions-compact">
+            <button type="button" onclick="closeEditModal()" class="btn btn-cancel-compact">キャンセル</button>
+            <button type="submit" class="btn btn-save-compact">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              更新する
+            </button>
           </div>
         </form>
       </div>
@@ -411,6 +382,12 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     padding-left: 1.25rem;
   }
 
+  .field-error {
+    margin-top: 0.25rem;
+    color: #b91c1c;
+    font-size: 0.85rem;
+  }
+
   /* Responsive */
   @media (max-width: 1024px) {
     .filter-grid {
@@ -472,6 +449,172 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+
+  /* シンプル価格編集モーダル */
+  .modal-compact {
+    max-width: 420px;
+  }
+
+  .modal-header-compact {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    border-bottom: none;
+  }
+
+  .modal-header-compact .modal-title {
+    color: white;
+  }
+
+  .modal-header-compact .modal-close {
+    color: rgba(255,255,255,0.8);
+  }
+
+  .modal-header-compact .modal-close:hover {
+    color: white;
+  }
+
+  .plan-info-display {
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+  }
+
+  .plan-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .plan-info-row:not(:last-child) {
+    border-bottom: 1px dashed #e2e8f0;
+  }
+
+  .plan-info-label {
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+
+  .plan-info-value {
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .price-edit-section {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .price-input-group {
+    flex: 1;
+  }
+
+  .price-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 0.5rem;
+  }
+
+  .price-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .price-input-wrapper:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+
+  .price-prefix {
+    padding: 0.75rem;
+    background: #f1f5f9;
+    color: #64748b;
+    font-weight: 600;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .price-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    width: 100%;
+  }
+
+  .price-input:focus {
+    outline: none;
+  }
+
+  .price-arrow {
+    color: #94a3b8;
+    font-size: 1.25rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .tax-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-actions-compact {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .btn-cancel-compact {
+    padding: 0.625rem 1.25rem;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    color: #64748b;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel-compact:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  .btn-save-compact {
+    padding: 0.625rem 1.5rem;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
+
+  .btn-save-compact:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
   }
 
   .modal-header {
@@ -580,9 +723,14 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   let itemsPerPage = 50;
   let totalItems = 0;
 
-  async function fetchJson(input, init) {
+  async function fetchJson(input, init, timeoutMs = 15000) {
     try {
-      const res = await fetch(input, init);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
+      const res = await fetch(input, { ...init, signal: controller.signal });
+      clearTimeout(timeoutId);
+      
       const text = await res.text();
       const data = text ? JSON.parse(text) : null;
       if (!res.ok) {
@@ -594,6 +742,9 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       }
       return { ok: true, data: data };
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return { ok: false, error: 'リクエストがタイムアウトしました' };
+      }
       return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -643,120 +794,146 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   }
 
   async function loadCategories() {
-    const result = await fetchJson<CategoriesResponse>('/api/categories');
-    if (!result.ok) {
+    try {
+      const result = await fetchJson('/api/categories');
+      if (!result.ok) {
+        console.warn('カテゴリ取得エラー:', result.error);
+        categories = [];
+      } else {
+        categories = (result.data && result.data.categories) || [];
+      }
+    } catch (error) {
+      console.error('カテゴリ取得例外:', error);
       categories = [];
-      renderCategoryOptions();
-      showError(`カテゴリの読み込みに失敗しました: ${result.error}`);
-      return;
     }
-    categories = (result.data && result.data.categories) || [];
     renderCategoryOptions();
   }
 
   async function loadSubcategories(categoryId) {
-    const targetCategoryId = categoryId || selectedCategoryId;
-    const params = new URLSearchParams();
-    if (targetCategoryId && targetCategoryId !== '') {
-      params.append('category_id', targetCategoryId);
-    }
-    const result = await fetchJson<SubcategoriesResponse>(
-      `/api/subcategories?${params.toString()}`
-    );
-    if (!result.ok) {
+    try {
+      const targetCategoryId = categoryId || selectedCategoryId;
+      const params = new URLSearchParams();
+      if (targetCategoryId && targetCategoryId !== '') {
+        params.append('category_id', targetCategoryId);
+      }
+      const result = await fetchJson(`/api/subcategories?${params.toString()}`);
+      if (!result.ok) {
+        console.warn('サブカテゴリ取得エラー:', result.error);
+        subcategories = [];
+      } else {
+        subcategories = (result.data && result.data.subcategories) || [];
+      }
+    } catch (error) {
+      console.error('サブカテゴリ取得例外:', error);
       subcategories = [];
-      renderSubcategoryOptions();
-      showError(`サブカテゴリの読み込みに失敗しました: ${result.error}`);
-      return;
     }
-    subcategories = (result.data && result.data.subcategories) || [];
     renderSubcategoryOptions();
   }
 
   async function loadTreatments() {
-    const result = await fetchJson<{ treatments: any[] }>('/api/treatments');
-    if (!result.ok) {
+    try {
+      const result = await fetchJson('/api/treatments');
+      if (!result.ok) {
+        console.warn('施術取得エラー:', result.error);
+        treatments = [];
+      } else {
+        treatments = (result.data && result.data.treatments) || [];
+      }
+    } catch (error) {
+      console.error('施術取得例外:', error);
       treatments = [];
-      renderTreatmentOptions();
-      showError(`施術の読み込みに失敗しました: ${result.error}`);
-      return;
     }
-    treatments = (result.data && result.data.treatments) || [];
     renderTreatmentOptions();
   }
 
   async function fetchPricing() {
-    const params = new URLSearchParams();
-    if (selectedCategoryId && selectedCategoryId !== '') {
-      params.append('category_id', selectedCategoryId);
+    try {
+      const params = new URLSearchParams();
+      if (selectedCategoryId && selectedCategoryId !== '') {
+        params.append('category_id', selectedCategoryId);
+      }
+      if (selectedSubcategoryId && selectedSubcategoryId !== '') {
+        params.append('subcategory_id', selectedSubcategoryId);
+      }
+      if (searchQuery && searchQuery.trim() !== '') {
+        params.append('search', searchQuery.trim());
+      }
+      const result = await fetchJson(`/api/pricing?${params.toString()}`);
+      if (!result.ok) {
+        return { ok: false, error: result.error };
+      }
+      return { ok: true, data: (result.data && result.data.plans) || [] };
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
-    if (selectedSubcategoryId && selectedSubcategoryId !== '') {
-      params.append('subcategory_id', selectedSubcategoryId);
-    }
-    if (searchQuery && searchQuery.trim() !== '') {
-      params.append('search', searchQuery.trim());
-    }
-    const result = await fetchJson<PricingResponse>(`/api/pricing?${params.toString()}`);
-    if (!result.ok) {
-      return { ok: false, error: result.error };
-    }
-    return { ok: true, data: (result.data && result.data.plans) || [] };
   }
 
   async function fetchMedicationPlans() {
-    const params = new URLSearchParams();
-    if (searchQuery && searchQuery.trim() !== '') {
-      params.append('search', searchQuery.trim());
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery && searchQuery.trim() !== '') {
+        params.append('search', searchQuery.trim());
+      }
+      const result = await fetchJson(`/api/medication-plans?${params.toString()}`);
+      if (!result.ok) {
+        return { ok: false, error: result.error };
+      }
+      return { ok: true, data: (result.data && result.data.plans) || [] };
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
-    const result = await fetchJson<MedicationPlansResponse>(`/api/medication-plans?${params.toString()}`);
-    if (!result.ok) {
-      return { ok: false, error: result.error };
-    }
-    return { ok: true, data: (result.data && result.data.plans) || [] };
   }
 
   async function refreshData() {
     console.log('Starting refreshData...');
+    const errors = [];
+    
     try {
       const [pricingResult, medicationResult] = await Promise.all([
         fetchPricing(),
         fetchMedicationPlans()
       ]);
 
+      const pricingData = pricingResult.ok ? (pricingResult.data || []) : [];
+      const medicationData = medicationResult.ok ? (medicationResult.data || []) : [];
+
       console.log('Results received:', { 
-        pricing: pricingResult.ok ? `${pricingResult.data.length} plans` : pricingResult.error,
-        medication: medicationResult.ok ? `${medicationResult.data.length} plans` : medicationResult.error
+        pricing: pricingResult.ok ? `${pricingData.length} plans` : pricingResult.error,
+        medication: medicationResult.ok ? `${medicationData.length} plans` : medicationResult.error
       });
 
-      const errors = [];
-
       if (pricingResult.ok) {
-        plans = pricingResult.data || [];
+        plans = pricingData;
       } else {
         plans = [];
         errors.push(`料金データ: ${pricingResult.error}`);
       }
 
       if (medicationResult.ok) {
-        medicationPlans = medicationResult.data || [];
+        medicationPlans = medicationData;
       } else {
         medicationPlans = [];
-        errors.push(`薬剤料金: ${medicationResult.error}`);
+        // 薬剤データはオプショナルなのでエラーを追加しない（テーブルが無い場合がある）
       }
 
       totalItems = plans.length + medicationPlans.length;
       currentPage = Math.min(currentPage, Math.max(1, Math.ceil(totalItems / itemsPerPage)));
 
-      renderTable();
-      renderPagination();
-
-      if (errors.length > 0 && plans.length === 0 && medicationPlans.length === 0) {
-        showError(`データの読み込みに失敗しました: ${errors.join(' / ')}`);
-      }
     } catch (error) {
       console.error('Error in refreshData:', error);
-      showError(`データの更新中にエラーが発生しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      errors.push(`データの更新中にエラー: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      plans = [];
+      medicationPlans = [];
+      totalItems = 0;
     }
+
+    // エラーがあってもなくてもテーブルを更新
+    if (errors.length > 0 && plans.length === 0) {
+      showError(`データの読み込みに失敗しました: ${errors.join(' / ')}`);
+    } else {
+      renderTable();
+    }
+    renderPagination();
   }
 
   function clearFilters() {
@@ -866,11 +1043,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
                 </div>
               </td>
               <td>
-                <span class="plan-name">${escapeHtml(mp.quantity || '')}${(() => {
-                  if (!mp.quantity) return '';
-                  const hasUnit = /(cc|mg|ml|単位)/.test(mp.quantity);
-                  return hasUnit ? '' : (mp.medication_unit || 'cc');
-                })()}</span>
+                <span class="plan-name">${escapeHtml(mp.quantity || '')}${mp.quantity && !/(cc|mg|ml|単位)/.test(mp.quantity) ? (mp.medication_unit || 'cc') : ''}</span>
               </td>
               <td class="text-center">
                 <span class="plan-type-badge plan-type-single">薬剤</span>
@@ -1087,26 +1260,29 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   }
 
   async function openEditModal(planId) {
-    const modal = document.getElementById('editModal');
-    const form = document.getElementById('editPlanForm');
+    var modal = document.getElementById('editModal');
+    var form = document.getElementById('editPlanForm');
     if (!modal || !form) return;
 
     try {
       // プランデータを取得
-      const res = await fetch(`/api/pricing-id/${planId}`);
+      var res = await fetch('/api/pricing-id/' + planId);
       if (!res.ok) {
         alert('プランデータの取得に失敗しました');
         return;
       }
-      const data = await res.json();
-      const plan = data.plan;
+      var data = await res.json();
+      var plan = data.plan;
 
-      // フォームに値を設定
+      // 表示用データをセット
+      var displayTreatment = document.getElementById('displayTreatmentName');
+      var displayPlan = document.getElementById('displayPlanName');
+      if (displayTreatment) displayTreatment.textContent = plan.treatment_name || plan.treatment_id || '-';
+      if (displayPlan) displayPlan.textContent = plan.plan_name || '-';
+
+      // フォームに値を設定（hidden含む）
       document.getElementById('editPlanId').value = plan.id;
-      if (treatments.length === 0) {
-        await loadTreatments();
-      }
-      renderTreatmentOptions(plan.treatment_id || '');
+      document.getElementById('editTreatmentId').value = plan.treatment_id || '';
       document.getElementById('editPlanName').value = plan.plan_name || '';
       document.getElementById('editPlanType').value = plan.plan_type || 'single';
       document.getElementById('editSessions').value = plan.sessions || '';
@@ -1141,6 +1317,26 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     if (!errorBox) return;
     errorBox.textContent = '';
     errorBox.classList.add('hidden');
+    clearEditFieldErrors();
+  }
+
+  function clearEditFieldErrors() {
+    document.querySelectorAll('.field-error').forEach((node) => {
+      node.textContent = '';
+      node.classList.add('hidden');
+    });
+  }
+
+  function showEditFieldErrors(fields) {
+    clearEditFieldErrors();
+    if (!fields || fields.length === 0) return;
+    fields.forEach((field) => {
+      const target = document.querySelector(`.field-error[data-field="${field.field}"]`);
+      if (target) {
+        target.textContent = field.message;
+        target.classList.remove('hidden');
+      }
+    });
   }
 
   function showEditFormError(message, fields) {
@@ -1191,6 +1387,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       } else {
         const error = await res.json();
         showEditFormError(`更新に失敗しました: ${error.message || 'Unknown error'}`, error.fields);
+        showEditFieldErrors(error.fields);
       }
     } catch (error) {
       console.error('保存エラー:', error);
@@ -1198,13 +1395,19 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     setLoading(true);
-    loadCategories()
-      .then(() => loadSubcategories())
-      .then(() => loadTreatments())
-      .then(() => refreshData())
-      .finally(() => setLoading(false));
+    try {
+      await loadCategories();
+      await loadSubcategories();
+      await loadTreatments();
+      await refreshData();
+    } catch (error) {
+      console.error('初期化エラー:', error);
+      showError(`初期化に失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
 
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
@@ -1215,7 +1418,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
 
     // 1ページあたりの件数変更
     itemsPerPageSelect?.addEventListener('change', (e) => {
-      itemsPerPage = Number((e.target as HTMLSelectElement).value);
+      itemsPerPage = Number(e.target.value);
       currentPage = 1;
       renderTable();
       renderPagination();
@@ -1231,15 +1434,15 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     const editPriceInput = document.getElementById('editPrice');
     const editPriceTaxedInput = document.getElementById('editPriceTaxed');
     editPriceInput?.addEventListener('input', () => {
-      const price = Number((editPriceInput as HTMLInputElement).value);
+      const price = Number(editPriceInput.value);
       if (editPriceTaxedInput && price > 0) {
-        (editPriceTaxedInput as HTMLInputElement).value = toTaxedPrice(price).toString();
+        editPriceTaxedInput.value = toTaxedPrice(price).toString();
       }
     });
 
     // リアルタイム検索（入力中に検索）
     searchInput?.addEventListener('input', (e) => {
-      const value = (e.target as HTMLInputElement).value;
+      const value = e.target.value;
       searchQuery = value;
       
       // デバウンス処理（500ms後に検索実行）
@@ -1258,7 +1461,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
         if (searchTimeout !== null) {
           clearTimeout(searchTimeout);
         }
-        searchQuery = (searchInput as HTMLInputElement).value;
+        searchQuery = searchInput.value;
         currentPage = 1; // 検索時は1ページ目に戻る
         setLoading(true);
         refreshData().finally(() => setLoading(false));
@@ -1266,7 +1469,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     });
 
     categoryFilter?.addEventListener('change', (e) => {
-      const value = (e.target as HTMLSelectElement).value;
+      const value = e.target.value;
       selectedCategoryId = value;
       selectedSubcategoryId = ''; // カテゴリ変更時はサブカテゴリをリセット
       if (subcategoryFilter) {
@@ -1281,7 +1484,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
     });
 
     subcategoryFilter?.addEventListener('change', () => {
-      selectedSubcategoryId = (subcategoryFilter as HTMLSelectElement).value;
+      selectedSubcategoryId = subcategoryFilter.value;
       currentPage = 1; // フィルタ変更時は1ページ目に戻る
       setLoading(true);
       refreshData().finally(() => setLoading(false));
@@ -1291,4 +1494,10 @@ const taxRate = getTaxRate(Astro.locals.runtime);
       clearFilters();
     });
   });
+
+  // グローバルスコープに関数を公開（onclick属性から呼び出すため）
+  window.openEditModal = openEditModal;
+  window.closeEditModal = closeEditModal;
+  window.deletePlan = deletePlan;
+  window.goToPage = goToPage;
 </script>

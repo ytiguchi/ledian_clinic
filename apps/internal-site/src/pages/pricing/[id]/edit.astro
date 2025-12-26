@@ -165,243 +165,244 @@ export const prerender = false;
 </Layout>
 
 <script define:vars={{ planId: id, taxRate }}>
-  const toTaxedPrice = (amount) => Math.round(amount * (1 + taxRate));
-  
-  interface PlanData {
-    id: string;
-    plan_name: string;
-    plan_type: string;
-    sessions: number | null;
-    price: number;
-    price_taxed: number;
-    cost_rate: number | null;
-    supply_cost: number | null;
-    staff_cost: number | null;
-    category_id: string;
-    subcategory_id: string;
-    treatment_id: string;
+  function toTaxedPrice(amount) {
+    return Math.round(amount * (1 + taxRate));
   }
 
-  let categories: Array<{ id: string; name: string }> = [];
-  let subcategories: Array<{ id: string; name: string; category_id: string }> = [];
-  let treatments: Array<{ id: string; name: string; subcategory_id: string }> = [];
+  var categories = [];
+  var subcategories = [];
+  var treatments = [];
 
-  const fetchJson = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`${res.status}: ${res.statusText}`);
-    }
-    return res.json();
-  };
+  function fetchJson(url) {
+    return fetch(url).then(function(res) {
+      if (!res.ok) {
+        throw new Error(res.status + ': ' + res.statusText);
+      }
+      return res.json();
+    });
+  }
 
-  const setSelectOptions = (
-    select: HTMLSelectElement | null,
-    options: Array<{ id: string; name: string }>,
-    placeholder = '選択してください'
-  ) => {
+  function setSelectOptions(select, options, placeholder) {
     if (!select) return;
-    select.innerHTML = `<option value="">${placeholder}</option>` +
-      options.map(option => `<option value="${option.id}">${option.name}</option>`).join('');
-  };
+    placeholder = placeholder || '選択してください';
+    var html = '<option value="">' + placeholder + '</option>';
+    options.forEach(function(option) {
+      html += '<option value="' + option.id + '">' + option.name + '</option>';
+    });
+    select.innerHTML = html;
+  }
 
-  async function loadData() {
-    try {
-      // カテゴリ一覧取得
-      const catData = await fetchJson('/api/categories');
+  function loadData() {
+    // カテゴリ一覧取得
+    fetchJson('/api/categories').then(function(catData) {
       categories = catData.categories || [];
-      setSelectOptions(document.getElementById('categorySelect') as HTMLSelectElement, categories);
+      setSelectOptions(document.getElementById('categorySelect'), categories);
 
       // プランデータ取得
-      const planData = await fetchJson(`/api/pricing-id/${planId}`);
-      const plan = planData.plan as PlanData;
+      return fetchJson('/api/pricing-id/' + planId);
+    }).then(function(planData) {
+      var plan = planData.plan;
       if (!plan) {
         throw new Error('プランが見つかりません');
       }
 
-      // サブカテゴリ取得（カテゴリ選択後に）
-      await loadSubcategories(plan.category_id);
-      // 施術取得（サブカテゴリ選択後に）
-      await loadTreatments(plan.subcategory_id);
+      // サブカテゴリ取得
+      return loadSubcategories(plan.category_id).then(function() {
+        return loadTreatments(plan.subcategory_id);
+      }).then(function() {
+        // フォームに値を設定
+        populateForm(plan);
 
-      // フォームに値を設定（選択肢を読み込んだ後）
-      populateForm(plan);
+        // フォームを表示
+        var loadingMsg = document.getElementById('loadingMessage');
+        if (loadingMsg) loadingMsg.classList.add('hidden');
+        var form = document.getElementById('pricePlanForm');
+        if (form) form.classList.remove('hidden');
 
-      // フォームを表示
-      document.getElementById('loadingMessage')?.classList.add('hidden');
-      const form = document.getElementById('pricePlanForm');
-      if (form) {
-        form.classList.remove('hidden');
-      }
+        // カテゴリ変更時のイベントリスナー
+        var categorySelect = document.getElementById('categorySelect');
+        var subcategorySelect = document.getElementById('subcategorySelect');
+        var treatmentSelect = document.getElementById('treatmentSelect');
 
-      // カテゴリ変更時のイベントリスナー
-      const categorySelect = document.getElementById('categorySelect') as HTMLSelectElement;
-      const subcategorySelect = document.getElementById('subcategorySelect') as HTMLSelectElement;
-      const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+        if (categorySelect) {
+          categorySelect.addEventListener('change', function(e) {
+            var categoryId = e.target.value;
+            if (categoryId) {
+              loadSubcategories(categoryId);
+              setSelectOptions(subcategorySelect, []);
+              setSelectOptions(treatmentSelect, []);
+            }
+          });
+        }
 
-      categorySelect?.addEventListener('change', (e) => {
-        const categoryId = (e.target as HTMLSelectElement).value;
-        if (categoryId) {
-          loadSubcategories(categoryId);
-          setSelectOptions(subcategorySelect, []);
-          setSelectOptions(treatmentSelect, []);
+        if (subcategorySelect) {
+          subcategorySelect.addEventListener('change', function(e) {
+            var subcategoryId = e.target.value;
+            if (subcategoryId) {
+              loadTreatments(subcategoryId);
+              setSelectOptions(treatmentSelect, []);
+            }
+          });
         }
       });
-
-      subcategorySelect?.addEventListener('change', (e) => {
-        const subcategoryId = (e.target as HTMLSelectElement).value;
-        if (subcategoryId) {
-          loadTreatments(subcategoryId);
-          setSelectOptions(treatmentSelect, []);
-        }
-      });
-    } catch (error) {
+    }).catch(function(error) {
       console.error('データ読み込みエラー:', error);
-      const loadingMsg = document.getElementById('loadingMessage');
+      var loadingMsg = document.getElementById('loadingMessage');
       if (loadingMsg) {
-        loadingMsg.innerHTML = `<p class="text-red-500">データの読み込みに失敗しました: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
+        loadingMsg.innerHTML = '<p class="text-red-500">データの読み込みに失敗しました: ' + (error.message || 'Unknown error') + '</p>';
       }
-    }
+    });
   }
 
-  const showFormError = (message: string, fields?: Array<{ message: string }>) => {
-    const formError = document.getElementById('formError');
+  function showFormError(message, fields) {
+    var formError = document.getElementById('formError');
     if (formError) {
       if (fields && fields.length > 0) {
-        const details = fields.map(field => `- ${field.message}`).join('\n');
-        formError.textContent = `${message}\n${details}`;
+        var details = fields.map(function(field) { return '- ' + field.message; }).join('\n');
+        formError.textContent = message + '\n' + details;
       } else {
         formError.textContent = message;
       }
       formError.classList.remove('hidden');
     }
-  };
+  }
 
-  const clearFieldErrors = () => {
-    document.querySelectorAll<HTMLDivElement>('.field-error').forEach(node => {
+  function clearFieldErrors() {
+    document.querySelectorAll('.field-error').forEach(function(node) {
       node.textContent = '';
       node.classList.add('hidden');
     });
-  };
+  }
 
-  const showFieldErrors = (fields?: Array<{ field: string; message: string }>) => {
+  function showFieldErrors(fields) {
     if (!fields || fields.length === 0) return;
-    fields.forEach(field => {
-      const target = document.querySelector<HTMLDivElement>(`.field-error[data-field="${field.field}"]`);
+    fields.forEach(function(field) {
+      var target = document.querySelector('.field-error[data-field="' + field.field + '"]');
       if (!target) return;
       target.textContent = field.message;
       target.classList.remove('hidden');
     });
-  };
+  }
 
-  const clearFormError = () => {
-    const formError = document.getElementById('formError');
+  function clearFormError() {
+    var formError = document.getElementById('formError');
     if (formError) {
       formError.textContent = '';
       formError.classList.add('hidden');
     }
-  };
+  }
 
-  async function loadSubcategories(categoryId: string) {
-    try {
-      const data = await fetchJson(`/api/subcategories?category_id=${categoryId}`);
+  function loadSubcategories(categoryId) {
+    return fetchJson('/api/subcategories?category_id=' + categoryId).then(function(data) {
       subcategories = data.subcategories || [];
-      setSelectOptions(document.getElementById('subcategorySelect') as HTMLSelectElement, subcategories);
-    } catch (error) {
+      setSelectOptions(document.getElementById('subcategorySelect'), subcategories);
+    }).catch(function(error) {
       console.error('サブカテゴリ読み込みエラー:', error);
-    }
+    });
   }
 
-  async function loadTreatments(subcategoryId: string) {
-    try {
-      const data = await fetchJson(`/api/treatments?subcategory_id=${subcategoryId}`);
+  function loadTreatments(subcategoryId) {
+    return fetchJson('/api/treatments?subcategory_id=' + subcategoryId).then(function(data) {
       treatments = data.treatments || [];
-      setSelectOptions(document.getElementById('treatmentSelect') as HTMLSelectElement, treatments);
-    } catch (error) {
+      setSelectOptions(document.getElementById('treatmentSelect'), treatments);
+    }).catch(function(error) {
       console.error('施術読み込みエラー:', error);
-    }
+    });
   }
 
-  function populateForm(plan: PlanData) {
-    (document.getElementById('planId') as HTMLInputElement).value = plan.id;
+  function populateForm(plan) {
+    var planIdInput = document.getElementById('planId');
+    if (planIdInput) planIdInput.value = plan.id;
     
-    const categorySelect = document.getElementById('categorySelect') as HTMLSelectElement;
-    const subcategorySelect = document.getElementById('subcategorySelect') as HTMLSelectElement;
-    const treatmentSelect = document.getElementById('treatmentSelect') as HTMLSelectElement;
+    var categorySelect = document.getElementById('categorySelect');
+    var subcategorySelect = document.getElementById('subcategorySelect');
+    var treatmentSelect = document.getElementById('treatmentSelect');
     
     if (categorySelect) categorySelect.value = plan.category_id;
     if (subcategorySelect) subcategorySelect.value = plan.subcategory_id;
     if (treatmentSelect) treatmentSelect.value = plan.treatment_id;
     
-    (document.getElementById('planName') as HTMLInputElement).value = plan.plan_name;
-    (document.getElementById('planType') as HTMLSelectElement).value = plan.plan_type;
-    (document.getElementById('price') as HTMLInputElement).value = plan.price.toString();
-    (document.getElementById('priceTaxed') as HTMLInputElement).value = plan.price_taxed.toString();
+    var planName = document.getElementById('planName');
+    if (planName) planName.value = plan.plan_name;
+    var planType = document.getElementById('planType');
+    if (planType) planType.value = plan.plan_type;
+    var price = document.getElementById('price');
+    if (price) price.value = plan.price.toString();
+    var priceTaxed = document.getElementById('priceTaxed');
+    if (priceTaxed) priceTaxed.value = plan.price_taxed.toString();
     if (plan.sessions) {
-      (document.getElementById('sessions') as HTMLInputElement).value = plan.sessions.toString();
+      var sessions = document.getElementById('sessions');
+      if (sessions) sessions.value = plan.sessions.toString();
     }
     if (plan.cost_rate) {
-      (document.getElementById('costRate') as HTMLInputElement).value = plan.cost_rate.toString();
+      var costRate = document.getElementById('costRate');
+      if (costRate) costRate.value = plan.cost_rate.toString();
     }
     if (plan.supply_cost) {
-      (document.getElementById('supplyCost') as HTMLInputElement).value = plan.supply_cost.toString();
+      var supplyCost = document.getElementById('supplyCost');
+      if (supplyCost) supplyCost.value = plan.supply_cost.toString();
     }
     if (plan.staff_cost) {
-      (document.getElementById('staffCost') as HTMLInputElement).value = plan.staff_cost.toString();
+      var staffCost = document.getElementById('staffCost');
+      if (staffCost) staffCost.value = plan.staff_cost.toString();
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', function() {
     loadData();
 
-    const form = document.getElementById('pricePlanForm');
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearFormError();
-      clearFieldErrors();
-      const formData = new FormData(form as HTMLFormElement);
-      
-      const data = {
-        treatment_id: formData.get('treatment'),
-        plan_name: formData.get('planName'),
-        plan_type: formData.get('planType'),
-        sessions: formData.get('sessions') ? Number(formData.get('sessions')) : null,
-        price: Number(formData.get('price')),
-        price_taxed: Number(formData.get('priceTaxed')),
-        cost_rate: formData.get('costRate') ? Number(formData.get('costRate')) : null,
-        supply_cost: formData.get('supplyCost') ? Number(formData.get('supplyCost')) : null,
-        staff_cost: formData.get('staffCost') ? Number(formData.get('staffCost')) : null,
-      };
+    var form = document.getElementById('pricePlanForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearFormError();
+        clearFieldErrors();
+        var formData = new FormData(form);
+        
+        var data = {
+          treatment_id: formData.get('treatment'),
+          plan_name: formData.get('planName'),
+          plan_type: formData.get('planType'),
+          sessions: formData.get('sessions') ? Number(formData.get('sessions')) : null,
+          price: Number(formData.get('price')),
+          price_taxed: Number(formData.get('priceTaxed')),
+          cost_rate: formData.get('costRate') ? Number(formData.get('costRate')) : null,
+          supply_cost: formData.get('supplyCost') ? Number(formData.get('supplyCost')) : null,
+          staff_cost: formData.get('staffCost') ? Number(formData.get('staffCost')) : null,
+        };
 
-      try {
-        const res = await fetch(`/api/pricing-id/${planId}`, {
+        fetch('/api/pricing-id/' + planId, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
+        }).then(function(res) {
+          if (res.ok) {
+            alert('更新しました');
+            window.location.href = '/pricing';
+          } else {
+            return res.json().then(function(error) {
+              showFormError('更新に失敗しました: ' + (error.message || 'Unknown error'), error.fields);
+              showFieldErrors(error.fields);
+            });
+          }
+        }).catch(function(error) {
+          console.error('更新エラー:', error);
+          showFormError('更新に失敗しました');
         });
-
-        if (res.ok) {
-          alert('更新しました');
-          window.location.href = '/pricing';
-        } else {
-          const error = await res.json();
-          showFormError(`更新に失敗しました: ${error.message || 'Unknown error'}`, error.fields);
-          showFieldErrors(error.fields);
-        }
-      } catch (error) {
-        console.error('更新エラー:', error);
-        showFormError('更新に失敗しました');
-      }
-    });
+      });
+    }
 
     // 税抜価格から税込価格を自動計算
-    const priceInput = document.getElementById('price') as HTMLInputElement;
-    const priceTaxedInput = document.getElementById('priceTaxed') as HTMLInputElement;
+    var priceInput = document.getElementById('price');
+    var priceTaxedInput = document.getElementById('priceTaxed');
     
-    priceInput?.addEventListener('input', () => {
-      const price = Number(priceInput.value);
-      if (priceTaxedInput && price > 0) {
-        priceTaxedInput.value = toTaxedPrice(price).toString();
-      }
-    });
+    if (priceInput) {
+      priceInput.addEventListener('input', function() {
+        var price = Number(priceInput.value);
+        if (priceTaxedInput && price > 0) {
+          priceTaxedInput.value = toTaxedPrice(price).toString();
+        }
+      });
+    }
   });
 </script>

@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryDB, executeDB } from '../../../../lib/db';
+import { parseIsPublishedParam } from '../../../../lib/api';
 
 export const prerender = false;
 
 // FAQの取得
-export const GET: APIRoute = async ({ locals, params }) => {
+export const GET: APIRoute = async ({ locals, params, url }) => {
   if (!locals?.runtime?.env) {
     return new Response(JSON.stringify({ faqs: [] }), {
       status: 200,
@@ -14,6 +15,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
   try {
     const db = getDB(locals.runtime.env);
     const treatmentId = params.id;
+    const isPublished = parseIsPublishedParam(url.searchParams.get('is_published'));
     
     if (!treatmentId) {
       return new Response(JSON.stringify({ error: 'Treatment ID is required' }), {
@@ -21,7 +23,15 @@ export const GET: APIRoute = async ({ locals, params }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    
+
+    const queryParams: Array<string | number> = [treatmentId];
+    let query = 'SELECT * FROM treatment_faqs WHERE treatment_id = ?';
+    if (isPublished !== null) {
+      query += ' AND is_published = ?';
+      queryParams.push(isPublished);
+    }
+    query += ' ORDER BY sort_order';
+
     const faqs = await queryDB<{
       id: string;
       treatment_id: string;
@@ -31,11 +41,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
       is_published: number;
       created_at: string;
       updated_at: string;
-    }>(
-      db,
-      'SELECT * FROM treatment_faqs WHERE treatment_id = ? ORDER BY sort_order',
-      [treatmentId]
-    );
+    }>(db, query, queryParams);
     
     return new Response(JSON.stringify({ 
       faqs: faqs.map(f => ({
@@ -115,4 +121,3 @@ export const POST: APIRoute = async ({ locals, params, request }) => {
     });
   }
 };
-

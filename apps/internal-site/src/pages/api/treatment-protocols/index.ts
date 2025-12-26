@@ -12,7 +12,7 @@ const jsonResponse = (status: number, body: unknown) =>
 
 export const GET: APIRoute = async ({ locals, url }) => {
   if (!locals?.runtime?.env) {
-    return jsonResponse(200, { materials: [] });
+    return jsonResponse(200, { protocols: [] });
   }
 
   try {
@@ -26,10 +26,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     const params: Array<string | number> = [subcategoryId];
     let query = `
-      SELECT id, subcategory_id, title, description, file_url, file_type,
-             difficulty_level, estimated_minutes, sort_order, is_published,
-             created_at, updated_at
-      FROM counseling_materials
+      SELECT id, subcategory_id, title, description, version, file_url, file_type,
+             sort_order, is_published, created_at, updated_at
+      FROM treatment_protocols
       WHERE subcategory_id = ?
     `;
     if (isPublished !== null) {
@@ -38,10 +37,10 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
     query += ' ORDER BY sort_order';
 
-    const materials = await queryDB(db, query, params);
-    return jsonResponse(200, { materials });
+    const protocols = await queryDB(db, query, params);
+    return jsonResponse(200, { protocols });
   } catch (error) {
-    console.error('Error fetching training materials:', error);
+    console.error('Error fetching treatment protocols:', error);
     return jsonResponse(500, {
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'
@@ -61,10 +60,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
       subcategory_id, 
       title, 
       description, 
+      version,
       file_url, 
       file_type, 
-      difficulty_level, 
-      estimated_minutes,
       sort_order = 0
     } = body;
 
@@ -75,22 +73,22 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const id = crypto.randomUUID().replace(/-/g, '');
 
     await db.prepare(
-      `INSERT INTO counseling_materials (
-        id, subcategory_id, title, description, file_url, file_type, 
-        difficulty_level, estimated_minutes, sort_order, is_published
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`
+      `INSERT INTO treatment_protocols (
+        id, subcategory_id, title, description, version, file_url, file_type, 
+        sort_order, is_published
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`
     ).bind(
-      id, subcategory_id, title, description || null, file_url || null, file_type || null,
-      difficulty_level || 'basic', estimated_minutes || null, sort_order
+      id, subcategory_id, title, description || null, version || '1.0', file_url || null, file_type || null,
+      sort_order
     ).run();
 
     return jsonResponse(201, { 
       success: true, 
       id,
-      message: 'Counseling material created successfully' 
+      message: 'Treatment protocol created successfully' 
     });
   } catch (error) {
-    console.error('Error creating training material:', error);
+    console.error('Error creating treatment protocol:', error);
     return jsonResponse(500, { 
       error: 'Internal Server Error',
       message: error instanceof Error ? error.message : 'Unknown error'

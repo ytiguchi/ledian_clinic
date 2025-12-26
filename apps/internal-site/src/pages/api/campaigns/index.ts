@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getDB, queryDB, executeDB, queryFirst } from '../../../lib/db';
 import {
   jsonResponse,
+  parseIsPublishedParam,
   requireRuntimeEnv,
   validationError,
   withErrorHandling,
@@ -57,7 +58,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     const db = getDB(locals.runtime.env);
     
-    const isPublished = url.searchParams.get('is_published');
+    const isPublished = parseIsPublishedParam(url.searchParams.get('is_published'));
     
     let query = `
       SELECT 
@@ -83,7 +84,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     
     if (isPublished !== null) {
       query += ' AND c.is_published = ?';
-      params.push(isPublished === '1' ? 1 : 0);
+      params.push(isPublished);
     }
     
     query += ' GROUP BY c.id ORDER BY c.start_date DESC, c.created_at DESC';

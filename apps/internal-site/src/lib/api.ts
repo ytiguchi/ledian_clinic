@@ -22,6 +22,14 @@ export type ValidationFieldError = {
   message: string;
 };
 
+export const parseIsPublishedParam = (value: string | null) => {
+  if (value === null) return null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === '1' || normalized === 'true') return 1;
+  if (normalized === '0' || normalized === 'false') return 0;
+  return null;
+};
+
 /**
  * Create a JSON response with proper headers
  */

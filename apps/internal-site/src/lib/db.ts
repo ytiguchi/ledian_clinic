@@ -92,5 +92,19 @@ export async function executeDB(
   return result;
 }
 
+/**
+ * Get representative treatment id for a subcategory.
+ */
+export async function getRepresentativeTreatmentId(
+  db: D1Database,
+  subcategoryId: string
+): Promise<string | null> {
+  const result = await queryFirst<{ id: string }>(
+    db,
+    `SELECT id FROM treatments WHERE subcategory_id = ? ORDER BY sort_order, name LIMIT 1`,
+    [subcategoryId]
+  );
+  return result?.id ?? null;
+}
 
 

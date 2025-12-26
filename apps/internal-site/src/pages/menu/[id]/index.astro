@@ -103,6 +103,60 @@ import Layout from '../../../components/Layout.astro';
         </div>
       </section>
     </div>
+
+    <!-- Price Edit Modal -->
+    <div id="priceEditModal" class="price-modal hidden">
+      <div class="price-modal-backdrop" onclick="closePriceEditModal()"></div>
+      <div class="price-modal-content">
+        <div class="price-modal-header">
+          <h2>💰 価格を編集</h2>
+          <button onclick="closePriceEditModal()" class="price-modal-close">&times;</button>
+        </div>
+        <div class="price-modal-body">
+          <form id="priceEditForm">
+            <input type="hidden" id="editPlanId" />
+            
+            <div class="price-info-display">
+              <div class="price-info-row">
+                <span class="price-info-label">施術</span>
+                <span id="displayTreatmentName" class="price-info-value"></span>
+              </div>
+              <div class="price-info-row">
+                <span class="price-info-label">プラン</span>
+                <span id="displayPlanName" class="price-info-value"></span>
+              </div>
+            </div>
+
+            <div class="price-edit-inputs">
+              <div class="price-input-group">
+                <label class="price-label">税抜価格</label>
+                <div class="price-input-wrapper">
+                  <span class="price-prefix">¥</span>
+                  <input type="number" id="editPrice" class="price-input" required />
+                </div>
+              </div>
+              <div class="price-arrow">→</div>
+              <div class="price-input-group">
+                <label class="price-label">税込価格</label>
+                <div class="price-input-wrapper">
+                  <span class="price-prefix">¥</span>
+                  <input type="number" id="editPriceTaxed" class="price-input" required />
+                </div>
+              </div>
+            </div>
+
+            <p class="tax-hint">💡 税抜価格を入力すると税込価格が自動計算されます</p>
+
+            <div class="price-form-actions">
+              <button type="button" onclick="closePriceEditModal()" class="btn-cancel">キャンセル</button>
+              <button type="submit" class="btn-save">
+                ✓ 更新する
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </Layout>
 
@@ -393,22 +447,241 @@ import Layout from '../../../components/Layout.astro';
     gap: 0.75rem;
   }
 
-  .edit-link {
+  .add-plan-link {
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 600;
     padding: 0.375rem 0.75rem;
-    background: #f8fafc;
-    color: #667eea;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
     border-radius: var(--radius-md);
     text-decoration: none;
+    border: none;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+  }
+
+  .add-plan-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+  }
+
+  .plan-edit-btn {
+    background: #f1f5f9;
     border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 0.375rem 0.625rem;
+    cursor: pointer;
+    font-size: 0.875rem;
     transition: all var(--transition-fast);
   }
 
-  .edit-link:hover {
+  .plan-edit-btn:hover {
     background: #667eea;
     color: white;
     border-color: #667eea;
+  }
+
+  /* Price Edit Modal */
+  .price-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .price-modal.hidden {
+    display: none;
+  }
+
+  .price-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  .price-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+
+  .price-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .price-modal-header h2 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  .price-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .price-modal-close:hover {
+    color: white;
+  }
+
+  .price-modal-body {
+    padding: 1.5rem;
+  }
+
+  .price-info-display {
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+  }
+
+  .price-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .price-info-row:not(:last-child) {
+    border-bottom: 1px dashed #e2e8f0;
+  }
+
+  .price-info-label {
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+
+  .price-info-value {
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .price-edit-inputs {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .price-input-group {
+    flex: 1;
+  }
+
+  .price-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 0.5rem;
+  }
+
+  .price-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .price-input-wrapper:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+
+  .price-prefix {
+    padding: 0.75rem;
+    background: #f1f5f9;
+    color: #64748b;
+    font-weight: 600;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .price-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    width: 100%;
+  }
+
+  .price-input:focus {
+    outline: none;
+  }
+
+  .price-arrow {
+    color: #94a3b8;
+    font-size: 1.25rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .tax-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .price-form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .btn-cancel {
+    padding: 0.625rem 1.25rem;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 0.5rem;
+    color: #64748b;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  .btn-save {
+    padding: 0.625rem 1.5rem;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
+
+  .btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
   }
 
   .plan-list {
@@ -606,7 +879,7 @@ import Layout from '../../../components/Layout.astro';
   /* Protocol Content */
   .protocol-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 1.25rem;
   }
 
@@ -615,8 +888,9 @@ import Layout from '../../../components/Layout.astro';
     border-radius: var(--radius-xl);
     border: 1px solid #e2e8f0;
     padding: 1.75rem;
-    position: relative;
     transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
   }
 
   .protocol-card::before {
@@ -626,14 +900,14 @@ import Layout from '../../../components/Layout.astro';
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
     opacity: 0;
     transition: opacity var(--transition-fast);
   }
 
   .protocol-card:hover {
-    border-color: #c4b5fd;
-    box-shadow: 0 12px 40px rgba(139, 92, 246, 0.1);
+    border-color: #c7d2fe;
+    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.12);
     transform: translateY(-4px);
   }
 
@@ -646,70 +920,53 @@ import Layout from '../../../components/Layout.astro';
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .protocol-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 
   .protocol-title {
-    font-size: 1.0625rem;
+    font-size: 1.125rem;
     font-weight: 700;
     color: #1e293b;
     margin: 0;
+    line-height: 1.4;
     letter-spacing: -0.01em;
   }
 
   .protocol-version {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.375rem 0.625rem;
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    border-radius: var(--radius-full);
-    color: #64748b;
-    flex-shrink: 0;
+    color: #6366f1;
+    background: #eef2ff;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    width: fit-content;
   }
 
   .protocol-desc {
     font-size: 0.9375rem;
     color: #64748b;
     line-height: 1.7;
-    margin: 0;
+    margin: 0 0 1.25rem 0;
   }
 
-  .protocol-actions {
-    margin-top: 1.5rem;
+  .protocol-meta {
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: #64748b;
   }
 
-  .protocol-btn {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-  }
-
-  .protocol-btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  }
-
-  .protocol-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-  }
-
-  .protocol-btn-secondary {
-    background: white;
-    color: #667eea;
-    border: 2px solid #e0e7ff;
-  }
-
-  .protocol-btn-secondary:hover {
-    background: #f0f4ff;
-    border-color: #667eea;
+  .protocol-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
   }
 
   /* Cases Content */
@@ -1421,7 +1678,7 @@ import Layout from '../../../components/Layout.astro';
             ${treatment.description ? `<p class="treatment-desc">${escapeHtml(treatment.description)}</p>` : ''}
           </div>
           <div class="treatment-actions">
-            <a href="/treatments/${treatment.id}/edit" class="edit-link" title="詳細編集">✏️ 編集</a>
+            <a href="/pricing/new?treatment=${treatment.id}" class="add-plan-link" title="プラン追加">＋ プラン追加</a>
             <span class="plan-count">${treatment.plans.length} プラン</span>
           </div>
         </div>
@@ -1434,7 +1691,7 @@ import Layout from '../../../components/Layout.astro';
                 ${formatPrice(plan.price)}
                 ${plan.price_taxed ? `<span class="plan-price-taxed">(税込${formatPrice(plan.price_taxed)})</span>` : ''}
               </div>
-              <div class="plan-notes">${plan.notes ? escapeHtml(plan.notes) : ''}</div>
+              <button class="plan-edit-btn" onclick="openPriceEditModal('${plan.id}', '${escapeHtml(treatment.name)}', '${escapeHtml(plan.plan_name)}', ${plan.price || 0}, ${plan.price_taxed || 0})" title="価格を編集">✏️</button>
             </div>
           `).join('') : '<div class="plan-row"><div class="plan-name">プランなし</div></div>'}
         </div>
@@ -1516,13 +1773,19 @@ import Layout from '../../../components/Layout.astro';
         ${protocols.map(protocol => `
           <div class="protocol-card">
             <div class="protocol-header">
-              <h3 class="protocol-title">${escapeHtml(protocol.title)}</h3>
-              ${protocol.version ? `<span class="protocol-version">v${protocol.version}</span>` : ''}
+              <div class="protocol-title-group">
+                <h3 class="protocol-title">${escapeHtml(protocol.title)}</h3>
+                ${protocol.version ? `<span class="protocol-version">v${protocol.version}</span>` : ''}
+              </div>
+              ${protocol.file_url ? `
+                <a href="${protocol.file_url}" target="_blank" class="download-badge" title="資料をダウンロード">
+                  ${protocol.file_type === 'pdf' ? '📄 PDF' : '📁 ダウンロード'}
+                </a>
+              ` : ''}
             </div>
             ${protocol.description ? `<p class="protocol-desc">${escapeHtml(protocol.description)}</p>` : ''}
-            <div class="protocol-actions">
-              <button class="protocol-btn protocol-btn-primary">詳細を見る</button>
-              <button class="protocol-btn protocol-btn-secondary">PDFダウンロード</button>
+            <div class="protocol-meta">
+              <span class="protocol-meta-item">📅 ${new Date(protocol.created_at).toLocaleDateString('ja-JP')}</span>
             </div>
           </div>
         `).join('')}
@@ -1604,6 +1867,72 @@ import Layout from '../../../components/Layout.astro';
       });
     });
   }
+
+  // Price Edit Modal Functions
+  var TAX_RATE = 0.1;
+
+  window.openPriceEditModal = function(planId, treatmentName, planName, price, priceTaxed) {
+    var modal = document.getElementById('priceEditModal');
+    if (!modal) return;
+
+    document.getElementById('editPlanId').value = planId;
+    document.getElementById('displayTreatmentName').textContent = treatmentName;
+    document.getElementById('displayPlanName').textContent = planName;
+    document.getElementById('editPrice').value = price || '';
+    document.getElementById('editPriceTaxed').value = priceTaxed || '';
+
+    modal.classList.remove('hidden');
+  };
+
+  window.closePriceEditModal = function() {
+    var modal = document.getElementById('priceEditModal');
+    if (modal) modal.classList.add('hidden');
+  };
+
+  // 税抜から税込を自動計算
+  document.addEventListener('DOMContentLoaded', function() {
+    var priceInput = document.getElementById('editPrice');
+    var priceTaxedInput = document.getElementById('editPriceTaxed');
+
+    if (priceInput && priceTaxedInput) {
+      priceInput.addEventListener('input', function() {
+        var price = Number(priceInput.value);
+        if (price > 0) {
+          priceTaxedInput.value = Math.round(price * (1 + TAX_RATE));
+        }
+      });
+    }
+
+    // フォーム送信
+    var form = document.getElementById('priceEditForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var planId = document.getElementById('editPlanId').value;
+        var price = Number(document.getElementById('editPrice').value);
+        var priceTaxed = Number(document.getElementById('editPriceTaxed').value);
+
+        fetch('/api/pricing-id/' + planId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ price: price, price_taxed: priceTaxed })
+        }).then(function(res) {
+          if (res.ok) {
+            closePriceEditModal();
+            // ページを再読み込み
+            window.location.reload();
+          } else {
+            return res.json().then(function(err) {
+              alert('更新に失敗しました: ' + (err.message || 'Unknown error'));
+            });
+          }
+        }).catch(function(err) {
+          console.error('更新エラー:', err);
+          alert('更新に失敗しました');
+        });
+      });
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', init);
 </script>

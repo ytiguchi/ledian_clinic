@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryDB } from '../../../lib/db';
+import { parseIsPublishedParam } from '../../../lib/api';
 
 export const prerender = false;
 
@@ -57,7 +58,7 @@ interface ServiceBeforeAfter {
   treatment_info: string | null;
 }
 
-export const GET: APIRoute = async ({ locals, params }) => {
+export const GET: APIRoute = async ({ locals, params, url }) => {
   const { slug } = params;
 
   if (!slug) {
@@ -78,11 +79,15 @@ export const GET: APIRoute = async ({ locals, params }) => {
     const db = getDB(locals.runtime.env);
 
     // Get service content by slug
-    const contents = await queryDB<ServiceContent>(
-      db,
-      `SELECT * FROM service_contents WHERE slug = ?`,
-      [slug]
-    );
+    const isPublished = parseIsPublishedParam(url.searchParams.get('is_published'));
+    const queryParams: Array<string | number> = [slug];
+    let query = `SELECT * FROM service_contents WHERE slug = ?`;
+    if (isPublished !== null) {
+      query += ` AND is_published = ?`;
+      queryParams.push(isPublished);
+    }
+
+    const contents = await queryDB<ServiceContent>(db, query, queryParams);
 
     if (contents.length === 0) {
       return new Response(JSON.stringify({ error: 'Service content not found' }), {

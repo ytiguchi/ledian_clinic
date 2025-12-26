@@ -108,32 +108,66 @@ export const GET: APIRoute = async ({ locals, params }) => {
     let beforeAfters: any[] = [];
     if (treatmentIds.length > 0) {
       try {
-        const { placeholders, params } = buildInClause(treatmentIds);
-        beforeAfters = await queryDB<{
-          id: string;
-          treatment_id: string;
-          title: string | null;
-          before_image_url: string | null;
-          after_image_url: string | null;
-          description: string | null;
-          patient_age: number | null;
-          patient_gender: string | null;
-          treatment_count: number | null;
-          created_at: string | null;
-        }>(
-          db,
-          `SELECT id, treatment_id,
-                  caption AS title,
-                  before_image_url, after_image_url,
-                  treatment_content AS description,
-                  patient_age, patient_gender, treatment_count, created_at
-           FROM treatment_before_afters
-           WHERE treatment_id IN (${placeholders})
-           ORDER BY created_at DESC
-           LIMIT 10`,
-          params
-        );
+        const tableInfo = await db.prepare(`PRAGMA table_info(treatment_before_afters)`).all<{ name: string }>();
+        const hasTreatmentId =
+          tableInfo.success && tableInfo.results?.some((col) => col.name === 'treatment_id');
+        const hasSubcategoryId =
+          tableInfo.success && tableInfo.results?.some((col) => col.name === 'subcategory_id');
+
+        if (hasTreatmentId) {
+          const { placeholders, params } = buildInClause(treatmentIds);
+          beforeAfters = await queryDB<{
+            id: string;
+            treatment_id: string;
+            title: string | null;
+            before_image_url: string | null;
+            after_image_url: string | null;
+            description: string | null;
+            patient_age: number | null;
+            patient_gender: string | null;
+            treatment_count: number | null;
+            created_at: string | null;
+          }>(
+            db,
+            `SELECT id, treatment_id,
+                    caption AS title,
+                    before_image_url, after_image_url,
+                    treatment_content AS description,
+                    patient_age, patient_gender, treatment_count, created_at
+             FROM treatment_before_afters
+             WHERE treatment_id IN (${placeholders})
+             ORDER BY created_at DESC
+             LIMIT 10`,
+            params
+          );
+        } else if (hasSubcategoryId) {
+          beforeAfters = await queryDB<{
+            id: string;
+            title: string | null;
+            before_image_url: string | null;
+            after_image_url: string | null;
+            description: string | null;
+            patient_age: number | null;
+            patient_gender: string | null;
+            treatment_count: number | null;
+            created_at: string | null;
+          }>(
+            db,
+            `SELECT id,
+                    caption AS title,
+                    before_image_url, after_image_url,
+                    treatment_content AS description,
+                    patient_age, patient_gender, treatment_count, created_at
+             FROM treatment_before_afters
+             WHERE subcategory_id = ?
+             ORDER BY created_at DESC
+             LIMIT 10`,
+            [id]
+          );
+        }
+
         if (beforeAfters.length === 0) {
+          const { placeholders, params } = buildInClause(treatmentIds);
           beforeAfters = await queryDB<{
             id: string;
             treatment_id: string;
@@ -186,29 +220,28 @@ export const GET: APIRoute = async ({ locals, params }) => {
       console.warn('counseling_materials query failed:', e);
     }
 
-    // Get protocols linked to this subcategory (via treatments)
+    // Get protocols linked to this subcategory
     let protocols: any[] = [];
-    if (treatmentIds.length > 0) {
-      try {
-        const { placeholders, params } = buildInClause(treatmentIds);
-        protocols = await queryDB<{
-          id: string;
-          treatment_id: string;
-          title: string;
-          description: string | null;
-          version: string | null;
-          created_at: string | null;
-        }>(
-          db,
-          `SELECT id, treatment_id, title, description, version, created_at
-           FROM treatment_protocols
-           WHERE treatment_id IN (${placeholders}) AND is_published = 1
-           ORDER BY created_at DESC`,
-          params
-        );
-      } catch (e) {
-        console.warn('treatment_protocols query failed:', e);
-      }
+    try {
+      protocols = await queryDB<{
+        id: string;
+        subcategory_id: string;
+        title: string;
+        description: string | null;
+        version: string | null;
+        file_url: string | null;
+        file_type: string | null;
+        created_at: string | null;
+      }>(
+        db,
+        `SELECT id, subcategory_id, title, description, version, file_url, file_type, created_at
+         FROM treatment_protocols
+         WHERE subcategory_id = ? AND is_published = 1
+         ORDER BY created_at DESC`,
+        [id]
+      );
+    } catch (e) {
+      console.warn('treatment_protocols query failed:', e);
     }
 
     // Build response with treatments + plans nested
