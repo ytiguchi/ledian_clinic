@@ -426,8 +426,7 @@ const taxRate = getTaxRate(Astro.locals.runtime);
   }
 </style>
 
-<script>
-  const taxRate = ${taxRate};
+<script define:vars={{ taxRate }}>
   const toTaxedPrice = (amount) => Math.round(amount * (1 + taxRate));
 
   const planTypeLabels = {
