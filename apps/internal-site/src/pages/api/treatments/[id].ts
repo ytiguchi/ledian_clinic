@@ -1,26 +1,28 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryFirst } from '../../../lib/db';
+import {
+  jsonResponse,
+  requireParam,
+  requireRuntimeEnv,
+  withErrorHandling,
+} from '../../../lib/api';
 
 export const prerender = false;
 
 // 施術情報の取得（カテゴリ・サブカテゴリ情報も含む）
 export const GET: APIRoute = async ({ locals, params }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ treatment: null }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { treatment: null },
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
-  try {
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const id = params.id;
     
-    if (!id) {
-      return new Response(JSON.stringify({ error: 'Treatment ID is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    const idResponse = requireParam(id, 'Treatment ID');
+    if (idResponse) return idResponse;
     
     const treatment = await queryFirst<{
       id: string;
@@ -56,30 +58,14 @@ export const GET: APIRoute = async ({ locals, params }) => {
     );
     
     if (!treatment) {
-      return new Response(JSON.stringify({ error: 'Treatment not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(404, { error: 'Treatment not found' });
     }
     
-    return new Response(JSON.stringify({ 
+    return jsonResponse(200, { 
       treatment: {
         ...treatment,
         is_active: treatment.is_active === 1,
       }
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error fetching treatment:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  });
 };
-

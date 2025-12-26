@@ -20,10 +20,9 @@
 ## 確認方法
 
 ブラウザで以下にアクセス：
-- http://localhost:8788/pricing
-- http://localhost:8788/api/pricing
+- `http://localhost:8788/pricing`
+- `http://localhost:8788/api/pricing`
 
 データが表示されるはずです！
-
 
 

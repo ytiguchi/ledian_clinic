@@ -1,72 +1,26 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryFirst, executeDB } from '../../../lib/db';
-import { getTaxRate, toTaxedPrice } from '../../../lib/pricing';
-
-const JSON_HEADERS = { 'Content-Type': 'application/json' };
-
-const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
-
-const requireId = (id: string | undefined) => {
-  if (!id) {
-    return jsonResponse({ error: 'ID is required' }, 400);
-  }
-  return null;
-};
-
-const requireRuntimeEnv = (
-  runtime: App.Locals['runtime'] | undefined,
-  fallback: { body: unknown; status: number } = {
-    body: { error: 'Runtime env not available' },
-    status: 500,
-  }
-) => {
-  if (!runtime?.env) {
-    return jsonResponse(fallback.body, fallback.status);
-  }
-  return null;
-};
-
-type PricingInput = {
-  subcategory_id?: unknown;
-  plan_name?: unknown;
-  plan_type?: unknown;
-  sessions?: unknown;
-  quantity?: unknown;
-  price?: unknown;
-  price_taxed?: unknown;
-  price_per_session?: unknown;
-  price_per_session_taxed?: unknown;
-  cost_rate?: unknown;
-  supply_cost?: unknown;
-  staff_cost?: unknown;
-  total_cost?: unknown;
-  notes?: unknown;
-};
-
-const normalizeString = (value: unknown) =>
-  typeof value === 'string' ? value.trim() : '';
-
-const parseNullableNumber = (value: unknown) => {
-  if (value === null || value === undefined || value === '') return null;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
-    return Number(value);
-  }
-  return null;
-};
+import {
+  jsonResponse,
+  requireParam,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+} from '../../../lib/api';
+import { getTaxRate, normalizePricingInput, type PricingInput } from '../../../lib/pricing';
 
 export const GET: APIRoute = async ({ locals, params }) => {
-  const envResponse = requireRuntimeEnv(locals?.runtime, {
-    body: { plan: null },
-    status: 200,
-  });
-  if (envResponse) return envResponse;
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { plan: null },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const id = params.id;
 
-    const idResponse = requireId(id);
+    const idResponse = requireParam(id, 'Plan ID');
     if (idResponse) return idResponse;
 
     const plan = await queryFirst<{
@@ -107,24 +61,15 @@ export const GET: APIRoute = async ({ locals, params }) => {
     );
 
     if (!plan) {
-      return jsonResponse({ error: 'Plan not found' }, 404);
+      return jsonResponse(404, { error: 'Plan not found' });
     }
 
-    return jsonResponse({ plan });
-  } catch (error) {
-    console.error('Error fetching plan:', error);
-    return jsonResponse(
-      {
-        error: 'Internal Server Error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      500
-    );
-  }
+    return jsonResponse(200, { plan });
+  });
 };
 
 export const PUT: APIRoute = async ({ locals, params, request }) => {
-  try {
+  return withErrorHandling(async () => {
     const envResponse = requireRuntimeEnv(locals?.runtime);
     if (envResponse) return envResponse;
 
@@ -132,36 +77,17 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     const id = params.id;
     const data: PricingInput = await request.json();
 
-    const idResponse = requireId(id);
+    const idResponse = requireParam(id, 'Plan ID');
     if (idResponse) return idResponse;
 
     const taxRate = getTaxRate(locals?.runtime);
-    const subcategoryId = normalizeString(data.subcategory_id);
-    const planName = normalizeString(data.plan_name);
-    const price = parseNullableNumber(data.price);
-
-    if (!subcategoryId) {
-      return jsonResponse({ error: 'subcategory_id is required' }, 400);
+    const normalized = normalizePricingInput(data, taxRate);
+    if (normalized.errors.length > 0) {
+      return validationError(normalized.errors[0].message, normalized.errors);
     }
-    if (!planName) {
-      return jsonResponse({ error: 'plan_name is required' }, 400);
+    if (!normalized.values) {
+      return jsonResponse(400, { error: 'Invalid input' });
     }
-    if (price === null) {
-      return jsonResponse({ error: 'price is required' }, 400);
-    }
-
-    const planType = normalizeString(data.plan_type) || 'single';
-    const priceTaxed = toTaxedPrice(price, taxRate);
-    const sessions = parseNullableNumber(data.sessions);
-    const quantity = normalizeString(data.quantity) || null;
-    const pricePerSession = parseNullableNumber(data.price_per_session);
-    const pricePerSessionTaxed =
-      pricePerSession === null ? null : toTaxedPrice(pricePerSession, taxRate);
-    const costRate = parseNullableNumber(data.cost_rate);
-    const supplyCost = parseNullableNumber(data.supply_cost);
-    const staffCost = parseNullableNumber(data.staff_cost);
-    const totalCost = parseNullableNumber(data.total_cost);
-    const notes = normalizeString(data.notes) || null;
 
     await executeDB(
       db,
@@ -185,46 +111,37 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         WHERE id = ?
       `,
       [
-        subcategoryId,
-        planName,
-        planType,
-        sessions,
-        quantity,
-        price,
-        priceTaxed,
-        pricePerSession,
-        pricePerSessionTaxed,
-        costRate,
-        supplyCost,
-        staffCost,
-        totalCost,
-        notes,
+        normalized.values.subcategoryId,
+        normalized.values.planName,
+        normalized.values.planType,
+        normalized.values.sessions,
+        normalized.values.quantity,
+        normalized.values.price,
+        normalized.values.priceTaxed,
+        normalized.values.pricePerSession,
+        normalized.values.pricePerSessionTaxed,
+        normalized.values.costRate,
+        normalized.values.supplyCost,
+        normalized.values.staffCost,
+        normalized.values.totalCost,
+        normalized.values.notes,
         id
       ]
     );
 
-    return jsonResponse({ success: true, id });
-  } catch (error) {
-    console.error('Error updating plan:', error);
-    return jsonResponse(
-      {
-        error: 'Internal Server Error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      500
-    );
-  }
+    return jsonResponse(200, { success: true, id });
+  });
 };
 
 export const DELETE: APIRoute = async ({ locals, params }) => {
-  try {
+  return withErrorHandling(async () => {
     const envResponse = requireRuntimeEnv(locals?.runtime);
     if (envResponse) return envResponse;
 
     const db = getDB(locals.runtime.env);
     const id = params.id;
 
-    const idResponse = requireId(id);
+    const idResponse = requireParam(id, 'Plan ID');
     if (idResponse) return idResponse;
 
     // ソフトデリート（is_active = 0）にする
@@ -234,16 +151,7 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
       [id]
     );
 
-    return jsonResponse({ success: true });
-  } catch (error) {
-    console.error('Error deleting plan:', error);
-    return jsonResponse(
-      {
-        error: 'Internal Server Error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
-      500
-    );
-  }
+    return jsonResponse(200, { success: true });
+  });
 };
 export const prerender = false;

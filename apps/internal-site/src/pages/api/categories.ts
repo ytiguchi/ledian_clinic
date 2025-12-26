@@ -1,12 +1,21 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryDB } from '../../lib/db';
+import {
+  jsonResponse,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+} from '../../lib/api';
 import type { CategoriesResponse } from '../../types/api';
 
 export const GET: APIRoute = async ({ locals }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ categories: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { categories: [] },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     
     const categories = await queryDB<{
@@ -28,24 +37,8 @@ export const GET: APIRoute = async ({ locals }) => {
         is_active: cat.is_active === 1,
       })),
     };
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  }
+    return jsonResponse(200, response);
+  });
 };
 
 function normalizeSlug(input: string): string {
@@ -62,14 +55,13 @@ function normalizeSlug(input: string): string {
 
 // カテゴリ新規作成
 export const POST: APIRoute = async ({ locals, request }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ error: 'Database not available' }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
+    if (envResponse) return envResponse;
 
-  try {
     const db = getDB(locals.runtime.env);
     const body = await request.json().catch(() => ({}));
     const rawName = typeof body?.name === 'string' ? body.name : '';
@@ -77,10 +69,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
     const name = rawName.trim();
     if (!name) {
-      return new Response(JSON.stringify({ error: 'カテゴリ名は必須です' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return validationError('カテゴリ名は必須です', [
+        { field: 'name', message: 'カテゴリ名は必須です' },
+      ]);
     }
 
     // 同名は不可（UNIQUE）。slugは重複時に自動でサフィックス付与。
@@ -112,11 +103,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
       const err = insert.error || '';
       // name UNIQUE violation
-      if (err.toLowerCase().includes('categories.name') || err.toLowerCase().includes('unique') && err.toLowerCase().includes('name')) {
-        return new Response(JSON.stringify({ error: '同名のカテゴリが既に存在します' }), {
-          status: 409,
-          headers: { 'Content-Type': 'application/json' },
-        });
+      if (
+        err.toLowerCase().includes('categories.name') ||
+        (err.toLowerCase().includes('unique') && err.toLowerCase().includes('name'))
+      ) {
+        return jsonResponse(409, { error: '同名のカテゴリが既に存在します' });
       }
 
       // slug UNIQUE violation -> try next
@@ -129,10 +120,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     if (!createdRowId) {
-      return new Response(JSON.stringify({ error: 'カテゴリ作成に失敗しました（slug重複）' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(500, { error: 'カテゴリ作成に失敗しました（slug重複）' });
     }
 
     // rowid から取得（id型がINTEGERでもTEXTでも対応できる）
@@ -153,31 +141,19 @@ export const POST: APIRoute = async ({ locals, request }) => {
         updated_at: string;
       }>();
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        category: created
-          ? { ...created, is_active: created.is_active === 1 }
-          : { id: String(createdRowId), name, slug: finalSlug, sort_order: nextOrder, is_active: true },
-      }),
-      {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (error) {
-    console.error('Error creating category:', error);
-    return new Response(
-      JSON.stringify({
-        error: 'Internal Server Error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
+    return jsonResponse(201, {
+      success: true,
+      category: created
+        ? { ...created, is_active: created.is_active === 1 }
+        : {
+            id: String(createdRowId),
+            name,
+            slug: finalSlug,
+            sort_order: nextOrder,
+            is_active: true,
+          },
+    });
+  });
 };
 
 export const prerender = false;

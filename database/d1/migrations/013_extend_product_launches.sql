@@ -196,3 +196,4 @@ BEGIN
     UPDATE launch_before_afters SET updated_at = datetime('now') WHERE id = NEW.id;
 END;
 
+

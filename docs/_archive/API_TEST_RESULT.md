@@ -18,8 +18,8 @@ curl http://localhost:8788/api/pricing
 
 ### 2. ブラウザで確認
 
-- http://localhost:8788/pricing
-- http://localhost:8788/api/categories
+- `http://localhost:8788/pricing`
+- `http://localhost:8788/api/categories`
 
 ## 期待される結果
 
@@ -30,6 +30,5 @@ curl http://localhost:8788/api/pricing
 
 - カテゴリ: 3件
 - 料金プラン: 4件
-
 
 

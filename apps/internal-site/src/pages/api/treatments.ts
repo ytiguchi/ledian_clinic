@@ -1,14 +1,15 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryDB } from '../../lib/db';
+import { jsonResponse, requireRuntimeEnv, withErrorHandling } from '../../lib/api';
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ treatments: [] }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { treatments: [] },
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
-  try {
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const subcategoryId = url.searchParams.get('subcategory_id');
     const categoryId = url.searchParams.get('category_id');
@@ -62,26 +63,13 @@ export const GET: APIRoute = async ({ locals, url }) => {
       category_name: string;
     }>(db, query, params);
     
-    return new Response(JSON.stringify({
+    return jsonResponse(200, {
       treatments: treatments.map(t => ({
         ...t,
         is_active: t.is_active === 1,
       })),
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error fetching treatments:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  });
 };
 export const prerender = false;
-
 

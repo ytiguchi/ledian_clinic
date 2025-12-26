@@ -1,5 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryDB, executeDB, queryFirst } from '../../../lib/db';
+import {
+  jsonResponse,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+  type ValidationFieldError,
+} from '../../../lib/api';
 
 type CampaignInput = {
   title?: unknown;
@@ -12,12 +19,6 @@ type CampaignInput = {
   is_published?: unknown;
   is_featured?: unknown;
 };
-
-const jsonResponse = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 
 const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
 
@@ -33,16 +34,27 @@ const parseDiscountValue = (value: unknown) => {
 const validateCampaignInput = (data: CampaignInput) => {
   const title = normalizeString(data.title);
   const slug = normalizeString(data.slug);
-  if (!title) return { ok: false, error: 'Title is required' };
-  if (!slug) return { ok: false, error: 'Slug is required' };
+  const errors: ValidationFieldError[] = [];
+  if (!title) {
+    errors.push({ field: 'title', message: 'Title is required' });
+  }
+  if (!slug) {
+    errors.push({ field: 'slug', message: 'Slug is required' });
+  }
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
   return { ok: true, title, slug };
 };
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  if (!locals?.runtime?.env) {
-    return jsonResponse(200, { campaigns: [] });
-  }
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { campaigns: [] },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     
     const isPublished = url.searchParams.get('is_published');
@@ -99,29 +111,22 @@ export const GET: APIRoute = async ({ locals, url }) => {
         is_featured: c.is_featured === 1,
       }))
     });
-  } catch (error) {
-    console.error('Error fetching campaigns:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error('Error details:', { errorMessage, errorStack });
-    return jsonResponse(500, {
-      error: 'Internal Server Error',
-      message: errorMessage,
-      stack: errorStack
-    });
-  }
+  });
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
-  try {
-    if (!locals?.runtime?.env) {
-      return jsonResponse(500, { error: 'Database not available' });
-    }
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const data: CampaignInput = await request.json();
     const validation = validateCampaignInput(data);
     if (!validation.ok) {
-      return jsonResponse(400, { error: validation.error });
+      return validationError(validation.errors[0].message, validation.errors);
     }
     
     const existing = await queryFirst<{ id: string }>(
@@ -161,13 +166,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     
     return jsonResponse(201, {
       id: campaignId,
-      success: true
+      success: true,
     });
-  } catch (error) {
-    console.error('Error creating campaign:', error);
-    return jsonResponse(500, {
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  });
 };

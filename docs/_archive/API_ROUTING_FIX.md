@@ -24,11 +24,10 @@ wrangler pages dev dist --local --port 8788
 ```
 
 その後、ブラウザで確認：
-- http://localhost:8788/pricing
-- http://localhost:8788/api/categories
-- http://localhost:8788/api/pricing
+- `http://localhost:8788/pricing`
+- `http://localhost:8788/api/categories`
+- `http://localhost:8788/api/pricing`
 
 エラーが解消されているはずです！
-
 
 

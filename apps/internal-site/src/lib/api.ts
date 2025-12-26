@@ -17,6 +17,11 @@ export interface ApiSuccess<T> {
   };
 }
 
+export type ValidationFieldError = {
+  field: string;
+  message: string;
+};
+
 /**
  * Create a JSON response with proper headers
  */
@@ -65,6 +70,16 @@ export function badRequestResponse(message: string): Response {
 }
 
 /**
+ * Create a 400 validation error response
+ */
+export function validationError(
+  message: string,
+  fields: ValidationFieldError[]
+): Response {
+  return jsonResponse(400, { error: message, fields });
+}
+
+/**
  * Create a 500 internal server error response
  */
 export function serverErrorResponse(error: unknown): Response {
@@ -76,11 +91,15 @@ export function serverErrorResponse(error: unknown): Response {
 /**
  * Wrapper for async API handlers with consistent error handling
  */
-export async function withErrorHandling<T>(
-  handler: () => Promise<T>
-): Promise<T | Response> {
+export async function withErrorHandling(
+  handler: () => Promise<Response>
+): Promise<Response> {
   try {
-    return await handler();
+    const result = await handler();
+    if (result instanceof Response) {
+      return result;
+    }
+    return errorResponse('Handler did not return a Response', 500, 'INTERNAL_ERROR');
   } catch (error) {
     return serverErrorResponse(error);
   }
@@ -92,6 +111,37 @@ export async function withErrorHandling<T>(
 export function checkDatabase(locals: App.Locals): Response | null {
   if (!locals?.runtime?.env?.DB) {
     return errorResponse('Database not available', 503, 'DB_UNAVAILABLE');
+  }
+  return null;
+}
+
+type RuntimeEnvFallback = { body: unknown; status: number };
+
+/**
+ * Ensure runtime env is available
+ */
+export function requireRuntimeEnv(
+  runtime: App.Locals['runtime'] | undefined,
+  fallback: RuntimeEnvFallback = {
+    body: { error: 'Runtime env not available' },
+    status: 500,
+  }
+): Response | null {
+  if (!runtime?.env) {
+    return jsonResponse(fallback.status, fallback.body);
+  }
+  return null;
+}
+
+/**
+ * Ensure a required parameter exists
+ */
+export function requireParam(
+  value: string | undefined,
+  name = 'ID'
+): Response | null {
+  if (!value) {
+    return jsonResponse(400, { error: `${name} is required` });
   }
   return null;
 }

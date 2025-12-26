@@ -36,6 +36,6 @@ npm run build
 wrangler pages dev dist --local --port 8788
 ```
 
-ブラウザで http://localhost:8788/pricing にアクセスすると、データが表示されるはずです。
+ブラウザで `http://localhost:8788/pricing` にアクセスすると、データが表示されるはずです。
 
 

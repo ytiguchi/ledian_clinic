@@ -1,29 +1,41 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../../lib/db';
+import {
+  jsonResponse,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+} from '../../../lib/api';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ before_afters: [] }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { before_afters: [] },
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
-  try {
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     
     const subcategoryId = url.searchParams.get('subcategory_id');
+    const treatmentId = url.searchParams.get('treatment_id');
     const categoryId = url.searchParams.get('category_id');
     const isPublished = url.searchParams.get('is_published');
     
     let query = `
       SELECT 
         ba.id,
-        ba.subcategory_id,
+        ba.treatment_id,
         ba.before_image_url,
         ba.after_image_url,
         ba.caption,
+        ba.treatment_content,
+        ba.treatment_duration,
+        ba.treatment_cost,
+        ba.treatment_cost_text,
+        ba.risks,
         ba.patient_age,
         ba.patient_gender,
         ba.treatment_count,
@@ -31,11 +43,15 @@ export const GET: APIRoute = async ({ locals, url }) => {
         ba.is_published,
         ba.sort_order,
         ba.created_at,
+        t.name AS treatment_name,
+        t.slug AS treatment_slug,
+        sc.id AS subcategory_id,
         sc.name AS subcategory_name,
         c.id AS category_id,
         c.name AS category_name
       FROM treatment_before_afters ba
-      JOIN subcategories sc ON ba.subcategory_id = sc.id
+      JOIN treatments t ON ba.treatment_id = t.id
+      JOIN subcategories sc ON t.subcategory_id = sc.id
       JOIN categories c ON sc.category_id = c.id
       WHERE 1=1
     `;
@@ -48,8 +64,13 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
 
     if (subcategoryId) {
-      query += ' AND ba.subcategory_id = ?';
+      query += ' AND sc.id = ?';
       params.push(subcategoryId);
+    }
+
+    if (treatmentId) {
+      query += ' AND ba.treatment_id = ?';
+      params.push(treatmentId);
     }
     
     if (isPublished !== null && isPublished !== undefined) {
@@ -65,10 +86,15 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
     const result = await stmt.all<{
       id: string;
-      subcategory_id: string;
+      treatment_id: string;
       before_image_url: string;
       after_image_url: string;
       caption: string | null;
+      treatment_content: string | null;
+      treatment_duration: string | null;
+      treatment_cost: number | null;
+      treatment_cost_text: string | null;
+      risks: string | null;
       patient_age: number | null;
       patient_gender: string | null;
       treatment_count: number | null;
@@ -76,6 +102,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
       is_published: number;
       sort_order: number;
       created_at: string;
+      treatment_name: string;
+      treatment_slug: string;
+      subcategory_id: string;
       subcategory_name: string;
       category_id: string;
       category_name: string;
@@ -85,58 +114,50 @@ export const GET: APIRoute = async ({ locals, url }) => {
       throw new Error(result.error || 'Database query failed');
     }
     
-    return new Response(JSON.stringify({ before_afters: result.results || [] }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Error fetching before-afters:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+    return jsonResponse(200, { before_afters: result.results || [] });
+  });
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ error: 'Environment not available' }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Environment not available' },
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
-  try {
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const data = await request.json();
     
     // バリデーション
-    if (!data.subcategory_id) {
-      return new Response(JSON.stringify({ error: 'subcategory_id is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!data.treatment_id) {
+      return validationError('treatment_id is required', [
+        { field: 'treatment_id', message: 'treatment_id is required' },
+      ]);
     }
     if (!data.after_image_url) {
-      return new Response(JSON.stringify({ error: 'after_image_url is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return validationError('after_image_url is required', [
+        { field: 'after_image_url', message: 'after_image_url is required' },
+      ]);
     }
     
     const result = await db.prepare(`
       INSERT INTO treatment_before_afters (
-        subcategory_id, before_image_url, after_image_url, caption,
+        treatment_id, before_image_url, after_image_url, caption,
+        treatment_content, treatment_duration, treatment_cost, treatment_cost_text, risks,
         patient_age, patient_gender, treatment_count, treatment_period,
         is_published, sort_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      data.subcategory_id,
+      data.treatment_id,
       data.before_image_url || '',
       data.after_image_url,
       data.caption || null,
+      data.treatment_content || null,
+      data.treatment_duration || null,
+      data.treatment_cost ?? null,
+      data.treatment_cost_text || null,
+      data.risks || null,
       data.patient_age || null,
       data.patient_gender || null,
       data.treatment_count || null,
@@ -149,21 +170,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
       throw new Error(result.error || 'Failed to create before-after');
     }
     
-    return new Response(JSON.stringify({
+    return jsonResponse(201, {
       id: result.meta.last_row_id,
-      success: true
-    }), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' },
+      success: true,
     });
-  } catch (error) {
-    console.error('Error creating before-after:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  });
 };

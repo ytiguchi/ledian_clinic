@@ -38,3 +38,4 @@ INSERT INTO categories (id, name, slug, sort_order, is_active) VALUES
 -- このマイグレーションはカテゴリのみを投入し、残りは手動で投入するか、
 -- wrangler d1 execute コマンドで seed.sql を実行してください
 
+

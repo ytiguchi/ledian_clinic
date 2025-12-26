@@ -1,17 +1,24 @@
 import type { APIRoute } from 'astro';
-import { getDB, queryDB, executeDB, queryFirst } from '../../lib/db';
+import { getDB, queryDB, executeDB } from '../../lib/db';
+import {
+  jsonResponse,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+  type ValidationFieldError,
+} from '../../lib/api';
 
 export const prerender = false;
 
 // タグ一覧の取得
 export const GET: APIRoute = async ({ locals, url }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ tags: [] }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { tags: [] },
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
-  try {
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const tagType = url.searchParams.get('tag_type');
     
@@ -37,38 +44,39 @@ export const GET: APIRoute = async ({ locals, url }) => {
       created_at: string;
     }>(db, query, params);
     
-    return new Response(JSON.stringify({ 
+    return jsonResponse(200, { 
       tags: tags.map(t => ({
         ...t,
         is_active: t.is_active === 1,
       }))
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error fetching tags:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  });
 };
 
 // タグの作成
 export const POST: APIRoute = async ({ locals, request }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const data = await request.json();
     
     if (!data.tag_type || !data.name || !data.slug) {
-      return new Response(JSON.stringify({ error: 'tag_type, name, and slug are required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const fields: ValidationFieldError[] = [];
+      if (!data.tag_type) {
+        fields.push({ field: 'tag_type', message: 'tag_type is required' });
+      }
+      if (!data.name) {
+        fields.push({ field: 'name', message: 'name is required' });
+      }
+      if (!data.slug) {
+        fields.push({ field: 'slug', message: 'slug is required' });
+      }
+      return validationError('tag_type, name, and slug are required', fields);
     }
     
     const result = await executeDB(
@@ -89,22 +97,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
       ]
     );
     
-    return new Response(JSON.stringify({ 
+    return jsonResponse(201, { 
       success: true, 
       id: result.meta.last_row_id 
-    }), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error creating tag:', error);
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  });
 };
-

@@ -1,9 +1,31 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../../lib/db';
+import {
+  jsonResponse,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+  type ValidationFieldError,
+} from '../../../lib/api';
+
+const parseNullableNumber = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
+    return Number(value);
+  }
+  return null;
+};
 
 // 発売予定商品一覧取得
 export const GET: APIRoute = async ({ request, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { launches: [] },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const url = new URL(request.url);
     const status = url.searchParams.get('status');
@@ -28,26 +50,21 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
     const result = await db.prepare(query).bind(...params).all();
 
-    return new Response(JSON.stringify({
-      launches: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json' }
+    return jsonResponse(200, {
+      launches: result.results || [],
     });
-  } catch (error) {
-    console.error('Error fetching product launches:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to fetch product launches',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  });
 };
 
 // 新規発売予定商品作成
 export const POST: APIRoute = async ({ request, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const body = await request.json();
 
@@ -66,11 +83,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } = body;
 
     if (!name) {
-      return new Response(JSON.stringify({ error: '商品名は必須です' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const fields: ValidationFieldError[] = [
+        { field: 'name', message: '商品名は必須です' },
+      ];
+      return validationError('商品名は必須です', fields);
     }
+
+    const plannedPrice = parseNullableNumber(planned_price);
+    const plannedPriceTaxed = parseNullableNumber(planned_price_taxed);
+    const parsedPriority = parseNullableNumber(priority) ?? 0;
 
     const result = await db.prepare(`
       INSERT INTO product_launches (
@@ -83,12 +104,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       description || null,
       target_category_id || null,
       target_subcategory_name || null,
-      planned_price || null,
-      planned_price_taxed || null,
+      plannedPrice,
+      plannedPriceTaxed,
       price_notes || null,
       target_launch_date || null,
       owner_name || null,
-      priority,
+      parsedPriority,
       notes || null
     ).run();
 
@@ -112,22 +133,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
       `).bind(launchId, task.task_type, task.title, task.sort_order).run();
     }
 
-    return new Response(JSON.stringify({ 
+    return jsonResponse(201, { 
       success: true, 
-      id: launchId 
-    }), {
-      status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      id: launchId, 
     });
-  } catch (error) {
-    console.error('Error creating product launch:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to create product launch',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  });
 };
-

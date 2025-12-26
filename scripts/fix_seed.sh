@@ -79,3 +79,4 @@ npx wrangler@4.56.0 d1 execute ledian-internal-prod \
 echo ""
 echo "✅ すべて完了！"
 
+

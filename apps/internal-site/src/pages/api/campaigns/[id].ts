@@ -1,5 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getDB, queryFirst, executeDB, queryDB } from '../../../lib/db';
+import {
+  jsonResponse,
+  requireParam,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+  type ValidationFieldError,
+} from '../../../lib/api';
 
 type CampaignInput = {
   title?: unknown;
@@ -15,12 +23,6 @@ type CampaignInput = {
   plans?: unknown;
 };
 
-const jsonResponse = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-
 const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
 
 const parseNumber = (value: unknown, fallback: number) => {
@@ -34,22 +36,32 @@ const parseNumber = (value: unknown, fallback: number) => {
 const validateCampaignInput = (data: CampaignInput) => {
   const title = normalizeString(data.title);
   const slug = normalizeString(data.slug);
-  if (!title) return { ok: false, error: 'Title is required' };
-  if (!slug) return { ok: false, error: 'Slug is required' };
+  const errors: ValidationFieldError[] = [];
+  if (!title) {
+    errors.push({ field: 'title', message: 'Title is required' });
+  }
+  if (!slug) {
+    errors.push({ field: 'slug', message: 'Slug is required' });
+  }
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
   return { ok: true, title, slug };
 };
 
 export const GET: APIRoute = async ({ locals, params }) => {
-  if (!locals?.runtime?.env) {
-    return jsonResponse(200, { campaign: null });
-  }
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { campaign: null },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const id = params.id;
     
-    if (!id) {
-      return jsonResponse(400, { error: 'ID is required' });
-    }
+    const idResponse = requireParam(id, 'Campaign ID');
+    if (idResponse) return idResponse;
     
     // キャンペーン基本情報取得
     const campaign = await queryFirst<{
@@ -99,31 +111,27 @@ export const GET: APIRoute = async ({ locals, params }) => {
       },
       plans
     });
-  } catch (error) {
-    console.error('Error fetching campaign:', error);
-    return jsonResponse(500, {
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  });
 };
 
 export const PUT: APIRoute = async ({ locals, params, request }) => {
-  try {
-    if (!locals?.runtime?.env) {
-      return jsonResponse(500, { error: 'Database not available' });
-    }
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const id = params.id;
     const data: CampaignInput = await request.json();
     
-    if (!id) {
-      return jsonResponse(400, { error: 'ID is required' });
-    }
+    const idResponse = requireParam(id, 'Campaign ID');
+    if (idResponse) return idResponse;
     
     const validation = validateCampaignInput(data);
     if (!validation.ok) {
-      return jsonResponse(400, { error: validation.error });
+      return validationError(validation.errors[0].message, validation.errors);
     }
     
     const existing = await queryFirst<{ id: string }>(
@@ -200,26 +208,22 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     }
     
     return jsonResponse(200, { success: true, id });
-  } catch (error) {
-    console.error('Error updating campaign:', error);
-    return jsonResponse(500, {
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  });
 };
 
 export const DELETE: APIRoute = async ({ locals, params }) => {
-  try {
-    if (!locals?.runtime?.env) {
-      return jsonResponse(500, { error: 'Database not available' });
-    }
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const id = params.id;
     
-    if (!id) {
-      return jsonResponse(400, { error: 'ID is required' });
-    }
+    const idResponse = requireParam(id, 'Campaign ID');
+    if (idResponse) return idResponse;
     
     // campaign_plans は CASCADE で削除される想定
     const result = await executeDB(
@@ -229,12 +233,6 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
     );
     
     return jsonResponse(200, { success: true });
-  } catch (error) {
-    console.error('Error deleting campaign:', error);
-    return jsonResponse(500, {
-      error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  });
 };
 export const prerender = false;

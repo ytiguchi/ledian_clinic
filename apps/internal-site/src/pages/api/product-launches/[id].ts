@@ -1,11 +1,26 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../../lib/db';
+import {
+  jsonResponse,
+  requireParam,
+  requireRuntimeEnv,
+  withErrorHandling,
+} from '../../../lib/api';
 
 // 発売予定商品詳細取得
 export const GET: APIRoute = async ({ params, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { launch: null, tasks: [], plans: [] },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const { id } = params;
+
+    const idResponse = requireParam(id, 'Launch ID');
+    if (idResponse) return idResponse;
 
     const launch = await db.prepare(`
       SELECT 
@@ -17,10 +32,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     `).bind(id).first();
 
     if (!launch) {
-      return new Response(JSON.stringify({ error: 'Not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse(404, { error: 'Not found' });
     }
 
     const tasks = await db.prepare(`
@@ -31,40 +43,35 @@ export const GET: APIRoute = async ({ params, locals }) => {
       SELECT * FROM launch_plans WHERE launch_id = ? ORDER BY sort_order, id
     `).bind(id).all();
 
-    return new Response(JSON.stringify({
+    return jsonResponse(200, {
       launch,
       tasks: tasks.results || [],
       plans: plans.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json' }
     });
-  } catch (error) {
-    console.error('Error fetching product launch:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to fetch product launch',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  });
 };
 
 // 発売予定商品更新（部分更新対応）
 export const PUT: APIRoute = async ({ params, request, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
+
+    const idResponse = requireParam(id, 'Launch ID');
+    if (idResponse) return idResponse;
 
     // 現在のデータを取得
     const currentLaunch = await db.prepare('SELECT * FROM product_launches WHERE id = ?').bind(id).first() as any;
     
     if (!currentLaunch) {
-      return new Response(JSON.stringify({ error: 'Not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse(404, { error: 'Not found' });
     }
 
     // 部分更新：渡されたフィールドのみ更新、undefined は現在の値を維持
@@ -134,41 +141,27 @@ export const PUT: APIRoute = async ({ params, request, locals }) => {
       id
     ).run();
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('Error updating product launch:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to update product launch',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+    return jsonResponse(200, { success: true });
+  });
 };
 
 // 発売予定商品削除
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const { id } = params;
 
+    const idResponse = requireParam(id, 'Launch ID');
+    if (idResponse) return idResponse;
+
     await db.prepare('DELETE FROM product_launches WHERE id = ?').bind(id).run();
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('Error deleting product launch:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to delete product launch',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+    return jsonResponse(200, { success: true });
+  });
 };
-

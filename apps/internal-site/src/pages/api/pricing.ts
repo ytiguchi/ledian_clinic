@@ -1,43 +1,17 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../lib/db';
-import { getTaxRate, toTaxedPrice } from '../../lib/pricing';
+import { jsonResponse, validationError } from '../../lib/api';
+import {
+  getTaxRate,
+  normalizePricingInput,
+  parseNullableNumber,
+  type PricingInput,
+} from '../../lib/pricing';
 import type { PricePlan, PricingResponse } from '../../types/api';
 
 export const prerender = false;
 
-type PricingInput = {
-  subcategory_id?: unknown;
-  plan_name?: unknown;
-  plan_type?: unknown;
-  sessions?: unknown;
-  quantity?: unknown;
-  price?: unknown;
-  price_taxed?: unknown;
-  price_per_session?: unknown;
-  price_per_session_taxed?: unknown;
-  cost_rate?: unknown;
-  supply_cost?: unknown;
-  staff_cost?: unknown;
-  total_cost?: unknown;
-  sort_order?: unknown;
-};
-
-const jsonResponse = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-
-const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
-
-const parseNullableNumber = (value: unknown) => {
-  if (value === null || value === undefined || value === '') return null;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) {
-    return Number(value);
-  }
-  return null;
-};
+type PricingInputWithSort = PricingInput & { sort_order?: unknown };
 
 const getSearchParam = (url: URL, key: string) => {
   const raw = url.searchParams.get(key);
@@ -47,8 +21,8 @@ const getSearchParam = (url: URL, key: string) => {
   return trimmed;
 };
 
-const buildPricingQuery = (hasTreatmentId: boolean) => {
-  const selectColumns = [
+const getSelectColumns = (hasTreatmentId: boolean) =>
+  [
     'tp.id',
     'tp.plan_name',
     'tp.plan_type',
@@ -73,7 +47,8 @@ const buildPricingQuery = (hasTreatmentId: boolean) => {
     'c.name AS category_name',
   ].join(',\n          ');
 
-  const fromClause = hasTreatmentId
+const getFromClause = (hasTreatmentId: boolean) =>
+  hasTreatmentId
     ? `FROM treatment_plans tp
         JOIN treatments t ON tp.treatment_id = t.id
         JOIN subcategories sc ON t.subcategory_id = sc.id
@@ -82,13 +57,31 @@ const buildPricingQuery = (hasTreatmentId: boolean) => {
         JOIN subcategories sc ON tp.subcategory_id = sc.id
         JOIN categories c ON sc.category_id = c.id`;
 
-  const searchFields = hasTreatmentId
-    ? ['t.name', 'sc.name', 'tp.plan_name', 'c.name']
-    : ['sc.name', 'tp.plan_name', 'c.name'];
+const SEARCH_FIELDS_WITH_TREATMENT = [
+  't.name',
+  'sc.name',
+  'tp.plan_name',
+  'c.name',
+] as const;
+const SEARCH_FIELDS_WITHOUT_TREATMENT = [
+  'sc.name',
+  'tp.plan_name',
+  'c.name',
+] as const;
 
-  const orderBy = hasTreatmentId
+const getSearchFields = (hasTreatmentId: boolean) =>
+  hasTreatmentId ? SEARCH_FIELDS_WITH_TREATMENT : SEARCH_FIELDS_WITHOUT_TREATMENT;
+
+const getOrderBy = (hasTreatmentId: boolean) =>
+  hasTreatmentId
     ? ' ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order'
     : ' ORDER BY c.sort_order, sc.sort_order, tp.sort_order';
+
+const buildPricingQuery = (hasTreatmentId: boolean) => {
+  const selectColumns = getSelectColumns(hasTreatmentId);
+  const fromClause = getFromClause(hasTreatmentId);
+  const searchFields = getSearchFields(hasTreatmentId);
+  const orderBy = getOrderBy(hasTreatmentId);
 
   const query = `
         SELECT 
@@ -98,6 +91,51 @@ const buildPricingQuery = (hasTreatmentId: boolean) => {
       `;
 
   return { query, searchFields, orderBy };
+};
+
+const appendCondition = (
+  query: string,
+  params: unknown[],
+  condition: string,
+  values: unknown[]
+) => {
+  params.push(...values);
+  return `${query} ${condition}`;
+};
+
+const applyCategoryFilter = (
+  query: string,
+  params: unknown[],
+  categoryId: string | null
+) => {
+  if (!categoryId) return query;
+  return appendCondition(query, params, 'AND c.id = ?', [categoryId]);
+};
+
+const applySubcategoryFilter = (
+  query: string,
+  params: unknown[],
+  subcategoryId: string | null
+) => {
+  if (!subcategoryId) return query;
+  return appendCondition(query, params, 'AND sc.id = ?', [subcategoryId]);
+};
+
+const applySearchFilter = (
+  query: string,
+  params: unknown[],
+  search: string | null,
+  searchFields: readonly string[]
+) => {
+  if (!search) return query;
+  const searchPattern = `%${search}%`;
+  const searchConditions = searchFields.map(field => `${field} LIKE ?`).join(' OR ');
+  return appendCondition(
+    query,
+    params,
+    `AND (${searchConditions})`,
+    searchFields.map(() => searchPattern)
+  );
 };
 
 const hasTreatmentIdColumn = async (db: ReturnType<typeof getDB>) => {
@@ -134,21 +172,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
     query = built.query;
     params = [];
 
-    if (categoryId) {
-      query += ' AND c.id = ?';
-      params.push(categoryId);
-    }
-
-    if (subcategoryId) {
-      query += ' AND sc.id = ?';
-      params.push(subcategoryId);
-    }
-
-    if (search) {
-      query += ` AND (${built.searchFields.map(field => `${field} LIKE ?`).join(' OR ')})`;
-      const searchPattern = `%${search}%`;
-      params.push(...built.searchFields.map(() => searchPattern));
-    }
+    query = applyCategoryFilter(query, params, categoryId);
+    query = applySubcategoryFilter(query, params, subcategoryId);
+    query = applySearchFilter(query, params, search, built.searchFields);
 
     query += built.orderBy;
     
@@ -191,27 +217,18 @@ export const POST: APIRoute = async ({ locals, request }) => {
       return jsonResponse(500, { error: 'Database not available' });
     }
     const db = getDB(locals.runtime.env);
-    const data: PricingInput = await request.json();
-
-    const subcategoryId = normalizeString(data.subcategory_id);
-    const planName = normalizeString(data.plan_name);
-    const price = parseNullableNumber(data.price);
-
-    if (!subcategoryId) {
-      return jsonResponse(400, { error: 'subcategory_id is required' });
-    }
-    if (!planName) {
-      return jsonResponse(400, { error: 'plan_name is required' });
-    }
-    if (price === null) {
-      return jsonResponse(400, { error: 'price is required' });
-    }
+    const data: PricingInputWithSort = await request.json();
 
     const taxRate = getTaxRate(locals?.runtime);
-    const priceTaxed = toTaxedPrice(price, taxRate);
-    const pricePerSession = parseNullableNumber(data.price_per_session);
-    const pricePerSessionTaxed =
-      pricePerSession === null ? null : toTaxedPrice(pricePerSession, taxRate);
+    const normalized = normalizePricingInput(data, taxRate);
+    if (normalized.errors.length > 0) {
+      return validationError(normalized.errors[0].message, normalized.errors);
+    }
+    if (!normalized.values) {
+      return jsonResponse(400, { error: 'Invalid input' });
+    }
+
+    const sortOrder = parseNullableNumber(data.sort_order) ?? 0;
     
     const result = await db.prepare(`
       INSERT INTO treatment_plans (
@@ -222,20 +239,20 @@ export const POST: APIRoute = async ({ locals, request }) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `).bind(
       crypto.randomUUID(),
-      subcategoryId,
-      planName,
-      normalizeString(data.plan_type) || 'single',
-      parseNullableNumber(data.sessions),
-      normalizeString(data.quantity) || null,
-      price,
-      priceTaxed,
-      pricePerSession,
-      pricePerSessionTaxed,
-      parseNullableNumber(data.cost_rate),
-      parseNullableNumber(data.supply_cost),
-      parseNullableNumber(data.staff_cost),
-      parseNullableNumber(data.total_cost),
-      parseNullableNumber(data.sort_order) ?? 0
+      normalized.values.subcategoryId,
+      normalized.values.planName,
+      normalized.values.planType,
+      normalized.values.sessions,
+      normalized.values.quantity,
+      normalized.values.price,
+      normalized.values.priceTaxed,
+      normalized.values.pricePerSession,
+      normalized.values.pricePerSessionTaxed,
+      normalized.values.costRate,
+      normalized.values.supplyCost,
+      normalized.values.staffCost,
+      normalized.values.totalCost,
+      sortOrder
     ).run();
     
     if (!result.success) {

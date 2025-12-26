@@ -1,12 +1,29 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../../../lib/db';
+import {
+  jsonResponse,
+  requireParam,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+  type ValidationFieldError,
+} from '../../../../lib/api';
 
 // 発売処理（subcategories + treatments + treatment_plans にマージ）
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
+
+    const idResponse = requireParam(id, '発売予定商品ID');
+    if (idResponse) return idResponse;
 
     // 発売予定商品を取得
     const launch = await db.prepare(`
@@ -14,17 +31,13 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     `).bind(id).first() as any;
 
     if (!launch) {
-      return new Response(JSON.stringify({ error: '発売予定商品が見つかりません' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse(404, { error: '発売予定商品が見つかりません' });
     }
 
     if (launch.status === 'launched') {
-      return new Response(JSON.stringify({ error: 'すでに発売済みです' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return validationError('すでに発売済みです', [
+        { field: 'status', message: 'すでに発売済みです' },
+      ]);
     }
 
     const {
@@ -39,12 +52,17 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     } = body;
 
     if (!category_id || !subcategory_name || !subcategory_slug) {
-      return new Response(JSON.stringify({ 
-        error: 'カテゴリ、サブカテゴリ名、スラッグは必須です' 
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const fields: ValidationFieldError[] = [];
+      if (!category_id) {
+        fields.push({ field: 'category_id', message: 'カテゴリは必須です' });
+      }
+      if (!subcategory_name) {
+        fields.push({ field: 'subcategory_name', message: 'サブカテゴリ名は必須です' });
+      }
+      if (!subcategory_slug) {
+        fields.push({ field: 'subcategory_slug', message: 'スラッグは必須です' });
+      }
+      return validationError('カテゴリ、サブカテゴリ名、スラッグは必須です', fields);
     }
 
     // launch_plans からプランを取得（渡されなかった場合）
@@ -57,10 +75,9 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     }
 
     if (plansToCreate.length === 0) {
-      return new Response(JSON.stringify({ error: '料金プランが1つ以上必要です' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return validationError('料金プランが1つ以上必要です', [
+        { field: 'plans', message: '料金プランが1つ以上必要です' },
+      ]);
     }
 
     // 1. subcategories に新規作成
@@ -155,24 +172,12 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       id
     ).run();
 
-    return new Response(JSON.stringify({ 
+    return jsonResponse(200, { 
       success: true,
       subcategory_id: subcategoryId,
       treatment_id: treatmentId,
       plans_copied: copiedPlansCount,
       message: `「${launch.name}」を発売しました（${copiedPlansCount}件のプランをコピー）`
-    }), {
-      headers: { 'Content-Type': 'application/json' }
     });
-  } catch (error) {
-    console.error('Error launching product:', error);
-    return new Response(JSON.stringify({ 
-      error: '発売処理に失敗しました',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+  });
 };
-

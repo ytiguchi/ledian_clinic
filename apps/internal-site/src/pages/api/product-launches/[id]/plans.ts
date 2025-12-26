@@ -1,11 +1,28 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../../../lib/db';
+import {
+  jsonResponse,
+  requireParam,
+  requireRuntimeEnv,
+  validationError,
+  withErrorHandling,
+  type ValidationFieldError,
+} from '../../../../lib/api';
 
 // 料金プラン一覧取得
 export const GET: APIRoute = async ({ params, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { plans: [] },
+      status: 200,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const { id } = params;
+
+    const idResponse = requireParam(id, 'Launch ID');
+    if (idResponse) return idResponse;
 
     const { results: plans } = await db.prepare(`
       SELECT * FROM launch_plans 
@@ -13,27 +30,25 @@ export const GET: APIRoute = async ({ params, locals }) => {
       ORDER BY sort_order, id
     `).bind(id).all();
 
-    return new Response(JSON.stringify({ plans }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('Error fetching plans:', error);
-    return new Response(JSON.stringify({ 
-      error: 'プラン取得に失敗しました',
-      plans: []
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+    return jsonResponse(200, { plans });
+  });
 };
 
 // 料金プラン追加
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const { id } = params;
     const body = await request.json();
+
+    const idResponse = requireParam(id, 'Launch ID');
+    if (idResponse) return idResponse;
 
     const {
       plan_name,
@@ -45,12 +60,17 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     } = body;
 
     if (!plan_name || !price || !price_taxed) {
-      return new Response(JSON.stringify({ 
-        error: 'プラン名、税抜価格、税込価格は必須です' 
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const fields: ValidationFieldError[] = [];
+      if (!plan_name) {
+        fields.push({ field: 'plan_name', message: 'plan_name is required' });
+      }
+      if (!price) {
+        fields.push({ field: 'price', message: 'price is required' });
+      }
+      if (!price_taxed) {
+        fields.push({ field: 'price_taxed', message: 'price_taxed is required' });
+      }
+      return validationError('プラン名、税抜価格、税込価格は必須です', fields);
     }
 
     // Get next sort order
@@ -75,49 +95,35 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
       maxSort?.next_order || 1
     ).run();
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('Error adding plan:', error);
-    return new Response(JSON.stringify({ 
-      error: 'プラン追加に失敗しました',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+    return jsonResponse(200, { success: true });
+  });
 };
 
 // 料金プラン削除
 export const DELETE: APIRoute = async ({ params, url, locals }) => {
-  try {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { error: 'Database not available' },
+      status: 500,
+    });
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const planId = url.searchParams.get('plan_id');
 
     if (!planId) {
-      return new Response(JSON.stringify({ error: 'plan_id is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return validationError('plan_id is required', [
+        { field: 'plan_id', message: 'plan_id is required' },
+      ]);
     }
+
+    const idResponse = requireParam(params.id, 'Launch ID');
+    if (idResponse) return idResponse;
 
     await db.prepare(`
       DELETE FROM launch_plans WHERE id = ? AND launch_id = ?
     `).bind(planId, params.id).run();
 
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (error) {
-    console.error('Error deleting plan:', error);
-    return new Response(JSON.stringify({ 
-      error: 'プラン削除に失敗しました'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
+    return jsonResponse(200, { success: true });
+  });
 };
-

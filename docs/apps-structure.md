@@ -1,13 +1,35 @@
 # アプリ構成（社内向け/一般向けの2サイト運用）
 
-共通の正規化データ（`data/`）をソースに、2つの出力を管理します。
-- 一般向けサイト: `apps/public-site/`（Cloudflare Pages想定）
-- 社内向けサイト: `apps/internal-site/`（Cloudflare Access + Lineworks SSOで保護）
+共通の D1 データベースをソースに、2つのサイトを管理します。
+
+- 一般向けサイト: `apps/public-site/`（Cloudflare Pages、ledianclinic.jp）
+- 社内向けサイト: `apps/internal-site/`（Cloudflare Access + Lineworks SSOで保護、admin.ledianclinic.jp）
+
+> **📋 実装計画:** [公開サイト構築計画](./PUBLIC_SITE_PLAN.md)
+
+## アーキテクチャ
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Cloudflare D1                        │
+│                   (共有データベース)                      │
+└────────────────────────┬────────────────────────────────┘
+                         │
+         ┌───────────────┴───────────────┐
+         │                               │
+         ▼                               ▼
+┌─────────────────────┐       ┌─────────────────────┐
+│   internal-site     │       │   public-site       │
+│   (管理画面/CMS)     │       │  ledianclinic.jp    │
+│   認証付き・CRUD     │       │  一般公開・読み取り  │
+└─────────────────────┘       └─────────────────────┘
+```
 
 ## ディレクトリ方針
+
 - `apps/public-site/`: 外部公開するUI。LP/料金表などを表示。ビルド成果物はこの中で完結（例: `apps/public-site/dist/`）。Pages の `pages_build_output_dir` をここに合わせる。
 - `apps/internal-site/`: 社内閲覧用UI。料金編集ビュー、Bot/カウンセリング用のプレビュー、CSV/PDFダウンロードなど。Cloudflare Access バリア前提。
-- 双方ともデータは `data/` を直接読むか、`scripts/` 経由で生成した JSON/DB を参照する。
+- 双方とも **同一の D1 データベース** を参照し、R2（画像ストレージ）も共有する。
 
 ## データフロー例
 ```
@@ -31,6 +53,11 @@ data/ (YAML正規化)
 - `apps/internal-site`: 同様に Pages deploy だが、Access で保護。internal は prod のみ運用（preview database なし）。
 
 ## 今後のToDo（実装前）
-- `apps/public-site/` と `apps/internal-site/` のフレームワークを決定（例: React/Next, SvelteKit, Astro 等）。
-- `wrangler.toml` の `pages_build_output_dir` を実ビルド先に合わせる（public-site 内の dist/out など）。
-- CI スクリプトで `apps/*` ごとに build → deploy → (必要なら) D1 migrate/seed を順序化。
+
+- [x] フレームワーク決定: **Astro**（両サイト共通）
+- [ ] `apps/public-site/` ディレクトリ作成・Astro初期化
+- [ ] `wrangler.jsonc` で D1/R2 バインディング設定（internal-siteと同じIDを使用）
+- [ ] 既存サイト（ledianclinic.jp）のHTML/CSS移植
+- [ ] CI スクリプトで `apps/*` ごとに build → deploy を順序化
+
+**詳細な実装計画:** [公開サイト構築計画](./PUBLIC_SITE_PLAN.md)

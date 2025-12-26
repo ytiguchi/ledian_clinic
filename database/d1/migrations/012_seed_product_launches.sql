@@ -117,3 +117,4 @@ SELECT id, 'smaregi_register', 'スマレジ商品登録', '2025-01-10', '事務
 INSERT INTO launch_tasks (launch_id, task_type, title, due_date, assignee, sort_order)
 SELECT id, 'medical_force_register', 'メディカルフォース登録', '2025-01-10', '事務', 6 FROM product_launches WHERE name LIKE 'AGA治療%';
 
+

@@ -3,12 +3,17 @@
 ## 🎯 スタートガイド
 
 **初めての方へ**:
-1. [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md) - 何を目指しているか
-2. [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) - 全体像とPhase別計画
+1. [起動・運用の入口](./START.md) - 迷ったらここ
+2. [来週（運用タスク）](./NEXT_WEEK.md) - 来週やること
+3. [ロードマップ（いつか）](./ROADMAP.md) - 中長期（方向性）
+4. [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md) - 何を目指しているか
 
 ## 📊 ロードマップ・計画
 
-- [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) ⭐ **全体像を把握するならここから**
+- [来週（運用タスク）](./NEXT_WEEK.md) ⭐ **運用の優先度を決めるならここから**
+- [ロードマップ（いつか）](./ROADMAP.md) - 中長期（方向性）
+- [公開サイト構築計画](./PUBLIC_SITE_PLAN.md) ⭐ **ledianclinic.jp 再構築計画**
+- [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) - 全体像とPhase別計画（要整理）
 - [データ正規化ロードマップ](./DATA_NORMALIZATION_ROADMAP.md) - データ拡張・正規化の詳細
 - [スキーマ拡張計画](./SCHEMA_EXTENSION_PLAN.md) - 具体的なスキーマ拡張内容
 
@@ -38,7 +43,7 @@
 
 ## 📝 履歴・参考
 
-- [APIルーティング修正](./API_ROUTING_FIX.md)
+- [APIルーティング修正](./_archive/API_ROUTING_FIX.md)
 - [FIXED_API_ERRORS](./_archive/FIXED_API_ERRORS.md)
 
 ---
@@ -66,6 +71,7 @@
 ### 短期（3-6ヶ月）
 - ✅ デザイナー向けAPI実装
 - ✅ データエクスポート機能
+- 🔄 **公開サイト再構築（ledianclinic.jp）** → [計画書](./PUBLIC_SITE_PLAN.md)
 
 ### 中期（6-12ヶ月）
 - POSシステム連携

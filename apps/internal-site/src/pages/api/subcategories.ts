@@ -1,17 +1,18 @@
 import type { APIRoute } from 'astro';
 import { getDB } from '../../lib/db';
+import { jsonResponse, requireRuntimeEnv, withErrorHandling } from '../../lib/api';
 import type { SubcategoriesResponse } from '../../types/api';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  if (!locals?.runtime?.env) {
-    return new Response(JSON.stringify({ subcategories: [] }), {
+  return withErrorHandling(async () => {
+    const envResponse = requireRuntimeEnv(locals?.runtime, {
+      body: { subcategories: [] },
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
-  }
-  try {
+    if (envResponse) return envResponse;
+
     const db = getDB(locals.runtime.env);
     const categoryId = url.searchParams.get('category_id')?.trim();
     
@@ -36,18 +37,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
     
     query += ' ORDER BY sc.sort_order';
-    
-    console.log('Subcategories query:', query);
-    console.log('Subcategories params:', params);
-    console.log('Subcategories params length:', params.length);
-    console.log('Subcategories categoryId:', categoryId);
-    
-    // クエリとパラメータをログ出力
-    const questionMarks = (query.match(/\?/g) || []).length;
-    console.log('Final query question marks:', questionMarks);
-    console.log('Final params length:', params.length);
-    console.log('Query:', query);
-    console.log('Params:', JSON.stringify(params));
     
     // queryDBの代わりに直接prepareとbindを使用
     let stmt = db.prepare(query);
@@ -76,23 +65,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
         is_active: sub.is_active === 1,
       })),
     };
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Error fetching subcategories:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error('Error details:', { errorMessage, errorStack });
-    return new Response(JSON.stringify({
-      error: 'Internal Server Error',
-      message: errorMessage,
-      stack: errorStack
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+    return jsonResponse(200, response);
+  });
 };
-

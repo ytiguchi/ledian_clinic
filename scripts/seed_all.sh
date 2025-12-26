@@ -66,3 +66,4 @@ npx wrangler@4.56.0 d1 execute ledian-internal-prod \
     (SELECT COUNT(*) FROM treatment_plans) as plans;" \
   2>&1 | grep -A 5 "results"
 
+

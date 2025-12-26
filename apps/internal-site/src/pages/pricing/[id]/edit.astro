@@ -1,7 +1,9 @@
 ---
 import Layout from '../../../components/Layout.astro';
+import { getTaxRate } from '../../../lib/pricing';
 
 const id = Astro.params.id;
+const taxRate = getTaxRate(Astro.locals.runtime);
 export const prerender = false;
 ---
 
@@ -158,7 +160,8 @@ export const prerender = false;
   </div>
 </Layout>
 
-<script define:vars={{ planId: id }}>
+<script define:vars={{ planId: id, taxRate }}>
+  const toTaxedPrice = (amount) => Math.round(amount * (1 + taxRate));
   
   interface PlanData {
     id: string;
@@ -358,7 +361,7 @@ export const prerender = false;
     priceInput?.addEventListener('input', () => {
       const price = Number(priceInput.value);
       if (priceTaxedInput && price > 0) {
-        priceTaxedInput.value = Math.round(price * 1.1).toString();
+        priceTaxedInput.value = toTaxedPrice(price).toString();
       }
     });
   });
