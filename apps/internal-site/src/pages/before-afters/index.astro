@@ -388,6 +388,10 @@ import Layout from '../../components/Layout.astro';
     overflow: hidden;
   }
 
+  .info-section-content.preview {
+    white-space: normal;
+  }
+
   .info-section-full {
     max-height: 200px;
     overflow-y: auto;
@@ -462,6 +466,16 @@ import Layout from '../../components/Layout.astro';
     filter: brightness(1.1);
   }
 
+  .action-btn-secondary {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+  }
+
+  .action-btn-secondary:hover {
+    background: var(--color-bg-secondary);
+  }
+
   .action-btn-delete {
     background: #fee2e2;
     color: #dc2626;
@@ -495,6 +509,84 @@ import Layout from '../../components/Layout.astro';
   .empty-state-desc {
     color: var(--color-text-muted);
     font-size: 0.875rem;
+  }
+
+  /* Detail modal (full text) */
+  .detail-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .detail-modal.hidden {
+    display: none;
+  }
+
+  .detail-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .detail-modal-panel {
+    position: relative;
+    width: min(920px, 100%);
+    max-height: min(85vh, 900px);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-light);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 60px rgba(0, 0, 0, 0.25);
+  }
+
+  .detail-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border-light);
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+  }
+
+  .detail-modal-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .detail-modal-body {
+    padding: 1rem;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .detail-modal-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .detail-modal-images.single {
+    grid-template-columns: 1fr;
+  }
+
+  .case-info-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.25rem;
   }
 
   @keyframes fadeIn {
@@ -546,6 +638,21 @@ import Layout from '../../components/Layout.astro';
     }
   }
 </style>
+
+<!-- Detail Modal -->
+<div id="caseDetailModal" class="detail-modal hidden" aria-hidden="true">
+  <div class="detail-modal-backdrop" onclick="closeCaseDetailModal()"></div>
+  <div class="detail-modal-panel" role="dialog" aria-modal="true">
+    <div class="detail-modal-header">
+      <h2 class="detail-modal-title" id="caseDetailTitle">症例詳細</h2>
+      <button class="action-btn action-btn-secondary" onclick="closeCaseDetailModal()">閉じる</button>
+    </div>
+    <div class="detail-modal-body">
+      <div id="caseDetailImages" class="detail-modal-images"></div>
+      <div id="caseDetailText"></div>
+    </div>
+  </div>
+</div>
 
 <script>
   interface BeforeAfter {
@@ -642,6 +749,75 @@ import Layout from '../../components/Layout.astro';
     if (subcatEl) subcatEl.textContent = String(uniqueSubcats.size);
   }
 
+  function normalizeCaption(text: string): string {
+    // Some data may contain literal "\n" sequences; normalize to real newlines.
+    return (text || '').replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').replace(/\r\n/g, '\n');
+  }
+
+  function renderCaseInfo(item: BeforeAfter): string {
+    const blocks: string[] = [];
+
+    if (item.treatment_content) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【医療内容】</div>
+          <div class="info-section-content truncate">${escapeHtml(normalizeCaption(item.treatment_content))}</div>
+        </div>
+      `);
+    }
+
+    if (item.treatment_duration) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【治療期間・回数】</div>
+          <div class="info-section-content truncate">${escapeHtml(normalizeCaption(item.treatment_duration))}</div>
+        </div>
+      `);
+    }
+
+    if (item.treatment_cost_text || item.treatment_cost !== null) {
+      const costText =
+        item.treatment_cost_text
+          ? normalizeCaption(item.treatment_cost_text)
+          : (item.treatment_cost !== null ? `¥${Number(item.treatment_cost).toLocaleString()}` : '');
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【費用】</div>
+          <div class="info-section-content truncate">${escapeHtml(costText)}</div>
+        </div>
+      `);
+    }
+
+    if (item.risks) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【リスク・副作用】</div>
+          <div class="info-section-content truncate">${escapeHtml(normalizeCaption(item.risks))}</div>
+        </div>
+      `);
+    }
+
+    if (item.caption) {
+      const preview = escapeHtml(normalizeCaption(item.caption)).replace(/\s+/g, ' ').trim();
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">補足</div>
+          <div class="info-section-content preview truncate">${preview}</div>
+        </div>
+      `);
+    }
+
+    if (blocks.length === 0) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-content">治療：${escapeHtml(item.subcategory_name)}</div>
+        </div>
+      `);
+    }
+
+    return blocks.join('');
+  }
+
   function renderList() {
     const container = document.getElementById('casesList');
     if (!container) return;
@@ -696,20 +872,16 @@ import Layout from '../../components/Layout.astro';
             `}
           </div>
           <div class="case-info">
-            ${item.caption ? `
-            <div class="info-section info-section-full">
-              <div class="info-section-content">${formatCaption(item.caption)}</div>
-            </div>
-            ` : `
-            <div class="info-section">
-              <div class="info-section-content">治療：${escapeHtml(item.subcategory_name)}</div>
-            </div>
-            `}
+            ${renderCaseInfo(item)}
             
             <div class="meta-row">
               ${item.treatment_count ? `<div class="meta-item">🔄 ${item.treatment_count}回</div>` : ''}
               ${item.patient_age ? `<div class="meta-item">👤 ${item.patient_age}歳</div>` : ''}
               ${item.patient_gender ? `<div class="meta-item">${item.patient_gender === '女性' ? '♀' : '♂'}</div>` : ''}
+            </div>
+
+            <div class="case-info-actions">
+              <button class="action-btn action-btn-secondary" onclick="openCaseDetailModal('${item.id}')">詳細</button>
             </div>
           </div>
         </div>
@@ -731,7 +903,7 @@ import Layout from '../../components/Layout.astro';
     if (!text) return '';
     
     // Escape HTML first
-    let formatted = escapeHtml(text);
+    let formatted = escapeHtml(normalizeCaption(text));
     
     // Convert section headers to styled spans
     formatted = formatted.replace(/【([^】]+)】/g, '<span class="caption-section-header">【$1】</span>');
@@ -740,6 +912,111 @@ import Layout from '../../components/Layout.astro';
     formatted = formatted.replace(/\n/g, '<br>');
     
     return formatted;
+  }
+
+  function renderCaseDetailText(item: BeforeAfter): string {
+    const blocks: string[] = [];
+
+    const titleLine = `<div class="info-section"><div class="info-section-content"><strong>${escapeHtml(item.subcategory_name)}</strong> / ${escapeHtml(item.category_name)}</div></div>`;
+    blocks.push(titleLine);
+
+    if (item.treatment_content) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【医療内容】</div>
+          <div class="info-section-content">${escapeHtml(normalizeCaption(item.treatment_content))}</div>
+        </div>
+      `);
+    }
+    if (item.treatment_duration) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【治療期間・回数】</div>
+          <div class="info-section-content">${escapeHtml(normalizeCaption(item.treatment_duration))}</div>
+        </div>
+      `);
+    }
+    if (item.treatment_cost_text || item.treatment_cost !== null) {
+      const costText =
+        item.treatment_cost_text
+          ? normalizeCaption(item.treatment_cost_text)
+          : (item.treatment_cost !== null ? `¥${Number(item.treatment_cost).toLocaleString()}` : '');
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【費用】</div>
+          <div class="info-section-content">${escapeHtml(costText)}</div>
+        </div>
+      `);
+    }
+    if (item.risks) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">【リスク・副作用】</div>
+          <div class="info-section-content">${escapeHtml(normalizeCaption(item.risks))}</div>
+        </div>
+      `);
+    }
+    if (item.caption) {
+      blocks.push(`
+        <div class="info-section">
+          <div class="info-section-title">補足</div>
+          <div class="info-section-content">${formatCaption(item.caption)}</div>
+        </div>
+      `);
+    }
+
+    return blocks.join('');
+  }
+
+  function openCaseDetailModal(id: string) {
+    const modal = document.getElementById('caseDetailModal');
+    const titleEl = document.getElementById('caseDetailTitle');
+    const imagesEl = document.getElementById('caseDetailImages');
+    const textEl = document.getElementById('caseDetailText');
+    if (!modal || !titleEl || !imagesEl || !textEl) return;
+
+    const item = beforeAfters.find((b) => b.id === id);
+    if (!item) return;
+
+    titleEl.textContent = `${item.subcategory_name}（${item.category_name}）`;
+
+    const hasBefore = !!item.before_image_url;
+    imagesEl.className = `detail-modal-images ${hasBefore ? '' : 'single'}`;
+    imagesEl.innerHTML = hasBefore
+      ? `
+        <div class="image-panel">
+          <div class="image-label before">Before</div>
+          <div class="image-wrapper">
+            <img src="${escapeHtml(item.before_image_url)}" alt="施術前" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+          </div>
+        </div>
+        <div class="image-panel">
+          <div class="image-label after">After</div>
+          <div class="image-wrapper">
+            <img src="${escapeHtml(item.after_image_url)}" alt="施術後" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+          </div>
+        </div>
+      `
+      : `
+        <div class="image-panel">
+          <div class="image-label after">症例写真</div>
+          <div class="image-wrapper">
+            <img src="${escapeHtml(item.after_image_url)}" alt="症例写真" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+          </div>
+        </div>
+      `;
+
+    textEl.innerHTML = renderCaseDetailText(item);
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCaseDetailModal() {
+    const modal = document.getElementById('caseDetailModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
   function showError(message: string) {
@@ -805,4 +1082,6 @@ import Layout from '../../components/Layout.astro';
   });
 
   (window as any).deleteBeforeAfter = deleteBeforeAfter;
+  (window as any).openCaseDetailModal = openCaseDetailModal;
+  (window as any).closeCaseDetailModal = closeCaseDetailModal;
 </script>
