@@ -268,6 +268,11 @@ import Layout from '../../components/Layout.astro';
     flex-shrink: 0;
   }
 
+  /* When most cases only have a single image, show it as the primary view */
+  .image-comparison.single {
+    grid-template-columns: 1fr !important;
+  }
+
   .image-panel {
     display: flex !important;
     flex-direction: column !important;
@@ -667,21 +672,28 @@ import Layout from '../../components/Layout.astro';
           </div>
         </div>
         <div class="case-body">
-          <div class="image-comparison">
-            <div class="image-panel">
-              <div class="image-label before">Before</div>
-              <div class="image-wrapper">
-                ${item.before_image_url 
-                  ? `<img src="${escapeHtml(item.before_image_url)}" alt="施術前" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">`
-                  : '<div class="no-image">-</div>'}
+          <div class="image-comparison ${item.before_image_url ? '' : 'single'}">
+            ${item.before_image_url ? `
+              <div class="image-panel">
+                <div class="image-label before">Before</div>
+                <div class="image-wrapper">
+                  <img src="${escapeHtml(item.before_image_url)}" alt="施術前" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+                </div>
               </div>
-            </div>
-            <div class="image-panel">
-              <div class="image-label after">After</div>
-              <div class="image-wrapper">
-                <img src="${escapeHtml(item.after_image_url)}" alt="施術後" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+              <div class="image-panel">
+                <div class="image-label after">After</div>
+                <div class="image-wrapper">
+                  <img src="${escapeHtml(item.after_image_url)}" alt="施術後" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+                </div>
               </div>
-            </div>
+            ` : `
+              <div class="image-panel">
+                <div class="image-label after">症例写真</div>
+                <div class="image-wrapper">
+                  <img src="${escapeHtml(item.after_image_url)}" alt="症例写真" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>-</div>'">
+                </div>
+              </div>
+            `}
           </div>
           <div class="case-info">
             ${item.caption ? `
