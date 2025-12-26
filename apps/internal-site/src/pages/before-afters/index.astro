@@ -136,19 +136,13 @@ import Layout from '../../components/Layout.astro';
 
   /* Cases List - Absolute 2 Column Grid */
   .cases-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 1rem;
     width: 100%;
     max-width: 100%;
     align-items: stretch;
     box-sizing: border-box;
-  }
-
-  @media (min-width: 901px) {
-    .cases-list {
-      grid-template-columns: 1fr 1fr !important;
-    }
   }
 
   .loading-container {
@@ -264,8 +258,8 @@ import Layout from '../../components/Layout.astro';
 
   /* Image Comparison - Side by Side */
   .image-comparison {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 0.5rem;
     width: 100%;
     max-width: 100%;
@@ -275,8 +269,8 @@ import Layout from '../../components/Layout.astro';
   }
 
   .image-panel {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 0.25rem;
     min-width: 0;
     width: 100%;
@@ -510,7 +504,11 @@ import Layout from '../../components/Layout.astro';
 
   @media (max-width: 900px) {
     .cases-list {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
+    }
+    
+    .image-comparison {
+      grid-template-columns: 1fr 1fr !important;
     }
   }
 
