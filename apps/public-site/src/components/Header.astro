@@ -1,0 +1,304 @@
+---
+export interface Props {
+  currentPath?: string;
+  pageTitle?: string;
+  heroImage?: string;
+}
+
+const { currentPath = '/', pageTitle, heroImage } = Astro.props;
+
+const isHome = currentPath === '/';
+---
+
+<header class="header">
+  <div class="header-inner">
+    <!-- Logo -->
+    <a href="/" class="header-logo">
+      <h1 class="header-logo-heading">
+        <img src="/images/header-logo.svg" alt="Ledian Clinic（レディアンクリニック六本木）美容内科、美容皮膚科" />
+        <span class="header-logo-text">Ledian Clinic（レディアンクリニック六本木）美容内科、美容皮膚科</span>
+      </h1>
+    </a>
+
+    <!-- Menu Button -->
+    <button type="button" class="header-menu-btn" id="menu-btn" aria-label="メニューを開く">
+      <img src="/images/header-menu.svg" alt="メニュー" />
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<nav class="mobile-nav" id="mobile-nav" aria-hidden="true">
+  <div class="mobile-nav-header">
+    <a href="/" class="mobile-nav-logo">
+      <img src="/images/header-logo.svg" alt="Ledian Clinic" />
+    </a>
+    <button type="button" class="mobile-nav-close" id="menu-close" aria-label="メニューを閉じる">
+      <img src="/images/header-close.svg" alt="閉じる" />
+    </button>
+  </div>
+  
+  <div class="mobile-nav-inner">
+    <ul class="mobile-nav-list">
+      <li><a href="/">ホーム</a></li>
+      <li><a href="/service/">サービス一覧</a></li>
+      <li><a href="/price/">料金表</a></li>
+      <li><a href="/doctor/">医師紹介</a></li>
+      <li><a href="/news/">お知らせ</a></li>
+      <li><a href="/subscription/">サブスクリプション</a></li>
+      <li><a href="/contact/">お問い合わせ</a></li>
+    </ul>
+    
+    <div class="mobile-nav-cta">
+      <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm" class="btn-nav btn-nav-line" target="_blank" rel="noopener">
+        LINEでかんたん予約
+      </a>
+      <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="btn-nav btn-nav-web" target="_blank" rel="noopener">
+        WEB予約
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- Overlay -->
+<div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 252, 250, 0.95);
+    backdrop-filter: blur(10px);
+  }
+  
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 20px;
+  }
+  
+  .header-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+  
+  .header-logo-heading {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  
+  .header-logo img {
+    height: 28px;
+    width: auto;
+  }
+  
+  @media (min-width: 768px) {
+    .header-logo img {
+      height: 32px;
+    }
+  }
+  
+  .header-logo-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  
+  .header-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .header-menu-btn img {
+    width: 28px;
+    height: 28px;
+  }
+  
+  /* Mobile Navigation */
+  .mobile-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 400px;
+    z-index: 2000;
+    background: var(--color-bg, #FFFCFA);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-nav.active {
+    transform: translateX(0);
+  }
+  
+  .mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--color-border, #e5e0d8);
+  }
+  
+  .mobile-nav-logo img {
+    height: 28px;
+    width: auto;
+  }
+  
+  .mobile-nav-close {
+    padding: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .mobile-nav-close img {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .mobile-nav-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0 20px 30px;
+    overflow-y: auto;
+  }
+  
+  .mobile-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+  }
+  
+  .mobile-nav-list li {
+    border-bottom: 1px solid var(--color-border, #e5e0d8);
+  }
+  
+  .mobile-nav-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    font-size: 0.9375rem;
+    color: var(--color-text, #000);
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+  }
+  
+  .mobile-nav-list a::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(-45deg);
+  }
+  
+  .mobile-nav-list a:hover {
+    opacity: 0.7;
+  }
+  
+  .mobile-nav-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 30px;
+  }
+  
+  .btn-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-nav-line {
+    background: #06c755;
+    color: #fff;
+  }
+  
+  .btn-nav-line:hover {
+    background: #05a847;
+  }
+  
+  .btn-nav-web {
+    background: var(--color-text-dark, #2D2D2D);
+    color: #fff;
+  }
+  
+  .btn-nav-web:hover {
+    background: #000;
+  }
+  
+  /* Overlay */
+  .mobile-nav-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .mobile-nav-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+</style>
+
+<script>
+  const menuBtn = document.getElementById('menu-btn');
+  const menuClose = document.getElementById('menu-close');
+  const mobileNav = document.getElementById('mobile-nav');
+  const overlay = document.getElementById('mobile-nav-overlay');
+  
+  function openMenu() {
+    mobileNav?.classList.add('active');
+    overlay?.classList.add('active');
+    mobileNav?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeMenu() {
+    mobileNav?.classList.remove('active');
+    overlay?.classList.remove('active');
+    mobileNav?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+  
+  menuBtn?.addEventListener('click', openMenu);
+  menuClose?.addEventListener('click', closeMenu);
+  overlay?.addEventListener('click', closeMenu);
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileNav?.classList.contains('active')) {
+      closeMenu();
+    }
+  });
+</script>

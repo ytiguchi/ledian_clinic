@@ -1,0 +1,425 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+
+// D1からデータ取得
+const db = Astro.locals.runtime.env.DB;
+
+// サブカテゴリを取得
+type Subcategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+// 施術とプランを取得
+type Treatment = {
+  id: string;
+  name: string;
+  slug: string;
+  subcategory_id: string;
+};
+
+type TreatmentPlan = {
+  id: string;
+  treatment_id: string;
+  treatment_name: string;
+  subcategory_id: string;
+  subcategory_name: string;
+  plan_name: string;
+  sessions: number | null;
+  quantity: string | null;
+  price: number;
+  price_taxed: number;
+};
+
+let subcategories: Subcategory[] = [];
+let plans: TreatmentPlan[] = [];
+
+try {
+  const subcatResult = await db.prepare(`
+    SELECT id, name, slug
+    FROM subcategories
+    WHERE is_active = 1
+    ORDER BY sort_order
+  `).all();
+  subcategories = subcatResult.results as Subcategory[];
+  
+  const planResult = await db.prepare(`
+    SELECT 
+      tp.id,
+      tp.treatment_id,
+      t.name as treatment_name,
+      sc.id as subcategory_id,
+      sc.name as subcategory_name,
+      tp.plan_name,
+      tp.sessions,
+      tp.quantity,
+      tp.price,
+      tp.price_taxed
+    FROM treatment_plans tp
+    JOIN treatments t ON tp.treatment_id = t.id
+    JOIN subcategories sc ON t.subcategory_id = sc.id
+    WHERE tp.is_active = 1 AND t.is_active = 1 AND sc.is_active = 1
+    ORDER BY sc.sort_order, t.sort_order, tp.sort_order
+  `).all();
+  plans = planResult.results as TreatmentPlan[];
+} catch (e) {
+  console.error('Failed to fetch data:', e);
+}
+
+// 施術ごとにグループ化
+type TreatmentWithPlans = {
+  id: string;
+  name: string;
+  subcategory_id: string;
+  plans: TreatmentPlan[];
+};
+
+// 施術IDでユニークにグループ化
+const treatmentMap = new Map<string, TreatmentWithPlans>();
+plans.forEach(plan => {
+  if (!treatmentMap.has(plan.treatment_id)) {
+    treatmentMap.set(plan.treatment_id, {
+      id: plan.treatment_id,
+      name: plan.treatment_name,
+      subcategory_id: plan.subcategory_id,
+      plans: []
+    });
+  }
+  treatmentMap.get(plan.treatment_id)?.plans.push(plan);
+});
+
+// サブカテゴリごとにグループ化
+const groupedData = subcategories.map(subcat => ({
+  ...subcat,
+  treatments: Array.from(treatmentMap.values()).filter(t => t.subcategory_id === subcat.id)
+})).filter(group => group.treatments.length > 0);
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('ja-JP').format(price);
+}
+---
+
+<PublicLayout 
+  title="料金表" 
+  description="Ledian Clinicの料金表です。HIFU、ポテンツァ、ピーリング、ボトックスなど、各施術の料金一覧をご確認いただけます。"
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li>料金表</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1 class="page-title">料金表</h1>
+      <p class="page-title-en">PRICE</p>
+    </div>
+  </section>
+
+  <!-- Category Tags -->
+  <section class="category-section">
+    <div class="container">
+      <div class="category-tags">
+        {subcategories.map((subcat) => (
+          <a href={`#price-group-${subcat.id}`} class="category-tag">
+            {subcat.name}
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
+              <path d="M4 2l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Price Groups -->
+  <section class="price-groups">
+    <div class="container">
+      {groupedData.map((group) => (
+        <div class="price-group" id={`price-group-${group.id}`}>
+          <h2 class="price-group-title">{group.name}</h2>
+          
+          {group.treatments.map((treatment) => (
+            <div class="accordion-item" data-accordion>
+              <button 
+                type="button" 
+                class="accordion-trigger"
+                aria-expanded="false"
+              >
+                <span>{treatment.name}</span>
+                <svg class="accordion-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
+                  <path d="M2 4l4 4 4-4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div class="accordion-content">
+                <table class="price-table">
+                  <thead>
+                    <tr>
+                      <th>項目名</th>
+                      <th>回数</th>
+                      <th>価格</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {treatment.plans.map((plan) => (
+                      <tr>
+                        <td>{plan.plan_name || plan.quantity || '-'}</td>
+                        <td>{plan.sessions ? `${plan.sessions}回` : '1回'}</td>
+                        <td>
+                          <span class="price-value">{formatPrice(plan.price)}円</span>
+                          <span class="price-tax">(税込{formatPrice(plan.price_taxed)}円)</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+
+      {groupedData.length === 0 && (
+        <div class="no-data">
+          <p>料金情報を読み込み中...</p>
+        </div>
+      )}
+    </div>
+  </section>
+</PublicLayout>
+
+<style>
+  /* Breadcrumb */
+  .breadcrumb {
+    padding: 15px 0;
+    background: var(--color-bg-cream);
+    font-size: 0.8125rem;
+  }
+  
+  .breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .breadcrumb-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text-muted);
+  }
+  
+  .breadcrumb-list li:not(:last-child)::after {
+    content: '>';
+  }
+  
+  .breadcrumb-list a {
+    color: var(--color-text);
+  }
+  
+  /* Page Header */
+  .page-header {
+    padding: 50px 0 40px;
+    text-align: center;
+    background: var(--color-bg);
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 10px;
+  }
+  
+  .page-title-en {
+    font-family: var(--font-serif);
+    font-size: 0.875rem;
+    letter-spacing: 0.2em;
+    color: var(--color-accent);
+  }
+  
+  /* Category Section */
+  .category-section {
+    padding: 40px 0;
+    background: var(--color-bg);
+  }
+  
+  .category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 30px;
+    background: var(--color-white);
+    border: 1px solid var(--color-border-light);
+  }
+  
+  .category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 0.8125rem;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .category-tag:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-white);
+    opacity: 1;
+  }
+  
+  /* Price Groups */
+  .price-groups {
+    padding: 0 0 80px;
+    background: var(--color-bg);
+  }
+  
+  .price-group {
+    margin-bottom: 40px;
+  }
+  
+  .price-group-title {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 15px 0;
+    margin-bottom: 0;
+    border-bottom: 2px solid var(--color-accent);
+    display: flex;
+    align-items: center;
+  }
+  
+  .price-group-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 20px;
+    background: var(--color-accent);
+    margin-right: 12px;
+  }
+  
+  /* Accordion */
+  .accordion-item {
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 18px 20px;
+    background: var(--color-white);
+    border: none;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .accordion-trigger:hover {
+    background: var(--color-bg-cream);
+  }
+  
+  .accordion-icon {
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+  
+  .accordion-trigger[aria-expanded="true"] .accordion-icon {
+    transform: rotate(180deg);
+  }
+  
+  .accordion-content {
+    display: none;
+    padding: 0 20px 20px;
+    background: var(--color-white);
+  }
+  
+  .accordion-content.active {
+    display: block;
+  }
+  
+  /* Price Table */
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  
+  .price-table thead {
+    background: var(--color-bg-cream);
+  }
+  
+  .price-table th {
+    padding: 12px 15px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .price-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--color-border-light);
+  }
+  
+  .price-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .price-value {
+    font-weight: 500;
+  }
+  
+  .price-tax {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 3px;
+  }
+  
+  @media (max-width: 768px) {
+    .price-table th:nth-child(2),
+    .price-table td:nth-child(2) {
+      display: none;
+    }
+  }
+  
+  .no-data {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-text-muted);
+  }
+</style>
+
+<script>
+  // Accordion functionality
+  document.querySelectorAll('[data-accordion]').forEach((item) => {
+    const trigger = item.querySelector('.accordion-trigger');
+    const content = item.querySelector('.accordion-content');
+    
+    trigger?.addEventListener('click', () => {
+      const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+      
+      // Toggle current accordion
+      trigger.setAttribute('aria-expanded', String(!isExpanded));
+      content?.classList.toggle('active');
+    });
+  });
+</script>
+

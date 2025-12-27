@@ -3,10 +3,16 @@
 seed_data.jsonからD1用のSQLを生成するスクリプト
 """
 
+import io
 import json
 import sys
 from pathlib import Path
 
+
+# Windows cp932 encoding fix
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 def escape_sql(value):
     """SQL用のエスケープ"""
@@ -83,7 +89,7 @@ def generate_d1_seed(json_path: str, output_path: str):
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
     
-    print(f"✅ D1用SQL生成完了: {output_path}")
+    print(f"OK D1用SQL生成完了: {output_path}")
     
     # 統計情報
     cat_count = len(data['categories'])
@@ -102,6 +108,4 @@ if __name__ == '__main__':
     output_path = Path(__file__).parent.parent / 'database' / 'd1' / 'seed-all.sql'
     
     generate_d1_seed(str(json_path), str(output_path))
-
-
 

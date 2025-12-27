@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <linearGradient id="linear-gradient" x1="0.146" y1="0.146" x2="0.854" y2="0.854" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#ffe185"/>
+      <stop offset="0.2" stop-color="#ffbb36"/>
+      <stop offset="0.4" stop-color="#ff5176"/>
+      <stop offset="0.5" stop-color="#f63395"/>
+      <stop offset="0.7" stop-color="#a436d2"/>
+      <stop offset="1" stop-color="#5f4eed"/>
+    </linearGradient>
+  </defs>
+  <g id="Social-Media-Logo-collection-CIRCLE-2023" transform="translate(-190.1 -181.3)">
+    <g id="ELEMENTS" transform="translate(190.1 181.3)">
+      <g id="グループ_61" data-name="グループ 61">
+        <circle id="楕円形_4" data-name="楕円形 4" cx="48" cy="48" r="48" fill="url(#linear-gradient)"/>
+        <g id="グループ_60" data-name="グループ 60" transform="translate(23.078 23.078)">
+          <path id="パス_41" data-name="パス 41" d="M265.765,221.1a2.958,2.958,0,0,0-2.965,2.965,2.965,2.965,0,1,0,2.965-2.965Z" transform="translate(-227.621 -212.285)" fill="#fff"/>
+          <path id="パス_42" data-name="パス 42" d="M247.241,225.8a12.341,12.341,0,1,0,12.341,12.341A12.346,12.346,0,0,0,247.241,225.8Zm0,20.194a7.853,7.853,0,1,1,7.853-7.853A7.866,7.866,0,0,1,247.241,245.994Z" transform="translate(-222.079 -213.219)" fill="#fff"/>
+          <path id="パス_43" data-name="パス 43" d="M253.838,260.023H233.885A15.013,15.013,0,0,1,218.9,245.038V225.085A15.014,15.014,0,0,1,233.885,210.1h19.953a15.014,15.014,0,0,1,14.985,14.985v19.953A15.013,15.013,0,0,1,253.838,260.023ZM233.8,214.748a10.362,10.362,0,0,0-10.337,10.337v19.953A10.362,10.362,0,0,0,233.8,255.375h19.953A10.362,10.362,0,0,0,264.1,245.038V225.085a10.362,10.362,0,0,0-10.337-10.337Z" transform="translate(-218.9 -210.1)" fill="#fff"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

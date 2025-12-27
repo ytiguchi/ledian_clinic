@@ -1,0 +1,125 @@
+---
+// Fixed Bottom CTA Bar（モバイル向け・現サイト準拠）
+---
+
+<div class="fixed-cta" id="fixed-cta">
+  <div class="fixed-cta-inner">
+    <a 
+      href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm" 
+      class="fixed-cta-btn fixed-cta-line"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="fixed-cta-text">LINE予約</span>
+    </a>
+    <a 
+      href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" 
+      class="fixed-cta-btn fixed-cta-web"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="fixed-cta-text">WEB予約</span>
+    </a>
+    <a 
+      href="tel:050-8889-3863" 
+      class="fixed-cta-btn fixed-cta-tel"
+    >
+      <span class="fixed-cta-text">電話</span>
+    </a>
+  </div>
+</div>
+
+<style>
+  .fixed-cta {
+    display: none; /* PC非表示 */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    padding: 0;
+  }
+  
+  @media (max-width: 768px) {
+    .fixed-cta {
+      display: block;
+    }
+  }
+  
+  .fixed-cta-inner {
+    display: flex;
+    height: 60px;
+  }
+  
+  .fixed-cta-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-decoration: none;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+    gap: 2px;
+  }
+  
+  .fixed-cta-btn:hover {
+    opacity: 0.9;
+  }
+  
+  .fixed-cta-line {
+    background: #06c755;
+    color: #fff;
+  }
+  
+  .fixed-cta-web {
+    background: #2D2D2D;
+    color: #fff;
+  }
+  
+  .fixed-cta-tel {
+    background: #5885A3;
+    color: #fff;
+  }
+  
+  .fixed-cta-text {
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+  }
+</style>
+
+<script>
+  // フッターに近づいたらCTAを非表示
+  const fixedCta = document.getElementById('fixed-cta');
+  const footer = document.querySelector('footer');
+  
+  function checkScroll() {
+    if (!fixedCta || !footer) return;
+    
+    const footerRect = footer.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    
+    if (footerRect.top < windowHeight + 60) {
+      fixedCta.style.transform = 'translateY(100%)';
+    } else {
+      fixedCta.style.transform = 'translateY(0)';
+    }
+  }
+  
+  // Throttle scroll events
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        checkScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+  
+  checkScroll();
+</script>

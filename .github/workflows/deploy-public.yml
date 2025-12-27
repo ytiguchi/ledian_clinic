@@ -1,0 +1,121 @@
+name: Deploy Public Site
+
+on:
+  # 本番デプロイは手動トリガーのみ
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to confirm deployment to production'
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - production
+          - preview
+        default: preview
+
+  # develop/featureブランチはプレビューのみ自動デプロイ
+  push:
+    branches:
+      - develop
+      - 'feature/**'
+    paths:
+      - 'apps/public-site/**'
+      - '.github/workflows/deploy-public.yml'
+
+jobs:
+  # プレビューデプロイ（develop/featureブランチ - 自動）
+  deploy-preview:
+    name: Deploy Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'preview')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/public-site/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/public-site
+        run: npm ci
+
+      - name: Build
+        working-directory: apps/public-site
+        run: npm run build
+
+      - name: Deploy Preview to Cloudflare Pages
+        working-directory: apps/public-site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler@4.56.0 pages deploy dist \
+            --project-name ledian-clinic-public \
+            --branch ${{ github.ref_name }} \
+            --commit-dirty=true
+
+      - name: Comment Preview URL
+        if: github.event_name == 'push'
+        run: |
+          echo "🚀 Preview deployed to: https://${{ github.ref_name }}.ledian-clinic-public.pages.dev"
+
+  # 本番デプロイ（mainブランチ - 手動確認必須）
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'deploy' && github.event.inputs.environment == 'production'
+    
+    steps:
+      - name: Verify branch
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "❌ Production deployment is only allowed from main branch!"
+            echo "Current branch: ${{ github.ref }}"
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/public-site/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/public-site
+        run: npm ci
+
+      - name: Build (Production)
+        working-directory: apps/public-site
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to Cloudflare Pages (Production)
+        working-directory: apps/public-site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler@4.56.0 pages deploy dist \
+            --project-name ledian-clinic-public \
+            --branch main \
+            --commit-dirty=true
+
+      - name: Production Deploy Success
+        run: |
+          echo "✅ Production deployed to: https://ledian-clinic-public.pages.dev"
+          echo "🌐 Custom domain: https://ledianclinic.jp (if configured)"
+

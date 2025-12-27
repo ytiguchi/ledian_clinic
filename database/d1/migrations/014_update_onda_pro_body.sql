@@ -139,7 +139,7 @@ INSERT INTO treatment_details (
   meta_description,
   created_at,
   updated_at
-) VALUES (
+) SELECT
   'onda_pro_body_detail',
   '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f',
   '特殊なマイクロ波で脂肪細胞を加熱・分解',
@@ -152,6 +152,8 @@ INSERT INTO treatment_details (
   'ONDA PROを使用した医療痩身。マイクロ波で脂肪細胞を加熱・分解し、部分痩せと引き締めを目指します。',
   datetime('now'),
   datetime('now')
+WHERE EXISTS (
+  SELECT 1 FROM treatments WHERE id = '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f'
 );
 
 -- ============================================
@@ -162,10 +164,40 @@ WHERE treatment_id = '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f'
   AND caution_type = 'risk';
 
 INSERT INTO treatment_cautions (id, treatment_id, caution_type, content, sort_order, created_at)
-VALUES
-  ('onda_pro_body_risk_1', '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f', 'risk', '一時的な赤み、熱感、むくみ、筋肉痛のような違和感', 1, datetime('now')),
-  ('onda_pro_body_risk_2', '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f', 'risk', '稀に火傷や色素沈着', 2, datetime('now')),
-  ('onda_pro_body_risk_3', '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f', 'risk', '効果には個人差があります', 3, datetime('now'));
+SELECT
+  'onda_pro_body_risk_1',
+  '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f',
+  'risk',
+  '一時的な赤み、熱感、むくみ、筋肉痛のような違和感',
+  1,
+  datetime('now')
+WHERE EXISTS (
+  SELECT 1 FROM treatments WHERE id = '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f'
+);
+
+INSERT INTO treatment_cautions (id, treatment_id, caution_type, content, sort_order, created_at)
+SELECT
+  'onda_pro_body_risk_2',
+  '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f',
+  'risk',
+  '稀に火傷や色素沈着',
+  2,
+  datetime('now')
+WHERE EXISTS (
+  SELECT 1 FROM treatments WHERE id = '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f'
+);
+
+INSERT INTO treatment_cautions (id, treatment_id, caution_type, content, sort_order, created_at)
+SELECT
+  'onda_pro_body_risk_3',
+  '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f',
+  'risk',
+  '効果には個人差があります',
+  3,
+  datetime('now')
+WHERE EXISTS (
+  SELECT 1 FROM treatments WHERE id = '8ea67ada-cc5b-4ef0-bca3-3fa1e713628f'
+);
 
 -- ============================================
 -- 5. 料金（treatment_plans）: 1回（税込36,300円）へ更新
@@ -183,5 +215,4 @@ SET
 WHERE id = 'c42408ce-2837-4e3c-9bfb-c23d89cb36f0';
 
 COMMIT;
-
 

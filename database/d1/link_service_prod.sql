@@ -29,3 +29,4 @@ UPDATE service_contents SET subcategory_id = '27174de2-6c50-498e-867c-d5a68856c8
 UPDATE service_contents SET subcategory_id = '02245551-7752-45ff-b58f-b8ee2081a629', is_published = 1 WHERE id = '370ad851';
 UPDATE service_contents SET subcategory_id = '8e3d0532-f3e6-4571-83ea-bd10a964dccf', is_published = 1 WHERE id = '190957d9';
 
+

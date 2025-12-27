@@ -1,0 +1,85 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FixedCTA from '../components/FixedCTA.astro';
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+}
+
+const { 
+  title,
+  description = 'Ledian Clinic（レディアンクリニック六本木）は、六本木駅徒歩1分の美容内科・美容皮膚科です。最新美容機器と通いやすい価格で、続けられる美容習慣を。',
+  ogImage = '/images/og-image.jpg',
+  noIndex = true, // ステージング中は全ページnoindex
+} = Astro.props;
+
+const siteTitle = 'Ledian Clinic（レディアンクリニック六本木）美容内科、美容皮膚科';
+const fullTitle = title === 'ホーム' ? siteTitle : `${title} | ${siteTitle}`;
+// canonicalは常に本番URLを指す
+const canonicalURL = new URL(Astro.url.pathname, 'https://ledianclinic.jp');
+---
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- SEO -->
+    <link rel="canonical" href={canonicalURL.href} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site || 'https://ledianclinic.jp').href} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ledian Clinic" />
+    <meta property="og:locale" content="ja_JP" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(ogImage, Astro.site || 'https://ledianclinic.jp').href} />
+    
+    <!-- Generator -->
+    <meta name="generator" content={Astro.generator} />
+    
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <Header currentPath={Astro.url.pathname} />
+    
+    <main id="main-content">
+      <slot />
+    </main>
+    
+    <FixedCTA />
+    <Footer />
+    
+    <!-- Add padding for header and mobile fixed CTA -->
+    <style>
+      main {
+        padding-top: 56px; /* Header height */
+      }
+      
+      @media (max-width: 768px) {
+        body {
+          padding-bottom: 60px; /* Fixed CTA height on mobile */
+        }
+      }
+    </style>
+  </body>
+</html>

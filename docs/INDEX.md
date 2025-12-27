@@ -1,6 +1,6 @@
 # ドキュメントインデックス
 
-最終更新: 2024-12-26
+最終更新: 2024-12-27
 
 ## 🎯 スタートガイド
 
@@ -8,60 +8,134 @@
 1. [起動・運用の入口](./START.md) - 迷ったらここ
 2. [ロードマップ](./ROADMAP.md) - 現在の進捗と今後の計画
 3. [タスク一覧](./tasks.md) - 具体的なタスク
-4. [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md) - 何を目指しているか
+
+---
+
+## 🚀 公開サイト（ledianclinic.jp）← 進行中！
+
+| ドキュメント | 説明 |
+|-------------|------|
+| [公開サイト構築計画](./PUBLIC_SITE_PLAN.md) ⭐ | 全体計画・進捗状況 |
+| [公開サイトデプロイ手順](./DEPLOY_PUBLIC.md) ⭐ | デプロイ方法 |
+| [ロードマップ](./ROADMAP.md) | 本番までのステップ |
+
+**現在の進捗: 40%**
+- ✅ トップページ、サービス一覧、料金表
+- ⏳ 施術詳細、キャンペーン、SEO
+
+---
+
+## 🔧 内部サイト（管理画面）
+
+| ドキュメント | 説明 |
+|-------------|------|
+| [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md) | 何を目指しているか |
+| [内部サイト設定](./INTERNAL_SITE_CONFIG.md) | 設定ファイルと環境構成 |
+| [内部サイトデプロイ](./DEPLOY_INTERNAL.md) | デプロイ方法 |
+| [進捗状況](./internal-site-progress.md) | 詳細な進捗 |
+
+**現在の進捗: 75%**
+- ✅ 料金管理、施術管理、キャンペーン管理
+- ✅ 症例写真管理、新商品導入管理
+
+---
 
 ## 📊 ロードマップ・計画
 
-- [ロードマップ](./ROADMAP.md) ⭐ **進捗状況と今後の計画**
-- [タスク一覧](./tasks.md) - 具体的なタスクリスト
-- [進捗状況](./internal-site-progress.md) - 詳細な進捗
-- [公開サイト構築計画](./PUBLIC_SITE_PLAN.md) ⭐ **ledianclinic.jp 再構築計画**
-- [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) - 全体像とPhase別計画（参考）
+| ドキュメント | 説明 |
+|-------------|------|
+| [ロードマップ](./ROADMAP.md) ⭐ | 進捗状況と今後の計画 |
+| [タスク一覧](./tasks.md) | 具体的なタスクリスト |
+| [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) | 全体像（参考） |
+
+---
 
 ## 🔌 API・連携（デザイナー向け）
 
-- [デザイナー向けAPI仕様](./API_FOR_DESIGNER.md) ⭐ **デザイナーはここから**
-- [システム統合ガイド](./DESIGNER_INTEGRATION.md) - デザイナー向け統合ガイド
-- [API実装計画](./API_IMPLEMENTATION_PLAN.md) - API実装の方針
+| ドキュメント | 説明 |
+|-------------|------|
+| [デザイナー向けAPI仕様](./API_FOR_DESIGNER.md) ⭐ | デザイナーはここから |
+| [システム統合ガイド](./DESIGNER_INTEGRATION.md) | デザイナー向け統合ガイド |
+| [API実装計画](./API_IMPLEMENTATION_PLAN.md) | API実装の方針 |
+
+---
 
 ## ⚙️ 設定・環境
 
-- [内部サイト設定](./INTERNAL_SITE_CONFIG.md) - 設定ファイルと環境構成
-- [D1データベース設定](./D1_SINGLE_DB.md) - D1データベース設定
-- [デプロイ手順](./DEPLOY_INTERNAL.md) - デプロイ方法
+| ドキュメント | 説明 |
+|-------------|------|
+| [D1データベース設定](./D1_SINGLE_DB.md) | D1データベース設定 |
+| [アプリ構成](./apps-structure.md) | 2サイト運用の基本方針 |
+| [ローカル開発ガイド](./local-dev-guide.md) | ローカル環境セットアップ |
+
+---
 
 ## 🗄️ データベース
 
-- [D1マイグレーション](../database/d1/migrations/) - D1マイグレーションファイル
-- [D1マイグレーション運用](../database/d1/README.md) - 現行スキーマ/運用メモ
-- [D1スキーマ（正本）](../database/schema_d1_full.sql) - D1スキーマ定義
-- [スキーマ拡張計画](./SCHEMA_EXTENSION_PLAN.md) - 今後の拡張計画
+| ドキュメント | 説明 |
+|-------------|------|
+| [D1マイグレーション](../database/d1/migrations/) | マイグレーションファイル |
+| [D1マイグレーション運用](../database/d1/README.md) | 現行スキーマ/運用メモ |
+| [D1スキーマ（正本）](../database/schema_d1_full.sql) | スキーマ定義 |
+| [スキーマ拡張計画](./SCHEMA_EXTENSION_PLAN.md) | 今後の拡張計画 |
+
+---
 
 ## 🐛 トラブルシューティング
 
-- [APIデバッグ](./DEBUG_API.md) - API動作確認・デバッグ
-- [トラブルシューティング](./TROUBLESHOOTING_CAMPAIGNS.md) - キャンペーン管理のトラブル
+| ドキュメント | 説明 |
+|-------------|------|
+| [APIデバッグ](./DEBUG_API.md) | API動作確認・デバッグ |
+| [キャンペーン管理](./TROUBLESHOOTING_CAMPAIGNS.md) | キャンペーンのトラブル |
 
 ---
 
 ## 目的別ナビゲーション
 
-### デザイナーの方
+### 🎨 デザイナーの方
 1. [システム統合ガイド](./DESIGNER_INTEGRATION.md)
 2. [デザイナー向けAPI仕様](./API_FOR_DESIGNER.md)
 
-### 開発者の方
+### 💻 開発者の方
 1. [ロードマップ](./ROADMAP.md)
-2. [進捗状況](./internal-site-progress.md)
-3. [内部サイト設定](./INTERNAL_SITE_CONFIG.md)
+2. [公開サイト構築計画](./PUBLIC_SITE_PLAN.md)
+3. [公開サイトデプロイ手順](./DEPLOY_PUBLIC.md)
 
-### プロジェクトマネージャーの方
-1. [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md)
-2. [ロードマップ](./ROADMAP.md)
+### 📋 プロジェクトマネージャーの方
+1. [ロードマップ](./ROADMAP.md)
+2. [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md)
 
 ---
 
-## 最終的な出口（目標）
+## プロジェクト構成
+
+```
+ledianclinic/
+├── apps/
+│   ├── internal-site/     # 管理画面（75%完了）
+│   │   └── src/
+│   │       ├── pages/     # 管理画面ページ
+│   │       └── components/
+│   │
+│   └── public-site/       # 公開サイト（40%完了）← NEW!
+│       ├── src/
+│       │   ├── pages/     # 公開ページ
+│       │   ├── components/
+│       │   └── layouts/
+│       └── public/
+│           └── images/    # ダウンロード済み画像（37ファイル）
+│
+├── database/
+│   ├── d1/
+│   │   └── migrations/    # D1マイグレーション
+│   └── schema_d1_full.sql # スキーマ定義
+│
+└── docs/                  # ドキュメント
+```
+
+---
+
+## 最終的な目標
 
 ### 短期（進行中）
 - ✅ 内部サイト基盤構築

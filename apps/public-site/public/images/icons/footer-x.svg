@@ -1,0 +1,25 @@
+<svg id="グループ_59" data-name="グループ 59" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <clipPath id="clip-path">
+      <path id="パス_39" data-name="パス 39" d="M48,0A48,48,0,1,0,96,48,48,48,0,0,0,48,0Z" fill="none"/>
+    </clipPath>
+    <linearGradient id="linear-gradient" x1="0.146" y1="0.854" x2="0.161" y2="0.854" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#23004a"/>
+      <stop offset="0.956" stop-color="#010003"/>
+      <stop offset="1"/>
+    </linearGradient>
+    <clipPath id="clip-path-2">
+      <rect id="長方形_24" data-name="長方形 24" width="96" height="96" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="グループ_56" data-name="グループ 56" transform="translate(0 0)">
+    <g id="グループ_55" data-name="グループ 55" clip-path="url(#clip-path)">
+      <rect id="長方形_23" data-name="長方形 23" width="135.764" height="135.764" transform="translate(-48 48) rotate(-45)" fill="url(#linear-gradient)"/>
+    </g>
+  </g>
+  <g id="グループ_58" data-name="グループ 58" transform="translate(0 0)">
+    <g id="グループ_57" data-name="グループ 57" clip-path="url(#clip-path-2)">
+      <path id="パス_40" data-name="パス 40" d="M38.665,31.476,54.584,12.97H50.812L36.989,29.039,25.949,12.97H13.216l16.7,24.3-16.7,19.4h3.772l14.6-16.967,11.66,16.967H55.978ZM33.5,37.482l-1.692-2.419L18.348,15.81h5.795L35,31.347l1.692,2.421,14.119,20.2H45.019Z" transform="translate(13.403 13.154)" fill="#fff"/>
+    </g>
+  </g>
+</svg>

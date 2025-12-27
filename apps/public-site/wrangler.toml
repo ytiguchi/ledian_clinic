@@ -1,0 +1,20 @@
+# Cloudflare Pages + D1 (public site)
+name = "ledian-clinic-public"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Astro build output for public site
+pages_build_output_dir = "./dist"
+
+# D1 Database - internal-siteと同じDBを共有
+[[d1_databases]]
+binding = "DB"
+database_name = "ledian-internal-prod"
+database_id = "bcf4e5f4-1528-4b8b-b30b-47bd9b99d6b3"
+migrations_dir = "../../database/d1/migrations"
+
+# R2 Storage - 画像アセット（本番で有効化）
+# [[r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "ledian-assets"
+

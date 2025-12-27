@@ -1,43 +1,990 @@
 ---
-const title = "Ledian Clinic | Public";
+import PublicLayout from '../layouts/PublicLayout.astro';
+
+// D1からデータ取得
+const db = Astro.locals.runtime.env.DB;
+
+// おすすめ情報（ニュース/キャンペーン）
+type Campaign = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  start_date: string | null;
+};
+
+let campaigns: Campaign[] = [];
+try {
+  const result = await db.prepare(`
+    SELECT id, title, slug, description, image_url, start_date
+    FROM campaigns
+    WHERE is_published = 1
+    ORDER BY start_date DESC, sort_order
+    LIMIT 4
+  `).all();
+  campaigns = result.results as Campaign[];
+} catch (e) {
+  console.error('Failed to fetch campaigns:', e);
+}
+
+// 施設写真（ダウンロード済み）
+const photos = [
+  { src: '/images/photos/clinic-01.png', alt: '店内写真イメージ01' },
+  { src: '/images/photos/clinic-02.png', alt: '店内写真イメージ02' },
+  { src: '/images/photos/clinic-03.png', alt: '店内写真イメージ03' },
+  { src: '/images/photos/clinic-04.png', alt: '店内写真イメージ04' },
+];
+
+// 3つの魅力（ダウンロード済み画像使用）
+const points = [
+  {
+    image: '/images/points/point-img01.png',
+    numberImage: '/images/points/point01.svg',
+    title: 'スピーディーな施術',
+    desc: ['六本木の多忙な皆さまのために', 'スピーディーな問診・施術を行います。'],
+  },
+  {
+    image: '/images/points/point-img02.png',
+    numberImage: '/images/points/point02.svg',
+    title: '好アクセス',
+    desc: ['六本木交差点から徒歩1分、営業時間は、平日10時-21時・土日祝11時-20時'],
+  },
+  {
+    image: '/images/points/point-img03.png',
+    numberImage: '/images/points/point03.svg',
+    title: 'リーズナブルな価格',
+    desc: ['通いやすいお得な料金でご案内、', '無理なく続けられる美容ケア。'],
+  },
+];
+
+// サービスカード
+const serviceCards = [
+  {
+    href: '/service/#service-group-671',
+    image: '/images/theme/front-banner.png',
+    title: 'ニキビ・ニキビ痕・毛穴治療',
+    desc: 'ポテンツァ・エリシスセンス・サブシジョン・トライフィルプロと豊富なメニューであなたのニキビ跡を改善します。',
+  },
+  {
+    href: '/service/onda-pro/',
+    image: '/images/theme/front-banner.png',
+    title: 'オンダリフト',
+    desc: '当院で人気No.1のオンダリフト。マイクロ波の熱で脂肪が減らし、肌を引き締めます。顔にも、ボディにも。',
+  },
+  {
+    href: '/service/',
+    image: '/images/theme/front-banner.png',
+    title: '施術一覧',
+    desc: '各種施術の詳細を記載しています。',
+  },
+  {
+    href: '/price/',
+    image: '/images/theme/front-banner.png',
+    title: '料金表',
+    desc: 'すべてのメニューの料金一覧はこちらからご覧いただけます。',
+  },
+  {
+    href: '/doctor/',
+    image: '/images/theme/front-banner.png',
+    title: '院長・コンセプト紹介',
+    desc: 'Ledian Clinic院長の紹介と、思いを記載しています。',
+  },
+  {
+    href: '/subscription/',
+    image: '/images/theme/subscription-banner.jpg',
+    title: 'サブスクリプション',
+    desc: 'お得なサブスクメニュー・定額サブスク',
+  },
+];
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
 ---
 
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <style>
-      :root { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; }
-      body { margin: 0; background: #f6f8fb; color: #0f172a; }
-      header { padding: 24px; border-bottom: 1px solid #e2e8f0; background: white; }
-      main { padding: 24px; max-width: 960px; margin: 0 auto; }
-      .card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 8px 20px rgba(15,23,42,0.05); }
-      .tag { display: inline-block; background: #e0f2fe; color: #0ea5e9; border-radius: 999px; padding: 6px 12px; font-size: 12px; margin-right: 8px; }
-      h1, h2, h3 { margin: 0 0 8px; }
-      p { margin: 0 0 12px; }
-    </style>
-  </head>
-  <body>
-    <header>
-      <div class="tag">Public Draft</div>
-      <h1>Ledian Clinic - Public Site</h1>
-      <p>公開用サイトの仮トップ。後でデザイン/機能を差し替えます。</p>
-    </header>
-    <main>
-      <section class="card">
-        <h2>概要</h2>
-        <p>Astro + Cloudflare Pages を前提とした最低限のスターターです。価格・メニューは D1 から取得する想定です。</p>
-      </section>
-      <section class="card">
-        <h2>次のステップ</h2>
-        <ul>
-          <li>デザイン/コンポーネント実装</li>
-          <li>APIまたは静的JSONで価格/メニューを表示</li>
-          <li>公開用と社内用のデータ分離（public D1 を参照）</li>
+<PublicLayout title="ホーム">
+  <!-- Hero Section / Slider -->
+  <section class="hero">
+    <div class="hero-bg" style="background-image: url('/images/theme/hero-bg.svg')"></div>
+    <div class="hero-slider">
+      <!-- PC版スライダー -->
+      <div class="hero-slides hidden-sp">
+        <div class="hero-slide active">
+          <img src="/images/slider/slider-pc-01.png" alt="Ledian Clinic" />
+        </div>
+        <div class="hero-slide">
+          <img src="/images/slider/slider-pc-02.png" alt="Ledian Clinic" />
+        </div>
+        <div class="hero-slide">
+          <img src="/images/slider/slider-pc-03.png" alt="Ledian Clinic" />
+        </div>
+      </div>
+      <!-- SP版スライダー -->
+      <div class="hero-slides hidden-pc">
+        <div class="hero-slide active">
+          <img src="/images/slider/slider-sp-01.png" alt="Ledian Clinic" />
+        </div>
+        <div class="hero-slide">
+          <img src="/images/slider/slider-sp-02.png" alt="Ledian Clinic" />
+        </div>
+        <div class="hero-slide">
+          <img src="/images/slider/slider-sp-03.png" alt="Ledian Clinic" />
+        </div>
+      </div>
+    </div>
+    
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="hero-title-line">Why fly to Seoul?</span>
+        <span class="hero-title-line">The best is right here.</span>
+      </h1>
+      <div class="hero-text">
+        <p></p>
+        <p>まだ韓国行ってる？韓国美容好きも納得のクオリティを、もっと身近に。Ledian Clinicは最新美容機器と、通いやすい価格を実現。完全個室のゆったり空間で、続けられる美容習慣を。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recommendation Section -->
+  <section class="section recommendation">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title-en">RECOMMENDATION</h2>
+        <p class="section-title-ja">おすすめ情報</p>
+      </div>
+
+      <ul class="recommendation-list">
+        {campaigns.length > 0 ? (
+          campaigns.map((campaign) => (
+            <li class="recommendation-item">
+              <a href={`/news/${campaign.slug}/`} class="news-card">
+                <div class="news-card-image">
+                  {campaign.image_url ? (
+                    <img src={campaign.image_url} alt={campaign.title} />
+                  ) : (
+                    <div class="news-card-placeholder"></div>
+                  )}
+                </div>
+                <p class="news-card-date">{formatDate(campaign.start_date)}</p>
+                <h3 class="news-card-title">{campaign.title}</h3>
+              </a>
+            </li>
+          ))
+        ) : (
+          <li class="no-data">現在、おすすめ情報はありません。</li>
+        )}
+      </ul>
+
+      <div class="text-center">
+        <a href="/news/" class="btn-more">おすすめ情報一覧</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Service Section -->
+  <section class="section service">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title-en">SERVICE</h2>
+        <p class="section-title-ja">サービスメニュー</p>
+      </div>
+
+      <ul class="service-grid">
+        {serviceCards.map((card) => (
+          <li>
+            <a href={card.href} class="service-card">
+              <div class="service-card-image">
+                <img src={card.image} alt={card.title} loading="lazy" />
+              </div>
+              <div class="service-card-content">
+                <h3 class="service-card-title">{card.title}</h3>
+                <p class="service-card-desc">{card.desc}</p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <ul class="cta-buttons">
+        <li>
+          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
+            LINEでかんたん予約
+          </a>
+        </li>
+        <li>
+          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
+            WEB予約
+          </a>
+        </li>
+        <li>
+          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
+            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
+          </a>
+        </li>
+      </ul>
+      <p class="cta-contact">
+        <a href="/contact/">お問い合わせはこちらから</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Point Section -->
+  <section class="section point">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title-en">POINT</h2>
+        <p class="section-title-ja">
+          <img src="/images/points/point-title-miryoku.svg" alt="Ledian Clinicの3つの魅力" />
+        </p>
+      </div>
+
+      <ul class="point-grid">
+        {points.map((point) => (
+          <li class="point-card">
+            <div class="point-card-image">
+              <img src={point.image} alt={point.title} loading="lazy" />
+            </div>
+            <div class="point-card-content">
+              <p class="point-number">
+                <img src={point.numberImage} alt="" />
+              </p>
+              <h4 class="point-title">{point.title}</h4>
+              <p class="point-desc">
+                {point.desc.map((line, i) => (
+                  <Fragment>
+                    {line}
+                    {i < point.desc.length - 1 && <br />}
+                  </Fragment>
+                ))}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- CTA Section 2 -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <ul class="cta-buttons">
+        <li>
+          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
+            LINEでかんたん予約
+          </a>
+        </li>
+        <li>
+          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
+            WEB予約
+          </a>
+        </li>
+        <li>
+          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
+            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
+          </a>
+        </li>
+      </ul>
+      <p class="cta-contact">
+        <a href="/contact/">お問い合わせはこちらから</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Photo Section -->
+  <section class="section photo">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title-en">PHOTO</h2>
+        <p class="section-title-ja">施設写真</p>
+      </div>
+    </div>
+
+    <div class="photo-grid">
+      {photos.map((photo) => (
+        <div class="photo-grid-item">
+          <img src={photo.src} alt={photo.alt} loading="lazy" />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Access Section -->
+  <section class="section access">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title-en">ACCESS</h2>
+        <p class="section-title-ja">アクセス</p>
+      </div>
+
+      <div class="access-content">
+        <div class="access-map-wrapper">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3241.4680068851164!2d139.73054717677954!3d35.66246467259384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188b9b7adbb537%3A0x3a50e3c18d0efae4!2z44Os44OH44Kj44Ki44Oz44Kv44Oq44OL44OD44Kv5YWt5pys5pyo!5e0!3m2!1sja!2sjp!4v1703000000000!5m2!1sja!2sjp" 
+            class="access-map"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Google Map - Ledian Clinic"
+          ></iframe>
+        </div>
+
+        <ul class="access-info">
+          <li>〒106-0032 東京都港区六本木５丁目２−２ トーマスビル</li>
+          <li>六本木駅 徒歩2分</li>
+          <li>六本木交差点より 徒歩1分</li>
+          <li>電話番号 : <a href="tel:050-8889-3863">050-8889-3863</a></li>
         </ul>
-      </section>
-    </main>
-  </body>
-</html>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section 3 (Bottom) -->
+  <section class="cta-section cta-section-bottom">
+    <div class="cta-inner">
+      <ul class="cta-buttons">
+        <li>
+          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
+            LINEでかんたん予約
+          </a>
+        </li>
+        <li>
+          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
+            WEB予約
+          </a>
+        </li>
+        <li>
+          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
+            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
+          </a>
+        </li>
+      </ul>
+      <p class="cta-contact">
+        <a href="/contact/">お問い合わせはこちらから</a>
+      </p>
+    </div>
+  </section>
+</PublicLayout>
+
+<style>
+  /* Hero Section - 現サイト完全コピー */
+  .hero {
+    position: relative;
+    background-color: var(--color-bg);
+    overflow: hidden;
+  }
+  
+  .hero-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.3;
+  }
+  
+  .hero-slider {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-slides {
+    position: relative;
+  }
+  
+  .hero-slide {
+    display: none;
+  }
+  
+  .hero-slide.active {
+    display: block;
+  }
+  
+  .hero-slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 40px 20px 60px;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    background: linear-gradient(to bottom, transparent, var(--color-bg) 20%);
+  }
+  
+  .hero-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+  
+  .hero-title-line {
+    display: block;
+  }
+  
+  .hero-text {
+    font-size: 0.9375rem;
+    line-height: 2;
+    color: var(--color-text-dark);
+  }
+  
+  .hero-text p {
+    margin: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-title {
+      font-size: 2.25rem;
+    }
+    .hero-content {
+      padding: 50px 20px 80px;
+    }
+  }
+  
+  /* Section Styles */
+  .section {
+    padding: 80px 0;
+  }
+  
+  @media (max-width: 768px) {
+    .section {
+      padding: 50px 0;
+    }
+  }
+  
+  .section-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  
+  .section-title-en {
+    font-family: var(--font-serif);
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--color-text);
+    margin-bottom: 10px;
+  }
+  
+  @media (min-width: 768px) {
+    .section-title-en {
+      font-size: 2rem;
+    }
+  }
+  
+  .section-title-ja {
+    font-size: 0.875rem;
+    color: var(--color-gray-medium);
+    letter-spacing: 0.1em;
+  }
+  
+  /* Recommendation Section */
+  .recommendation {
+    background: var(--color-bg);
+  }
+  
+  .recommendation-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    list-style: none;
+    margin: 0 0 40px;
+    padding: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .recommendation-list {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 30px;
+    }
+  }
+  
+  .news-card {
+    display: block;
+    text-decoration: none;
+  }
+  
+  .news-card-image {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background: var(--color-bg-gray);
+  }
+  
+  .news-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .news-card:hover .news-card-image img {
+    transform: scale(1.05);
+  }
+  
+  .news-card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-bg-gray);
+  }
+  
+  .news-card-date {
+    font-size: 0.75rem;
+    color: var(--color-gray-medium);
+    margin-bottom: 5px;
+  }
+  
+  .news-card-title {
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--color-text);
+  }
+  
+  .no-data {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--color-gray-medium);
+    padding: 40px;
+  }
+  
+  .btn-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 50px;
+    font-size: 0.875rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    background: var(--color-white);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .btn-more::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid var(--color-text);
+    border-bottom: 1px solid var(--color-text);
+    transform: translateY(-50%) rotate(-45deg);
+  }
+  
+  .btn-more:hover {
+    background: var(--color-bg-gray);
+    opacity: 1;
+  }
+  
+  /* Service Section */
+  .service {
+    background: var(--color-white);
+  }
+  
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .service-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+    }
+  }
+  
+  .service-card {
+    display: block;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .service-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    opacity: 1;
+  }
+  
+  .service-card::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    width: 30px;
+    height: 30px;
+    background: url('/images/icons/service-arrow.svg') no-repeat center;
+    background-size: contain;
+  }
+  
+  .service-card-image {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+  }
+  
+  .service-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .service-card:hover .service-card-image img {
+    transform: scale(1.05);
+  }
+  
+  .service-card-content {
+    padding: 20px;
+    padding-bottom: 50px;
+  }
+  
+  .service-card-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--color-text);
+    line-height: 1.4;
+  }
+  
+  .service-card-desc {
+    font-size: 0.8125rem;
+    color: var(--color-text-light);
+    line-height: 1.7;
+  }
+  
+  /* CTA Section */
+  .cta-section {
+    background: var(--color-bg);
+    padding: 40px 20px;
+  }
+  
+  .cta-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 30px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .cta-btn::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+  
+  .cta-btn-line {
+    background: #06c755;
+    color: var(--color-white);
+    min-width: 200px;
+  }
+  
+  .cta-btn-line:hover {
+    background: #05a847;
+    opacity: 1;
+  }
+  
+  .cta-btn-web {
+    background: var(--color-text-dark);
+    color: var(--color-white);
+    min-width: 150px;
+  }
+  
+  .cta-btn-web:hover {
+    background: var(--color-black);
+    opacity: 1;
+  }
+  
+  .cta-btn-instagram {
+    padding: 0;
+    background: transparent;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .cta-btn-instagram::after {
+    display: none;
+  }
+  
+  .cta-btn-instagram img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  
+  .cta-contact {
+    margin: 0;
+  }
+  
+  .cta-contact a {
+    font-size: 0.875rem;
+    color: var(--color-text);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .cta-contact a::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid var(--color-text);
+    border-bottom: 1px solid var(--color-text);
+    transform: rotate(-45deg);
+  }
+  
+  .cta-contact a:hover {
+    opacity: 0.7;
+  }
+  
+  /* Point Section */
+  .point {
+    background: var(--color-bg-gray);
+  }
+  
+  .point .section-title-ja img {
+    height: 24px;
+    width: auto;
+  }
+  
+  .point-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .point-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 50px;
+    }
+  }
+  
+  .point-card {
+    text-align: center;
+  }
+  
+  .point-card-image {
+    margin-bottom: 25px;
+    overflow: hidden;
+  }
+  
+  .point-card-image img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .point-card-content {
+    padding: 0 10px;
+  }
+  
+  .point-number {
+    margin-bottom: 15px;
+  }
+  
+  .point-number img {
+    height: 20px;
+    width: auto;
+  }
+  
+  .point-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: var(--color-text);
+  }
+  
+  .point-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    line-height: 1.9;
+  }
+  
+  /* Photo Section */
+  .photo {
+    padding-bottom: 0;
+    background: var(--color-bg);
+  }
+  
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+  
+  @media (min-width: 768px) {
+    .photo-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .photo-grid-item {
+    aspect-ratio: 1;
+    overflow: hidden;
+  }
+  
+  .photo-grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* Access Section */
+  .access {
+    background: var(--color-bg);
+  }
+  
+  .access-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .access-map-wrapper {
+    margin-bottom: 30px;
+  }
+  
+  .access-map {
+    width: 100%;
+    height: 400px;
+    border: none;
+  }
+  
+  @media (max-width: 768px) {
+    .access-map {
+      height: 300px;
+    }
+  }
+  
+  .access-info {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+  
+  .access-info li {
+    font-size: 0.9375rem;
+    margin-bottom: 10px;
+    line-height: 1.8;
+  }
+  
+  .access-info a {
+    color: var(--color-blue);
+    text-decoration: none;
+  }
+  
+  .access-info a:hover {
+    text-decoration: underline;
+  }
+  
+  /* CTA Bottom */
+  .cta-section-bottom {
+    padding-bottom: 100px;
+  }
+  
+  /* Utility classes */
+  .hidden-sp {
+    display: block;
+  }
+  
+  .hidden-pc {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .hidden-sp {
+      display: none !important;
+    }
+    .hidden-pc {
+      display: block !important;
+    }
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+</style>
+
+<script>
+  // シンプルなスライダー機能
+  document.addEventListener('DOMContentLoaded', () => {
+    const slidersPC = document.querySelectorAll('.hidden-sp .hero-slide');
+    const slidersSP = document.querySelectorAll('.hidden-pc .hero-slide');
+    let currentSlide = 0;
+    
+    function nextSlide() {
+      // PC slides
+      slidersPC.forEach(slide => slide.classList.remove('active'));
+      slidersSP.forEach(slide => slide.classList.remove('active'));
+      
+      currentSlide = (currentSlide + 1) % slidersPC.length;
+      
+      if (slidersPC[currentSlide]) slidersPC[currentSlide].classList.add('active');
+      if (slidersSP[currentSlide]) slidersSP[currentSlide].classList.add('active');
+    }
+    
+    // Auto-play every 5 seconds
+    setInterval(nextSlide, 5000);
+  });
+</script>
