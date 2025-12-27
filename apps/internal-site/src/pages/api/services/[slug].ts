@@ -48,6 +48,17 @@ interface ServiceFaq {
   sort_order: number;
 }
 
+interface CaseStudy {
+  id: string;
+  before_image_url: string;
+  after_image_url: string;
+  caption: string | null;
+  treatment_content: string | null;
+  treatment_cost_text: string | null;
+  is_published: number;
+  sort_order: number;
+}
+
 // GET: Fetch service content by slug
 export const GET: APIRoute = async ({ locals, params }) => {
   const { slug } = params;
@@ -69,10 +80,14 @@ export const GET: APIRoute = async ({ locals, params }) => {
   try {
     const db = getDB(locals.runtime.env);
 
-    // Get service content by slug
-    const contents = await queryDB<ServiceContent>(db, 
-      `SELECT * FROM service_contents WHERE slug = ?`, 
-      [slug]
+    // Try multiple slug formats (some slugs are stored URL-encoded in DB)
+    const decodedSlug = decodeURIComponent(slug);
+    const encodedSlug = encodeURIComponent(decodedSlug).toLowerCase();
+    
+    // Get service content by slug - try both decoded and encoded versions
+    let contents = await queryDB<ServiceContent>(db, 
+      `SELECT * FROM service_contents WHERE slug = ? OR slug = ? OR slug = ?`, 
+      [slug, decodedSlug, encodedSlug]
     );
 
     if (contents.length === 0) {
@@ -119,6 +134,16 @@ export const GET: APIRoute = async ({ locals, params }) => {
       [content.id]
     );
 
+    // Get case studies (before/afters) - by service_content_id or subcategory_id
+    const caseStudies = await queryDB<CaseStudy>(db,
+      `SELECT id, before_image_url, after_image_url, caption, treatment_content, 
+              treatment_cost_text, is_published, sort_order 
+       FROM treatment_before_afters 
+       WHERE service_content_id = ? OR subcategory_id = ?
+       ORDER BY sort_order`,
+      [content.id, content.subcategory_id]
+    );
+
     return new Response(JSON.stringify({
       content: {
         id: content.id,
@@ -137,6 +162,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
       recommendations,
       overview: overviews.length > 0 ? overviews[0] : null,
       faqs,
+      caseStudies,
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -176,10 +202,14 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     const db = getDB(locals.runtime.env);
     const body = await request.json();
 
+    // Try multiple slug formats (some slugs are stored URL-encoded in DB)
+    const decodedSlug = decodeURIComponent(slug);
+    const encodedSlug = encodeURIComponent(decodedSlug).toLowerCase();
+
     // Get existing service content
     const contents = await queryDB<ServiceContent>(db, 
-      `SELECT * FROM service_contents WHERE slug = ?`, 
-      [slug]
+      `SELECT * FROM service_contents WHERE slug = ? OR slug = ? OR slug = ?`, 
+      [slug, decodedSlug, encodedSlug]
     );
 
     if (contents.length === 0) {
@@ -306,6 +336,24 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
             faq.question,
             faq.answer || null,
             faq.sort_order || 0
+          ).run();
+        }
+      }
+    }
+
+    // Update case studies visibility and service_content_id
+    if (body.caseStudies !== undefined) {
+      for (const cs of body.caseStudies) {
+        if (cs.id) {
+          await db.prepare(`
+            UPDATE treatment_before_afters 
+            SET is_published = ?, service_content_id = ?, sort_order = ?
+            WHERE id = ?
+          `).bind(
+            cs.is_published ? 1 : 0,
+            serviceId,
+            cs.sort_order || 0,
+            cs.id
           ).run();
         }
       }

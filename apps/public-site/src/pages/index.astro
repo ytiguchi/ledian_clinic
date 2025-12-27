@@ -29,6 +29,69 @@ try {
   console.error('Failed to fetch campaigns:', e);
 }
 
+// お客様の声（Google口コミから抜粋）- カルーセル用に多めに
+const reviews = [
+  {
+    name: '榊原結梨',
+    initial: 'S',
+    rating: 5,
+    date: '2週間前',
+    text: '院内はとても清潔で、六本木交差点から近くアクセスも良く、とても過ごしやすいクリニックでした。スタッフの皆様も親切で、まるでエステに来たかのようにリラックスして過ごせました。',
+  },
+  {
+    name: 'みお',
+    initial: 'M',
+    rating: 5,
+    date: '1週間前',
+    text: 'どんな施術がいいか迷っていても、自分の悩みから一緒に何が1番適しているか考えてくれて、満足いく施術ができたので満足です！女性スタッフも看護師さんもドクターも聞きたいことを気軽に聞けてみなさん話しやすいです。',
+  },
+  {
+    name: 'a O',
+    initial: 'A',
+    rating: 5,
+    date: '1週間前',
+    text: 'カウンセラーさんから、看護師さん、お医者さままで、皆さん説明＆対応も最初から最後まですごく丁寧にして頂けて、とても安心しました。今まで行った、クリニックやサロンの中で、1番対応が良くて大満足です。',
+  },
+  {
+    name: 'Y',
+    initial: 'Y',
+    rating: 5,
+    date: '3週間前',
+    text: '院内も清潔だしカウンセリングから施術を担当してくれた方もとても丁寧でした！初めての美容クリニックでしたが安心して受けられました。',
+  },
+  {
+    name: 'K',
+    initial: 'K',
+    rating: 5,
+    date: '1ヶ月前',
+    text: 'お部屋にはペットボトルのお水とアロマのおしぼりがありました。細やかな心遣いが嬉しかったです。施術も丁寧で満足しています。',
+  },
+  {
+    name: 'R',
+    initial: 'R',
+    rating: 5,
+    date: '1ヶ月前',
+    text: '看護師さんや受付の方も対応が良いのでまた伺いたいと思います！価格も良心的で続けやすいです。',
+  },
+  {
+    name: 'M',
+    initial: 'M',
+    rating: 5,
+    date: '2ヶ月前',
+    text: '六本木駅から近くて通いやすいです。スタッフの方々がとても親切で、施術の説明も分かりやすかったです。',
+  },
+  {
+    name: 'T',
+    initial: 'T',
+    rating: 5,
+    date: '2ヶ月前',
+    text: '完全個室で周りを気にせずリラックスできました。カウンセリングも押し売りがなく、自分のペースで決められました。',
+  },
+];
+
+// Google口コミ直リンク
+const googleReviewsUrl = 'https://www.google.com/maps/place/%E7%BE%8E%E5%AE%B9%E7%9A%AE%E8%86%9A%E7%A7%91+Ledian+Clinic+Roppongi+%E5%85%AD%E6%9C%AC%E6%9C%A8/@35.6616897,139.7335417,16.48z/data=!4m16!1m9!3m8!1s0x60188b02269b1f21:0x5ff4d0a1edc15f8d!2z576O5a6555qu6Iqa56eRIExlZGlhbiBDbGluaWMgUm9wcG9uZ2kg5YWt5pys5pyo!8m2!3d35.662305!4d139.733649!9m1!1b1!16s%2Fg%2F11vzflsrhz!3m5!1s0x60188b02269b1f21:0x5ff4d0a1edc15f8d!8m2!3d35.662305!4d139.733649!16s%2Fg%2F11vzflsrhz';
+
 // 施設写真（ダウンロード済み）
 const photos = [
   { src: '/images/photos/clinic-01.png', alt: '店内写真イメージ01' },
@@ -259,6 +322,54 @@ function formatDate(dateStr: string | null): string {
   </section>
 
   <CtaSection variant="home" />
+
+  <!-- Reviews Section - お客様の声（プレビュー用・削除可能） -->
+  <section class="section reviews">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title-en">VOICE</h2>
+        <p class="section-title-ja">お客様の声</p>
+      </div>
+
+      <div class="reviews-stats">
+        <div class="reviews-rating">
+          <span class="reviews-stars">★★★★★</span>
+          <span class="reviews-score">4.8</span>
+        </div>
+        <p class="reviews-count">Google口コミ 187件</p>
+      </div>
+
+      <ul class="reviews-grid">
+        {reviews.map((review) => (
+          <li class="review-card">
+            <div class="review-header">
+              <div class="review-avatar">{review.initial}</div>
+              <div class="review-meta">
+                <p class="review-name">{review.name}</p>
+                <p class="review-date">{review.date}</p>
+              </div>
+              <div class="review-stars">
+                {'★'.repeat(review.rating)}
+              </div>
+            </div>
+            <p class="review-text">"{review.text}"</p>
+          </li>
+        ))}
+      </ul>
+
+      <div class="text-center">
+        <a 
+          href="https://www.google.com/maps/place/%E7%BE%8E%E5%AE%B9%E7%9A%AE%E8%86%9A%E7%A7%91+Ledian+Clinic+Roppongi+%E5%85%AD%E6%9C%AC%E6%9C%A8/@35.662305,139.733649,17z" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="btn-more"
+        >
+          すべての口コミを見る
+        </a>
+      </div>
+    </div>
+  </section>
+  <!-- /Reviews Section -->
 
   <!-- Photo Section -->
   <section class="section photo">
@@ -907,6 +1018,124 @@ function formatDate(dateStr: string | null): string {
     line-height: 1.8;
   }
   
+  /* Reviews Section - お客様の声 */
+  .reviews {
+    background: linear-gradient(180deg, #FDFBF7 0%, #F8F5EF 100%);
+  }
+
+  .reviews-stats {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .reviews-rating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .reviews-stars {
+    font-size: 28px;
+    color: #D4AF37;
+    letter-spacing: 2px;
+  }
+
+  .reviews-score {
+    font-size: 42px;
+    font-weight: 700;
+    color: #2D2D2D;
+    font-family: 'Noto Serif JP', serif;
+  }
+
+  .reviews-count {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    list-style: none;
+    margin: 0 0 40px;
+    padding: 0;
+  }
+
+  @media (min-width: 768px) {
+    .reviews-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+    }
+  }
+
+  .review-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .review-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .review-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .review-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .review-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2D2D2D;
+    margin: 0 0 2px;
+  }
+
+  .review-date {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+  }
+
+  .review-stars {
+    font-size: 14px;
+    color: #D4AF37;
+    letter-spacing: 1px;
+  }
+
+  .review-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #444;
+    margin: 0;
+    font-style: italic;
+  }
+
   /* Photo Section */
   .photo {
     padding-bottom: 0;

@@ -132,6 +132,18 @@ export const prerender = false;
         </div>
       </section>
 
+      <!-- 症例写真 -->
+      <section class="form-section">
+        <div class="section-header">
+          <h2 class="section-title">症例写真</h2>
+          <a href="/before-afters/new" target="_blank" class="btn btn-add">+ 新規作成</a>
+        </div>
+        <p class="help-text" style="margin-bottom: 1rem;">このサービスに紐づいている症例写真の表示/非表示を管理できます。新規追加は「症例写真」メニューから行ってください。</p>
+        <div id="caseStudiesContainer" class="items-container">
+          <p class="empty-message">紐づけられた症例写真がありません</p>
+        </div>
+      </section>
+
       <!-- 保存ボタン -->
       <div class="form-actions">
         <button type="button" class="btn btn-secondary" onclick="window.location.href='/services'">キャンセル</button>
@@ -378,6 +390,95 @@ export const prerender = false;
       grid-template-columns: 1fr;
     }
   }
+
+  /* Case Study Styles */
+  .case-study-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .case-study-images {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .case-study-image {
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .case-study-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  .case-study-image .image-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+    border-radius: var(--radius-sm) 0 var(--radius-sm) 0;
+  }
+
+  .case-study-arrow {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+  }
+
+  .case-study-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .case-study-caption {
+    font-size: 0.875rem;
+    color: var(--color-text);
+    margin: 0 0 0.25rem 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .case-study-cost {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .case-study-controls {
+    flex-shrink: 0;
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+
+  .toggle-label input {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .toggle-text {
+    color: var(--color-text-secondary);
+  }
+
+  .toggle-label input:checked + .toggle-text {
+    color: #10b981;
+    font-weight: 500;
+  }
 </style>
 
 <script define:vars={{ slug }}>
@@ -389,6 +490,7 @@ export const prerender = false;
   let recommendations = [];
   let overview = null;
   let faqs = [];
+  let caseStudies = [];
 
   // DOM helpers
   const $ = (id) => document.getElementById(id);
@@ -410,6 +512,7 @@ export const prerender = false;
       recommendations = data.recommendations || [];
       overview = data.overview;
       faqs = data.faqs || [];
+      caseStudies = data.caseStudies || [];
 
       populateForm();
       
@@ -445,6 +548,7 @@ export const prerender = false;
     renderFeatures();
     renderRecommendations();
     renderFaqs();
+    renderCaseStudies();
   }
 
   // Features
@@ -560,6 +664,45 @@ export const prerender = false;
     renderFaqs();
   };
 
+  // Case Studies
+  function renderCaseStudies() {
+    const container = $('caseStudiesContainer');
+    if (caseStudies.length === 0) {
+      container.innerHTML = '<p class="empty-message">紐づけられた症例写真がありません</p>';
+      return;
+    }
+    container.innerHTML = caseStudies.map((cs, i) => `
+      <div class="item-card case-study-card">
+        <div class="case-study-images">
+          <div class="case-study-image">
+            <span class="image-label">Before</span>
+            <img src="${escapeHtml(cs.before_image_url)}" alt="Before" onerror="this.src='/images/placeholder.png'" />
+          </div>
+          <div class="case-study-arrow">→</div>
+          <div class="case-study-image">
+            <span class="image-label">After</span>
+            <img src="${escapeHtml(cs.after_image_url)}" alt="After" onerror="this.src='/images/placeholder.png'" />
+          </div>
+        </div>
+        <div class="case-study-info">
+          <p class="case-study-caption">${escapeHtml(cs.caption || cs.treatment_content || '（キャプションなし）')}</p>
+          <p class="case-study-cost">${escapeHtml(cs.treatment_cost_text || '')}</p>
+        </div>
+        <div class="case-study-controls">
+          <label class="toggle-label">
+            <input type="checkbox" ${cs.is_published ? 'checked' : ''} onchange="updateCaseStudy(${i}, 'is_published', this.checked)" />
+            <span class="toggle-text">${cs.is_published ? '公開中' : '非公開'}</span>
+          </label>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.updateCaseStudy = function(index, field, value) {
+    caseStudies[index][field] = value;
+    renderCaseStudies();
+  };
+
   // Form submission
   $('editForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -591,6 +734,11 @@ export const prerender = false;
       },
       faqs: faqs.map((f, i) => ({
         ...f,
+        sort_order: i
+      })),
+      caseStudies: caseStudies.map((cs, i) => ({
+        id: cs.id,
+        is_published: cs.is_published,
         sort_order: i
       })),
     };
