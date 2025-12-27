@@ -241,13 +241,14 @@ function formatPrice(price: number): string {
     <!-- Hero Section - 本番サイト準拠のレイアウト -->
     <section class="firstview">
       <div class="firstview__inner">
-        <div class="firstview__image">
-          <img 
-            src={`/images/service/${slug}-hero.jpg`} 
-            alt={service.name_ja} 
-            onerror="this.onerror=null; this.src='/images/service/default-hero.jpg';"
-          />
-        </div>
+        {service.hero_image_url && (
+          <div class="firstview__image">
+            <img 
+              src={service.hero_image_url} 
+              alt={service.name_ja} 
+            />
+          </div>
+        )}
         <div class="firstview__texts">
           <div class="firstview__title">
             <h1>{service.name_ja}</h1>
