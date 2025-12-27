@@ -1,0 +1,152 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/career.css';
+
+const position = {
+  title: 'オープンポジション(本社配属)',
+  type: '正社員',
+  salary: {
+    main: '応相談',
+    notes: [
+      'ご経験・スキルに応じて決定',
+      '業績に応じて賞与を年4回支給'
+    ]
+  }
+};
+---
+
+<PublicLayout 
+  title={`${position.title} 採用情報`}
+  description={`Ledian Clinicの${position.title}の採用情報です。あなたのスキル・経験を活かせるポジションを一緒に探しましょう。`}
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/career/">採用情報</a></li>
+        <li aria-current="page">{position.title}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="career-header">
+    <div class="container">
+      <h1 class="career-title">{position.title} 採用情報</h1>
+      <p class="career-subtitle">CAREER</p>
+    </div>
+  </section>
+
+  <!-- Detail Content -->
+  <section class="career-detail-section">
+    <div class="container">
+      <div class="career-detail-card">
+        <div class="career-detail-content">
+          
+          <!-- 職種 -->
+          <div class="career-section">
+            <h3 class="career-section-title">職種</h3>
+            <p class="career-section-value">オープンポジション</p>
+            <p class="career-section-text">該当するポジションがない方、複数の職種に興味がある方はこちらからご応募ください。ご経験・スキル・ご希望をお伺いした上で、最適なポジションをご提案いたします。</p>
+          </div>
+
+          <!-- 雇用形態 -->
+          <div class="career-section">
+            <h3 class="career-section-title">雇用形態</h3>
+            <p class="career-section-value">{position.type}</p>
+          </div>
+
+          <!-- 給与 -->
+          <div class="career-section">
+            <h3 class="career-section-title">給与</h3>
+            <p class="salary-main">{position.salary.main}</p>
+            {position.salary.notes.map((note) => (
+              <p class="salary-note">※ {note}</p>
+            ))}
+          </div>
+
+          <!-- この仕事の魅力 -->
+          <div class="career-section">
+            <h3 class="career-section-title">【Ledian Clinicで働く魅力】</h3>
+            
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【成長企業】急成長中の美容クリニック</h4>
+              <p class="career-highlight-text">六本木に本院を構え、急成長を続けるLedian Clinic。一緒に成長していける仲間を募集しています。</p>
+            </div>
+
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【チームワーク】温かい職場環境</h4>
+              <p class="career-highlight-text">スタッフ同士の仲が良く、助け合いの精神を大切にしています。新しいメンバーも温かく迎え入れます。</p>
+            </div>
+
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【福利厚生】社員割引制度あり</h4>
+              <p class="career-highlight-text">美容施術やクリニック取扱製品を社員割引で利用できます。自分自身もキレイになれる環境です。</p>
+            </div>
+          </div>
+
+          <!-- 募集中のポジション -->
+          <div class="career-section">
+            <h3 class="career-section-title">現在募集中のポジション</h3>
+            <p class="career-section-text">下記以外にも、ご経験に応じてポジションをご用意できる場合がございます。</p>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">■ 六本木院配属</h4>
+              <ul class="career-list">
+                <li>美容カウンセラー</li>
+                <li>受付コンシェルジュ</li>
+                <li>美容ナース</li>
+                <li>美容施術アシスタント</li>
+              </ul>
+            </div>
+
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">■ 本社配属</h4>
+              <ul class="career-list">
+                <li>事業開発</li>
+                <li>SNSマーケティング・コンテンツプランナー</li>
+                <li>事務長・事務長候補</li>
+                <li>バックオフィス（経理・総務・人事）</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 勤務地・アクセス -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務地・アクセス</h3>
+            <div class="career-address">
+              <p>東京都港区六本木5-2-2 トーマスビル1F</p>
+            </div>
+            <ul class="career-list">
+              <li>東京メトロ日比谷線/都営大江戸線「六本木駅」より徒歩2分</li>
+              <li>東京メトロ千代田線「乃木坂駅」より徒歩10分</li>
+            </ul>
+          </div>
+
+          <!-- その他 -->
+          <div class="career-section">
+            <h3 class="career-section-title">その他</h3>
+            <h4 class="career-subsection-title">【応募後の流れ】</h4>
+            <ol class="career-flow">
+              <li>履歴書・職務経歴書の提出</li>
+              <li>カジュアル面談（ご希望・ご経験のヒアリング）</li>
+              <li>面接（ポジションに応じて1～3回）</li>
+              <li>内定</li>
+            </ol>
+          </div>
+
+          <!-- Apply Button -->
+          <div class="career-apply-section">
+            <a href="/career-form/?position=オープンポジション(本社配属)" class="career-apply-btn">この求人に応募する</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+

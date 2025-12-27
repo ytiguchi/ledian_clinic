@@ -1,0 +1,65 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/career.css';
+
+const positions = [
+  { name: '美容カウンセラー(六本木院配属)', slug: 'counselor' },
+  { name: '受付コンシェルジュ(六本木院配属)', slug: 'concierge' },
+  { name: '美容ナース(六本木院配属)', slug: 'nurse' },
+  { name: '美容施術アシスタント(六本木院配属)', slug: 'assistant' },
+  { name: '事業開発(本社配属)', slug: 'business-development' },
+  { name: 'SNSマーケティング・コンテンツプランナー(本社配属)', slug: 'sns-marketing' },
+  { name: '事務長・事務長候補(本社配属)', slug: 'office-manager' },
+  { name: 'バックオフィス(本社配属)', slug: 'back-office' },
+  { name: 'オープンポジション(本社配属)', slug: 'open-position' },
+];
+---
+
+<PublicLayout 
+  title="採用情報" 
+  description="Ledian Clinicの採用情報です。美容カウンセラー、美容ナース、受付コンシェルジュなど、様々なポジションで仲間を募集しています。"
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li aria-current="page">採用情報</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="career-header">
+    <div class="container">
+      <h1 class="career-title">採用情報</h1>
+      <p class="career-subtitle">CAREER</p>
+    </div>
+  </section>
+
+  <!-- Position List -->
+  <section class="career-list-section">
+    <div class="container">
+      <div class="career-card">
+        <ul class="position-grid">
+          {positions.map((position) => (
+            <li class="position-item">
+              <a href={`/career/${position.slug}/`} class="position-link">
+                <span class="position-name">{position.name}</span>
+                <span class="position-arrow">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+

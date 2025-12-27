@@ -1,0 +1,198 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/career.css';
+
+const position = {
+  title: '美容ナース(六本木院配属)',
+  type: '正社員',
+  salary: {
+    main: '月給 ￥350,000 以上 + 賞与',
+    notes: [
+      'クリニックの業績と貢献度に応じて賞与を年4回支給します(最大で年間4ヶ月分程度)',
+      '給与には固定残業代(20時間分/￥45,500)を含みます。超過分は別途全額支給いたします。'
+    ]
+  }
+};
+---
+
+<PublicLayout 
+  title={`${position.title} 採用情報`}
+  description={`Ledian Clinicの${position.title}の採用情報です。美容医療の現場で活躍しませんか。`}
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/career/">採用情報</a></li>
+        <li aria-current="page">{position.title}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="career-header">
+    <div class="container">
+      <h1 class="career-title">{position.title} 採用情報</h1>
+      <p class="career-subtitle">CAREER</p>
+    </div>
+  </section>
+
+  <!-- Detail Content -->
+  <section class="career-detail-section">
+    <div class="container">
+      <div class="career-detail-card">
+        <div class="career-detail-content">
+          
+          <!-- 職種 -->
+          <div class="career-section">
+            <h3 class="career-section-title">職種</h3>
+            <p class="career-section-value">美容ナース（看護師）</p>
+          </div>
+
+          <!-- 雇用形態 -->
+          <div class="career-section">
+            <h3 class="career-section-title">雇用形態</h3>
+            <p class="career-section-value">{position.type}</p>
+          </div>
+
+          <!-- 給与 -->
+          <div class="career-section">
+            <h3 class="career-section-title">給与</h3>
+            <p class="salary-main">{position.salary.main}</p>
+            {position.salary.notes.map((note) => (
+              <p class="salary-note">※ {note}</p>
+            ))}
+          </div>
+
+          <!-- この仕事の魅力 -->
+          <div class="career-section">
+            <h3 class="career-section-title">【この仕事の魅力・アピールポイント】</h3>
+            
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【最新美容医療】常に新しい技術を学べる環境</h4>
+              <p class="career-highlight-text">HIFU、ダーマペン、ピーリングなど最新の美容医療機器を使用した施術を担当。常に新しい知識・技術を習得できる環境です。</p>
+            </div>
+
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【ワークライフバランス】夜勤なし・残業少なめ</h4>
+              <p class="career-highlight-text">病棟勤務のような夜勤はありません。シフト制で週休2日、プライベートの時間も大切にできます。</p>
+            </div>
+
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【スキルアップ】美容医療のスペシャリストへ</h4>
+              <p class="career-highlight-text">充実した研修制度と先輩スタッフのサポートで、美容医療のプロフェッショナルを目指せます。</p>
+            </div>
+          </div>
+
+          <!-- 仕事内容 -->
+          <div class="career-section">
+            <h3 class="career-section-title">仕事内容</h3>
+            <p class="career-section-text"><strong>《美容医療のプロとして、患者様の「美しくなりたい」をサポート》</strong></p>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">■ 主な業務内容</h4>
+              <ul class="career-list">
+                <li>美容施術の実施（HIFU、ダーマペン、ピーリング、注射など）</li>
+                <li>施術前の準備、施術中の患者様のケア</li>
+                <li>医師の診察補助</li>
+                <li>施術後のアフターケア・説明</li>
+                <li>カルテ記入、物品管理</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 求める人材 -->
+          <div class="career-section">
+            <h3 class="career-section-title">求める人材</h3>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">【必須条件】</h4>
+              <ul class="career-list">
+                <li>正看護師資格をお持ちの方</li>
+              </ul>
+            </div>
+
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">【歓迎条件】</h4>
+              <ul class="career-list">
+                <li>美容クリニックでの勤務経験</li>
+                <li>美容医療に興味がある方</li>
+                <li>コミュニケーション能力の高い方</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 勤務時間・曜日 -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務時間・曜日</h3>
+            <ul class="career-list">
+              <li>週休2日制（シフト制）</li>
+              <li>平日：早番 9:30～18:30 / 遅番 12:15～21:15</li>
+              <li>土日祝：早番 10:30～19:30 / 遅番 11:15～20:15<br>(実働8時間、休憩1時間)</li>
+            </ul>
+          </div>
+
+          <!-- 休暇・休日 -->
+          <div class="career-section">
+            <h3 class="career-section-title">休暇・休日</h3>
+            <ul class="career-list">
+              <li>年間休日110日以上</li>
+              <li>有給休暇（入社半年後より付与）</li>
+              <li>年末年始休暇</li>
+              <li>慶弔休暇</li>
+              <li>産前産後・育児休暇（取得実績あり）</li>
+            </ul>
+          </div>
+
+          <!-- 勤務地・アクセス -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務地・アクセス</h3>
+            <div class="career-address">
+              <p>東京都港区六本木5-2-2 トーマスビル1F</p>
+            </div>
+            <ul class="career-list">
+              <li>東京メトロ日比谷線/都営大江戸線「六本木駅」より徒歩2分</li>
+              <li>東京メトロ千代田線「乃木坂駅」より徒歩10分</li>
+            </ul>
+          </div>
+
+          <!-- 待遇・福利厚生 -->
+          <div class="career-section">
+            <h3 class="career-section-title">待遇・福利厚生</h3>
+            <ul class="career-list">
+              <li>各種社会保険完備（健康、厚生年金、雇用、労災）</li>
+              <li>交通費支給（月額2万円まで）</li>
+              <li>賞与年4回（業績に応じて支給）</li>
+              <li>昇給あり</li>
+              <li>制服貸与</li>
+              <li>研修制度充実</li>
+              <li>美容施術・取扱製品の社員割引制度</li>
+            </ul>
+          </div>
+
+          <!-- その他 -->
+          <div class="career-section">
+            <h3 class="career-section-title">その他</h3>
+            <h4 class="career-subsection-title">【応募後の流れ】</h4>
+            <ol class="career-flow">
+              <li>履歴書の提出</li>
+              <li>面接（1回 - 2回）<span class="career-flow-note">※カジュアルな雰囲気です。リラックスしてお越しください。</span></li>
+              <li>採用<span class="career-flow-note">※ご応募から内定まで最短1週間程度です。<br>※入社日はご相談に応じます。</span></li>
+            </ol>
+          </div>
+
+          <!-- Apply Button -->
+          <div class="career-apply-section">
+            <a href="/career-form/?position=美容ナース(六本木院配属)" class="career-apply-btn">この求人に応募する</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+

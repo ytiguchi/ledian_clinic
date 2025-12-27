@@ -1,0 +1,187 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/career.css';
+
+const position = {
+  title: 'バックオフィス(本社配属)',
+  type: '正社員',
+  salary: {
+    main: '月給 ￥300,000 以上 + 賞与',
+    notes: [
+      '経験・スキルに応じて優遇',
+      '業績に応じて賞与を年4回支給'
+    ]
+  }
+};
+---
+
+<PublicLayout 
+  title={`${position.title} 採用情報`}
+  description={`Ledian Clinicの${position.title}の採用情報です。経理・総務・人事など幅広く活躍いただけます。`}
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/career/">採用情報</a></li>
+        <li aria-current="page">{position.title}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="career-header">
+    <div class="container">
+      <h1 class="career-title">{position.title} 採用情報</h1>
+      <p class="career-subtitle">CAREER</p>
+    </div>
+  </section>
+
+  <!-- Detail Content -->
+  <section class="career-detail-section">
+    <div class="container">
+      <div class="career-detail-card">
+        <div class="career-detail-content">
+          
+          <!-- 職種 -->
+          <div class="career-section">
+            <h3 class="career-section-title">職種</h3>
+            <p class="career-section-value">バックオフィス（経理・総務・人事）</p>
+          </div>
+
+          <!-- 雇用形態 -->
+          <div class="career-section">
+            <h3 class="career-section-title">雇用形態</h3>
+            <p class="career-section-value">{position.type}</p>
+          </div>
+
+          <!-- 給与 -->
+          <div class="career-section">
+            <h3 class="career-section-title">給与</h3>
+            <p class="salary-main">{position.salary.main}</p>
+            {position.salary.notes.map((note) => (
+              <p class="salary-note">※ {note}</p>
+            ))}
+          </div>
+
+          <!-- この仕事の魅力 -->
+          <div class="career-section">
+            <h3 class="career-section-title">【この仕事の魅力・アピールポイント】</h3>
+            
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【幅広い業務】経理・総務・人事を横断的に担当</h4>
+              <p class="career-highlight-text">少数精鋭のチームで、幅広い業務を経験できます。スキルアップを目指す方に最適な環境です。</p>
+            </div>
+
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【成長企業】組織づくりに携われる</h4>
+              <p class="career-highlight-text">急成長中の組織で、制度設計やオペレーション構築にも携われます。</p>
+            </div>
+          </div>
+
+          <!-- 仕事内容 -->
+          <div class="career-section">
+            <h3 class="career-section-title">仕事内容</h3>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">■ 主な業務内容</h4>
+              <ul class="career-list">
+                <li>経理業務（仕訳・請求書処理・月次決算補助）</li>
+                <li>総務業務（備品管理・契約書管理・庶務）</li>
+                <li>人事業務（採用アシスタント・勤怠管理）</li>
+                <li>各種データ入力・資料作成</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 求める人材 -->
+          <div class="career-section">
+            <h3 class="career-section-title">求める人材</h3>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">【歓迎条件】</h4>
+              <ul class="career-list">
+                <li>経理・総務・人事いずれかの実務経験</li>
+                <li>基本的なPCスキル（Excel、Word）</li>
+              </ul>
+            </div>
+
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">【こんな方にピッタリです】</h4>
+              <ul class="career-list">
+                <li>正確で丁寧な仕事ができる方</li>
+                <li>幅広い業務に挑戦したい方</li>
+                <li>コミュニケーションを大切にできる方</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 勤務時間・曜日 -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務時間・曜日</h3>
+            <ul class="career-list">
+              <li>9:30～18:30（実働8時間、休憩1時間）</li>
+              <li>週休2日制（土日祝）</li>
+            </ul>
+          </div>
+
+          <!-- 休暇・休日 -->
+          <div class="career-section">
+            <h3 class="career-section-title">休暇・休日</h3>
+            <ul class="career-list">
+              <li>年間休日120日以上</li>
+              <li>有給休暇（入社半年後より付与）</li>
+              <li>年末年始休暇</li>
+              <li>慶弔休暇</li>
+            </ul>
+          </div>
+
+          <!-- 勤務地・アクセス -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務地・アクセス</h3>
+            <div class="career-address">
+              <p>東京都港区（本社）</p>
+            </div>
+            <ul class="career-list">
+              <li>東京メトロ日比谷線/都営大江戸線「六本木駅」より徒歩2分</li>
+            </ul>
+          </div>
+
+          <!-- 待遇・福利厚生 -->
+          <div class="career-section">
+            <h3 class="career-section-title">待遇・福利厚生</h3>
+            <ul class="career-list">
+              <li>各種社会保険完備（健康、厚生年金、雇用、労災）</li>
+              <li>交通費支給（月額2万円まで）</li>
+              <li>賞与年4回（業績に応じて支給）</li>
+              <li>昇給あり</li>
+              <li>美容施術の社員割引制度</li>
+            </ul>
+          </div>
+
+          <!-- その他 -->
+          <div class="career-section">
+            <h3 class="career-section-title">その他</h3>
+            <h4 class="career-subsection-title">【応募後の流れ】</h4>
+            <ol class="career-flow">
+              <li>書類選考（履歴書・職務経歴書）</li>
+              <li>面接（1～2回）</li>
+              <li>内定</li>
+            </ol>
+          </div>
+
+          <!-- Apply Button -->
+          <div class="career-apply-section">
+            <a href="/career-form/?position=バックオフィス(本社配属)" class="career-apply-btn">この求人に応募する</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+

@@ -1,0 +1,481 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+import CtaSection from '../components/CtaSection.astro';
+import '../styles/career.css';
+
+const positions = [
+  '美容カウンセラー(六本木院配属)',
+  '受付コンシェルジュ(六本木院配属)',
+  '美容ナース(六本木院配属)',
+  '美容施術アシスタント(六本木院配属)',
+  '事業開発(本社配属)',
+  'SNSマーケティング・コンテンツプランナー(本社配属)',
+  '事務長・事務長候補(本社配属)',
+  'バックオフィス(本社配属)',
+  'オープンポジション(本社配属)',
+];
+---
+
+<PublicLayout 
+  title="採用応募フォーム" 
+  description="Ledian Clinicの採用応募フォームです。ご応募お待ちしております。"
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/career/">採用情報</a></li>
+        <li aria-current="page">応募フォーム</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="career-header">
+    <div class="container">
+      <h1 class="career-title">採用応募フォーム</h1>
+      <p class="career-subtitle">APPLICATION FORM</p>
+    </div>
+  </section>
+
+  <!-- Form Section -->
+  <section class="career-form-section">
+    <div class="container">
+      <div class="career-form-card">
+        <p class="form-intro">
+          ご応募ありがとうございます。下記フォームに必要事項をご記入の上、送信してください。<br>
+          担当者より折り返しご連絡いたします。
+        </p>
+
+        <form id="careerForm" class="career-form">
+          <!-- 希望職種 -->
+          <div class="form-group">
+            <label for="position" class="form-label">
+              希望職種 <span class="required">必須</span>
+            </label>
+            <select name="position" id="position" required class="form-select">
+              <option value="">選択してください</option>
+              {positions.map((pos) => (
+                <option value={pos}>{pos}</option>
+              ))}
+            </select>
+          </div>
+
+          <!-- お名前 -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="lastName" class="form-label">
+                姓 <span class="required">必須</span>
+              </label>
+              <input type="text" name="lastName" id="lastName" required placeholder="例：山田" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label for="firstName" class="form-label">
+                名 <span class="required">必須</span>
+              </label>
+              <input type="text" name="firstName" id="firstName" required placeholder="例：花子" class="form-input" />
+            </div>
+          </div>
+
+          <!-- フリガナ -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="lastNameKana" class="form-label">
+                セイ <span class="required">必須</span>
+              </label>
+              <input type="text" name="lastNameKana" id="lastNameKana" required placeholder="例：ヤマダ" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label for="firstNameKana" class="form-label">
+                メイ <span class="required">必須</span>
+              </label>
+              <input type="text" name="firstNameKana" id="firstNameKana" required placeholder="例：ハナコ" class="form-input" />
+            </div>
+          </div>
+
+          <!-- 生年月日 -->
+          <div class="form-group">
+            <label for="birthDate" class="form-label">
+              生年月日 <span class="required">必須</span>
+            </label>
+            <input type="date" name="birthDate" id="birthDate" required class="form-input" />
+          </div>
+
+          <!-- 電話番号 -->
+          <div class="form-group">
+            <label for="phone" class="form-label">
+              電話番号 <span class="required">必須</span>
+            </label>
+            <input type="tel" name="phone" id="phone" required placeholder="例：090-1234-5678" class="form-input" />
+          </div>
+
+          <!-- メールアドレス -->
+          <div class="form-group">
+            <label for="email" class="form-label">
+              メールアドレス <span class="required">必須</span>
+            </label>
+            <input type="email" name="email" id="email" required placeholder="例：example@email.com" class="form-input" />
+          </div>
+
+          <!-- 現在のご職業 -->
+          <div class="form-group">
+            <label for="currentJob" class="form-label">
+              現在のご職業
+            </label>
+            <input type="text" name="currentJob" id="currentJob" placeholder="例：美容クリニック勤務" class="form-input" />
+          </div>
+
+          <!-- 美容業界での経験 -->
+          <div class="form-group">
+            <label class="form-label">
+              美容業界での経験
+            </label>
+            <div class="form-radio-group">
+              <label class="form-radio">
+                <input type="radio" name="experience" value="未経験" />
+                <span>未経験</span>
+              </label>
+              <label class="form-radio">
+                <input type="radio" name="experience" value="1年未満" />
+                <span>1年未満</span>
+              </label>
+              <label class="form-radio">
+                <input type="radio" name="experience" value="1〜3年" />
+                <span>1〜3年</span>
+              </label>
+              <label class="form-radio">
+                <input type="radio" name="experience" value="3〜5年" />
+                <span>3〜5年</span>
+              </label>
+              <label class="form-radio">
+                <input type="radio" name="experience" value="5年以上" />
+                <span>5年以上</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 応募動機・自己PR -->
+          <div class="form-group">
+            <label for="motivation" class="form-label">
+              応募動機・自己PR
+            </label>
+            <textarea name="motivation" id="motivation" rows="5" placeholder="ご自由にご記入ください" class="form-textarea"></textarea>
+          </div>
+
+          <!-- ご質問・ご要望 -->
+          <div class="form-group">
+            <label for="questions" class="form-label">
+              ご質問・ご要望
+            </label>
+            <textarea name="questions" id="questions" rows="3" placeholder="面接希望日時、その他ご質問があればご記入ください" class="form-textarea"></textarea>
+          </div>
+
+          <!-- 個人情報の取り扱いについて -->
+          <div class="form-group form-agreement">
+            <label class="form-checkbox">
+              <input type="checkbox" name="agreement" id="agreement" required />
+              <span>
+                <a href="/privacy-policy" target="_blank">個人情報の取り扱い</a>に同意する
+                <span class="required">必須</span>
+              </span>
+            </label>
+          </div>
+
+          <!-- 送信ボタン -->
+          <div class="form-submit">
+            <button type="submit" class="career-apply-btn" id="submitBtn">
+              この内容で応募する
+            </button>
+          </div>
+
+          <!-- 送信結果メッセージ -->
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+
+<style>
+  /* Career Form Styles */
+  .career-form-section {
+    padding: 0 0 80px;
+    background: #fff;
+  }
+
+  .career-form-card {
+    background: #FAF8F5;
+    border-radius: 8px;
+    padding: 50px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .career-form-card {
+      padding: 30px 20px;
+    }
+  }
+
+  .form-intro {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.8;
+    margin: 0 0 40px;
+  }
+
+  .career-form {
+    background: #fff;
+    border-radius: 8px;
+    padding: 40px;
+  }
+
+  @media (max-width: 768px) {
+    .career-form {
+      padding: 25px 20px;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 25px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 576px) {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+
+  .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+  }
+
+  .required {
+    display: inline-block;
+    background: #B8A88A;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 14px;
+    border: 1px solid #E5E5E5;
+    border-radius: 4px;
+    background: #fff;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #B8A88A;
+    box-shadow: 0 0 0 3px rgba(184, 168, 138, 0.1);
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #aaa;
+  }
+
+  .form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    padding-right: 40px;
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .form-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .form-radio {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .form-radio input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #B8A88A;
+    cursor: pointer;
+  }
+
+  .form-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .form-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #B8A88A;
+    cursor: pointer;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .form-checkbox a {
+    color: #B8A88A;
+    text-decoration: underline;
+  }
+
+  .form-checkbox a:hover {
+    color: #A39272;
+  }
+
+  .form-agreement {
+    background: #FAF8F5;
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 30px;
+  }
+
+  .form-submit {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .form-message {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    display: none;
+  }
+
+  .form-message.success {
+    display: block;
+    background: #E8F5E9;
+    color: #2E7D32;
+  }
+
+  .form-message.error {
+    display: block;
+    background: #FFEBEE;
+    color: #C62828;
+  }
+
+  .career-apply-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  // URLパラメータから希望職種を設定
+  const urlParams = new URLSearchParams(window.location.search);
+  const positionParam = urlParams.get('position');
+  if (positionParam) {
+    const positionSelect = document.getElementById('position') as HTMLSelectElement;
+    if (positionSelect) {
+      const options = positionSelect.options;
+      for (let i = 0; i < options.length; i++) {
+        if (options[i].value === positionParam) {
+          positionSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
+
+  // フォーム送信処理
+  const form = document.getElementById('careerForm') as HTMLFormElement;
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const formMessage = document.getElementById('formMessage') as HTMLDivElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = '送信中...';
+    formMessage.className = 'form-message';
+    formMessage.style.display = 'none';
+
+    const formData = new FormData(form);
+    const data = {
+      position: formData.get('position'),
+      lastName: formData.get('lastName'),
+      firstName: formData.get('firstName'),
+      lastNameKana: formData.get('lastNameKana'),
+      firstNameKana: formData.get('firstNameKana'),
+      birthDate: formData.get('birthDate'),
+      phone: formData.get('phone'),
+      email: formData.get('email'),
+      currentJob: formData.get('currentJob') || '',
+      experience: formData.get('experience') || '',
+      motivation: formData.get('motivation') || '',
+      questions: formData.get('questions') || '',
+    };
+
+    try {
+      // TODO: 実際のAPIエンドポイントに送信
+      // const response = await fetch('/api/career-apply', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(data),
+      // });
+
+      // デモ用：送信成功として扱う
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      formMessage.className = 'form-message success';
+      formMessage.textContent = 'ご応募ありがとうございます。担当者より折り返しご連絡いたします。';
+      formMessage.style.display = 'block';
+      form.reset();
+      
+      // 成功後、ページトップにスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+      formMessage.className = 'form-message error';
+      formMessage.textContent = '送信に失敗しました。お手数ですが、もう一度お試しください。';
+      formMessage.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'この内容で応募する';
+    }
+  });
+</script>
+

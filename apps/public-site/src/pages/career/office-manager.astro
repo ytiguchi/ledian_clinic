@@ -1,0 +1,188 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/career.css';
+
+const position = {
+  title: '事務長・事務長候補(本社配属)',
+  type: '正社員',
+  salary: {
+    main: '月給 ￥450,000 以上 + 賞与',
+    notes: [
+      '経験・スキルに応じて優遇',
+      '業績に応じて賞与を年4回支給'
+    ]
+  }
+};
+---
+
+<PublicLayout 
+  title={`${position.title} 採用情報`}
+  description={`Ledian Clinicの${position.title}の採用情報です。クリニック運営の要となるポジションです。`}
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/career/">採用情報</a></li>
+        <li aria-current="page">{position.title}</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="career-header">
+    <div class="container">
+      <h1 class="career-title">{position.title} 採用情報</h1>
+      <p class="career-subtitle">CAREER</p>
+    </div>
+  </section>
+
+  <!-- Detail Content -->
+  <section class="career-detail-section">
+    <div class="container">
+      <div class="career-detail-card">
+        <div class="career-detail-content">
+          
+          <!-- 職種 -->
+          <div class="career-section">
+            <h3 class="career-section-title">職種</h3>
+            <p class="career-section-value">事務長・事務長候補</p>
+          </div>
+
+          <!-- 雇用形態 -->
+          <div class="career-section">
+            <h3 class="career-section-title">雇用形態</h3>
+            <p class="career-section-value">{position.type}</p>
+          </div>
+
+          <!-- 給与 -->
+          <div class="career-section">
+            <h3 class="career-section-title">給与</h3>
+            <p class="salary-main">{position.salary.main}</p>
+            {position.salary.notes.map((note) => (
+              <p class="salary-note">※ {note}</p>
+            ))}
+          </div>
+
+          <!-- この仕事の魅力 -->
+          <div class="career-section">
+            <h3 class="career-section-title">【この仕事の魅力・アピールポイント】</h3>
+            
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【経営の右腕】クリニック運営全般を統括</h4>
+              <p class="career-highlight-text">経営陣と連携し、クリニックの運営全般を統括するポジション。大きな裁量を持って組織づくりに携われます。</p>
+            </div>
+
+            <div class="career-highlight">
+              <h4 class="career-highlight-title">【成長企業】拡大フェーズを牽引</h4>
+              <p class="career-highlight-text">急成長中のクリニックで、組織拡大・新規出店を牽引する重要な役割を担っていただきます。</p>
+            </div>
+          </div>
+
+          <!-- 仕事内容 -->
+          <div class="career-section">
+            <h3 class="career-section-title">仕事内容</h3>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">■ 主な業務内容</h4>
+              <ul class="career-list">
+                <li>クリニック運営全般の統括</li>
+                <li>スタッフマネジメント（採用・教育・評価）</li>
+                <li>売上・経費管理</li>
+                <li>オペレーション改善</li>
+                <li>経営陣へのレポーティング</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 求める人材 -->
+          <div class="career-section">
+            <h3 class="career-section-title">求める人材</h3>
+            
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">【必須条件】</h4>
+              <ul class="career-list">
+                <li>マネジメント経験（5年以上）</li>
+                <li>クリニック・医療機関または店舗運営の経験</li>
+              </ul>
+            </div>
+
+            <div class="career-subsection">
+              <h4 class="career-subsection-title">【歓迎条件】</h4>
+              <ul class="career-list">
+                <li>美容クリニックでの事務長経験</li>
+                <li>複数拠点の統括経験</li>
+                <li>採用・人事経験</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 勤務時間・曜日 -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務時間・曜日</h3>
+            <ul class="career-list">
+              <li>フレックスタイム制</li>
+              <li>週休2日制（シフト制）</li>
+            </ul>
+          </div>
+
+          <!-- 休暇・休日 -->
+          <div class="career-section">
+            <h3 class="career-section-title">休暇・休日</h3>
+            <ul class="career-list">
+              <li>年間休日115日以上</li>
+              <li>有給休暇（入社半年後より付与）</li>
+              <li>年末年始休暇</li>
+              <li>慶弔休暇</li>
+            </ul>
+          </div>
+
+          <!-- 勤務地・アクセス -->
+          <div class="career-section">
+            <h3 class="career-section-title">勤務地・アクセス</h3>
+            <div class="career-address">
+              <p>東京都港区六本木5-2-2 トーマスビル1F（本社兼クリニック）</p>
+            </div>
+            <ul class="career-list">
+              <li>東京メトロ日比谷線/都営大江戸線「六本木駅」より徒歩2分</li>
+            </ul>
+          </div>
+
+          <!-- 待遇・福利厚生 -->
+          <div class="career-section">
+            <h3 class="career-section-title">待遇・福利厚生</h3>
+            <ul class="career-list">
+              <li>各種社会保険完備（健康、厚生年金、雇用、労災）</li>
+              <li>交通費全額支給</li>
+              <li>賞与年4回（業績に応じて支給）</li>
+              <li>昇給あり</li>
+              <li>美容施術の社員割引制度</li>
+            </ul>
+          </div>
+
+          <!-- その他 -->
+          <div class="career-section">
+            <h3 class="career-section-title">その他</h3>
+            <h4 class="career-subsection-title">【応募後の流れ】</h4>
+            <ol class="career-flow">
+              <li>書類選考（履歴書・職務経歴書）</li>
+              <li>面接（2～3回）</li>
+              <li>内定</li>
+            </ol>
+          </div>
+
+          <!-- Apply Button -->
+          <div class="career-apply-section">
+            <a href="/career-form/?position=事務長・事務長候補(本社配属)" class="career-apply-btn">この求人に応募する</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+
