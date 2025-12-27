@@ -14,6 +14,7 @@
 - `011_add_product_launches.sql` - 商品ローンチ管理
 - `012_seed_product_launches.sql` - ローンチ管理シード
 - `013_extend_product_launches.sql` - ローンチ拡張
+- `020_fix_treatments_fk.sql` - treatmentsのFKをsubcategoriesへ修正（legacy削除）
 
 ### 4階層構造
 
@@ -113,4 +114,3 @@ npx wrangler@4.56.0 d1 migrations list ledian-public-prod \
 - エラーメッセージを確認
 - データベースの現在の状態を確認
 - 必要に応じてマイグレーションファイルを修正して再実行
-

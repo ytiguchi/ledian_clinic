@@ -10,6 +10,8 @@
 -- 3. treatmentsのsubcategory_idを新しいsubcategoriesに更新
 -- 4. treatment_plansをtreatment_idベースに変更
 
+PRAGMA foreign_keys=off;
+
 -- ============================================
 -- 1. 既存のsubcategories（実際の施術）をtreatmentsに移動
 -- ============================================
@@ -25,7 +27,7 @@ INSERT OR IGNORE INTO treatments (
 )
 SELECT 
     id,  -- 既存のsubcategoryのIDをそのまま使用
-    category_id AS subcategory_id,  -- 一時的にcategory_idを使用（後で更新）
+    id AS subcategory_id,  -- 旧subcategoriesを一時的に参照（後で更新）
     name,
     slug,
     NULL AS description,
@@ -80,6 +82,22 @@ SELECT
 FROM categories c
 WHERE NOT EXISTS (
     SELECT 1 FROM subcategories WHERE subcategories.category_id = c.id
+);
+
+-- subcategories_old に新しいsubcategoriesのIDを同期（FK整合のため）
+INSERT INTO subcategories_old (id, category_id, name, slug, sort_order, is_active, created_at, updated_at)
+SELECT
+    sc.id,
+    sc.category_id,
+    sc.name,
+    sc.slug,
+    sc.sort_order,
+    sc.is_active,
+    sc.created_at,
+    sc.updated_at
+FROM subcategories sc
+WHERE NOT EXISTS (
+    SELECT 1 FROM subcategories_old WHERE subcategories_old.id = sc.id
 );
 
 -- ============================================
@@ -237,3 +255,5 @@ WHERE tp.is_active = 1;
 
 -- DROP TABLE IF EXISTS subcategories_old;
 -- DROP TABLE IF EXISTS treatments_backup;
+
+PRAGMA foreign_keys=on;

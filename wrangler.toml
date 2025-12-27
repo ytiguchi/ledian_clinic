@@ -10,6 +10,7 @@ binding = "DB"
 database_name = "ledian-public-prod"
 database_id = "1528077a-91e3-421f-adab-38e7fd412734"
 preview_database_id = "37a6de04-9beb-4f46-9531-653fe3fb64d7"
+migrations_dir = "database/d1/migrations"
 
 [[kv_namespaces]]
 binding = "SESSION"

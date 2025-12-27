@@ -7,8 +7,6 @@
 -- - リスク・副作用を treatment_cautions に登録
 -- - service_contents(onda-pro) にも短い概要を反映（テーブル未作成環境のため作成も兼ねる）
 
-BEGIN TRANSACTION;
-
 -- ============================================
 -- 0. service_contents 系テーブル（存在しない環境向け）
 -- ============================================
@@ -213,6 +211,4 @@ SET
   price_per_session = 33000,
   price_per_session_taxed = 36300
 WHERE id = 'c42408ce-2837-4e3c-9bfb-c23d89cb36f0';
-
-COMMIT;
 
