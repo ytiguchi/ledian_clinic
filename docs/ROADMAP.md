@@ -1,25 +1,24 @@
 # ロードマップ
 
-最終更新: 2024-12-27
+最終更新: 2025-12-27
 
-このドキュメントは **運用・意思決定のための最短ルート**です。  
-詳細な技術計画や過去の議論は `docs/INDEX.md` から辿れます。
+このドキュメントは **プロジェクト全体の進捗と方向性**を示します。
 
 ---
 
 ## 現在のステータス
 
-### ✅ Internal Site (管理サイト) - 75%完了
+### ✅ Internal Site（管理サイト）- 80%完了
 
 | 機能 | 進捗 | 備考 |
 |------|------|------|
 | 基盤構築 | ✅ 100% | Astro + D1 + Cloudflare Pages |
 | 料金管理 | ✅ 100% | 一覧/新規/編集/インライン編集 |
-| キャンペーン管理 | ✅ 90% | 一覧/作成/編集 |
+| キャンペーン管理 | ✅ 95% | 一覧/作成/編集/種別フィルタ/本文編集 |
 | 施術管理 | ✅ 90% | 詳細ページ/編集/料金連携 |
-| 症例写真管理 | ✅ 90% | 一覧/編集/R2移行スクリプト |
+| 症例写真管理 | ✅ 90% | 一覧/編集/R2移行完了 |
 | 新商品導入管理 | ✅ 80% | プロジェクト/タスク管理 |
-| 画像/R2管理 | 🔄 40% | 移行完了、アップロードUI未 |
+| 画像/R2管理 | 🔄 50% | 移行完了、アップロードUI未 |
 | データエクスポート | ⏳ 0% | - |
 | 認証・認可 | ⏳ 0% | - |
 
@@ -27,133 +26,128 @@
 
 ---
 
-### 🚀 Public Site (公開サイト) - 40%完了 ← NEW!
+### ✅ Public Site（公開サイト）- 90%完了
 
 | 機能 | 進捗 | 備考 |
 |------|------|------|
-| 基盤構築 | ✅ 100% | Astro + D1 + R2 + Tailwind |
-| 画像・ロゴ | ✅ 100% | 37ファイルダウンロード済み |
+| 基盤構築 | ✅ 100% | Astro + D1 + Tailwind |
+| 画像・ロゴ | ✅ 100% | 120+ファイル取得済み |
 | フォント・カラー | ✅ 100% | 現サイト完全コピー |
-| トップページ | ✅ 100% | D1連携済み |
-| サービス一覧 | ✅ 100% | D1連携済み |
-| 料金表ページ | ✅ 100% | D1連携、アコーディオンUI |
-| 施術詳細ページ | ⏳ 0% | `/service/[slug]` |
-| キャンペーン | ⏳ 0% | 一覧・詳細 |
-| 固定ページ | ⏳ 0% | アクセス、利用規約等 |
-| SEO対策 | ⏳ 0% | メタタグ、サイトマップ |
+| トップページ | ✅ 100% | D1連携、Hero/SERVICE/POINT/PHOTO/ACCESS |
+| サービス一覧 | ✅ 100% | カテゴリ別グループ化 |
+| 施術詳細 | ✅ 100% | `/service/[slug]` 動的ページ |
+| 料金表ページ | ✅ 100% | アコーディオンUI |
+| 院長ページ | ✅ 100% | 奥村先生に更新済み |
+| 固定ページ | ✅ 100% | 利用規約/プライバシー/特商法/施設規約/キャンセルポリシー |
+| おすすめ情報 | ✅ 100% | 一覧（タブフィルタ）/詳細ページ |
+| お問い合わせ | ✅ 100% | 地図・連絡先 |
+| SEO対策 | ✅ 100% | sitemap/robots/JSON-LD/OGP |
+| ステージングデプロイ | ✅ 100% | CI/CD設定完了 |
 | 本番デプロイ | ⏳ 0% | DNS切り替え待ち |
 
-**開発URL:** http://localhost:4321/  
-**本番予定:** https://ledianclinic.jp/
+**ステージングURL:** https://develop.ledian-clinic-public.pages.dev  
+**本番予定:** https://ledianclinic.jp
 
 ---
 
-## 本番デプロイまでのロードマップ 🎯
+## 本番公開までのロードマップ 🎯
 
-### Phase 1: 残りページ実装（1-2週間）
+### ✅ 完了済みフェーズ
 
-| タスク | 優先度 | 工数 | 状態 |
-|--------|--------|------|------|
-| 施術詳細ページ `/service/[slug]` | 🔴 高 | 1日 | ⏳ |
-| キャンペーン一覧・詳細 `/news/` | 🔴 高 | 1日 | ⏳ |
-| アクセス・クリニック情報 | 🟡 中 | 半日 | ⏳ |
-| お問い合わせフォーム | 🟡 中 | 1日 | ⏳ |
-| 利用規約・プライバシーポリシー | 🟢 低 | 半日 | ⏳ |
+| Phase | 内容 | 状態 |
+|-------|------|------|
+| Phase 1 | ページ実装（全14ページ） | ✅ 完了 |
+| Phase 2 | SEO対策（sitemap/robots/JSON-LD） | ✅ 完了 |
+| Phase 3 | ステージングデプロイ/CI/CD | ✅ 完了 |
 
-### Phase 2: SEO・パフォーマンス（3-5日）
+### ⏳ 残りタスク（Phase 4: 本番公開）
 
-| タスク | 説明 | 状態 |
-|--------|------|------|
-| メタタグ最適化 | title, description, OGP画像 | ⏳ |
-| サイトマップ生成 | sitemap.xml 自動生成 | ⏳ |
-| robots.txt | クローラー設定 | ⏳ |
-| 構造化データ | JSON-LD（医療機関、施術） | ⏳ |
-| 画像最適化 | WebP変換、lazy loading | ⏳ |
-| キャッシュ戦略 | Cache-Control設定 | ⏳ |
-
-### Phase 3: ステージングデプロイ（1-2日）
-
-| タスク | 説明 | 状態 |
-|--------|------|------|
-| Cloudflare Pagesデプロイ | プレビューURL発行 | ⏳ |
-| 本番D1接続テスト | 本番DBでの動作確認 | ⏳ |
-| R2画像配信テスト | 公開URL経由の画像配信 | ⏳ |
-| モバイル表示確認 | レスポンシブ検証 | ⏳ |
-
-### Phase 4: 本番デプロイ・DNS切り替え（1日）
-
-| タスク | 説明 | 状態 |
-|--------|------|------|
-| DNS設定 | ledianclinic.jp → Cloudflare Pages | ⏳ |
-| SSL/TLS確認 | HTTPS設定 | ⏳ |
-| リダイレクト設定 | 旧URL互換（必要に応じて） | ⏳ |
-| 動作確認 | 全ページ最終チェック | ⏳ |
-
-### Phase 5: 運用開始（継続）
-
-| タスク | 説明 | 状態 |
-|--------|------|------|
-| パフォーマンス監視 | Core Web Vitals | ⏳ |
-| エラー監視 | Cloudflare Analytics | ⏳ |
-| コンテンツ更新フロー確立 | internal-site → public-site | ⏳ |
+| タスク | 優先度 | 状態 |
+|--------|--------|------|
+| DNS切り替え準備 | 🔴 高 | ⏳ |
+| noindex解除 | 🔴 高 | ⏳ |
+| 最終QA | 🔴 高 | ⏳ |
+| 旧サイトリダイレクト設定 | 🟡 中 | ⏳ |
 
 ---
 
-## P0タスク（優先度最高）
+## 将来の機能拡張（Phase 5以降）
 
-### ✅ 完了
+### 症例一覧ページ `/cases/`
 
-- [x] 公開サイトの基盤構築（Astro + D1 + R2）
-- [x] 現サイトのHTML/CSS/画像の取得
-- [x] トップページ・サービス一覧・料金表の実装
-- [x] D1データベース連携
+- `treatment_before_afters` からBefore/After写真一覧
+- カテゴリ別フィルタ
+- 施術詳細との連携
 
-### 🔄 進行中
+### サービス検索・フィルタ機能
 
-- [ ] 施術詳細ページの実装
-- [ ] キャンペーンページの実装
+- 悩み軸（シミ、シワ、ニキビ等）で検索
+- 部位軸（顔、体等）で検索
 
-### ⏳ 未着手
+**必要なテーブル:**
+```sql
+-- 悩みマスタ
+CREATE TABLE concerns (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE
+);
 
-- [ ] SEO最適化（メタタグ、サイトマップ）
-- [ ] 本番デプロイ設定
+-- 部位マスタ
+CREATE TABLE body_parts (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE
+);
+
+-- サービス×悩み 中間テーブル
+CREATE TABLE service_concerns (
+  service_content_id TEXT REFERENCES service_contents(id),
+  concern_id TEXT REFERENCES concerns(id),
+  PRIMARY KEY (service_content_id, concern_id)
+);
+
+-- サービス×部位 中間テーブル
+CREATE TABLE service_body_parts (
+  service_content_id TEXT REFERENCES service_contents(id),
+  body_part_id TEXT REFERENCES body_parts(id),
+  PRIMARY KEY (service_content_id, body_part_id)
+);
+```
+
+### Internal Site強化
+
+- 画像アップロードUI
+- データエクスポート（CSV/PDF）
+- 認証・認可
+- 操作ログ
 
 ---
 
-## P1タスク
+## ディレクトリ構成
 
-### API整備
-- [x] 公開サイト用の読み取りAPI方針決定 → D1直接クエリ
-- [x] 公開向けフィルタ（is_published, is_active）
-
-### 画像/アセット
-- [x] R2の公開URL設計 → `https://pub-7fb3b78717844555a19c9c9ccae5f2f9.r2.dev`
-- [x] 既存画像のR2移行スクリプト作成
-- [x] 現サイトからの画像ダウンロード（37ファイル）
-- [ ] 画像最適化ルールの決定
-
-### キャッシュ/パフォーマンス
-- [ ] キャッシュ戦略の方針決定（SSR + Cache API）
-- [ ] 公開サイト向け `Cache-Control` ルール整理
-
-### ルーティング/URL設計
-- [x] URL/slug命名規則 → `/service/[slug]`, `/price/`
-- [ ] 旧サイトからのURL互換/リダイレクト方針
-
----
-
-## いつか（Someday）
-
-- 外部システム連携（POS / カルテ）
-- データ分析・レポート
-- 認証・認可の強化（ロール/操作ログ）
-- メディア（画像/動画）管理の統一・CMS移行
+```
+ledianclinic/
+├── apps/
+│   ├── internal-site/     # 管理サイト（CMS）
+│   │   └── src/
+│   └── public-site/       # 公開サイト
+│       └── src/
+├── database/
+│   └── d1/
+│       ├── migrations/    # D1マイグレーション
+│       └── archive/       # 過去のワンオフスクリプト
+├── docs/                  # ドキュメント
+│   └── archive/           # アーカイブ済みドキュメント
+├── data/                  # 静的データ（YAML/JSON）
+└── scripts/               # ユーティリティスクリプト
+```
 
 ---
 
-## 参考リンク
+## 関連ドキュメント
 
-- [公開サイト構築計画](./PUBLIC_SITE_PLAN.md) - 詳細な計画書
-- [公開サイトデプロイ手順](./DEPLOY_PUBLIC.md) - デプロイ方法
-- [進捗状況](./internal-site-progress.md) - 詳細な進捗
-- [内部サイトデプロイ](./DEPLOY_INTERNAL.md) - 内部サイトのデプロイ
+- [PUBLIC_SITE_PLAN.md](./PUBLIC_SITE_PLAN.md) - 公開サイト詳細
+- [SEO_ROADMAP.md](./SEO_ROADMAP.md) - SEO/AIO対策
+- [START.md](./START.md) - ローカル開発手順
+- [INDEX.md](./INDEX.md) - ドキュメント一覧

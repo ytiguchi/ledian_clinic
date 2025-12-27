@@ -1,0 +1,206 @@
+---
+export interface Props {
+  lead?: string;
+  variant?: 'home' | 'service';
+  className?: string;
+}
+
+const {
+  lead,
+  variant = 'home',
+  className = '',
+} = Astro.props;
+
+const classes = ['cta-section', `cta-section--${variant}`, className].filter(Boolean).join(' ');
+---
+
+<section class={classes}>
+  <div class="cta-inner">
+    {lead && <p class="cta-lead">{lead}</p>}
+    <ul class="cta-buttons">
+      <li>
+        <a
+          href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg"
+          class="cta-btn cta-btn-line"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span class="cta-btn-text">LINEでかんたん予約</span>
+          <span class="cta-btn-arrow"></span>
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284"
+          class="cta-btn cta-btn-web"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span class="cta-btn-text">WEB予約</span>
+          <span class="cta-btn-arrow"></span>
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://www.instagram.com/Ledian_clinic/"
+          class="cta-btn cta-btn-instagram"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src="/images/icons/cta-instagram.png" alt="レディアンクリニック六本木をフォローしてね Instagram お得な情報や最新情報をチェックできるよ" />
+        </a>
+      </li>
+    </ul>
+    <p class="cta-contact">
+      <a href="/contact/">お問い合わせはこちらから</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  /* ============================================
+     CTA Section - 本番サイト完コピ版
+     本番: buttons 328px x 74px, bg #2D2D2D
+     ============================================ */
+  .cta-section {
+    background: #EFF2F4; /* 本番のグレー背景 */
+    padding: 60px 20px 80px;
+  }
+
+  @media (min-width: 768px) {
+    .cta-section {
+      padding: 80px 86px 100px;
+    }
+  }
+
+  .cta-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .cta-lead {
+    font-size: 16px;
+    color: #2D2D2D;
+    margin: 0 0 30px;
+    letter-spacing: 0.05em;
+  }
+
+  .cta-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    list-style: none;
+    margin: 0 0 30px;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+    position: relative;
+  }
+
+  .cta-btn:hover {
+    opacity: 0.85;
+  }
+
+  /* LINE / WEB ボタン - 本番完コピ */
+  .cta-btn-line,
+  .cta-btn-web {
+    width: 280px;
+    height: 60px;
+    background: #2D2D2D;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 5px;
+    position: relative;
+  }
+
+  @media (min-width: 768px) {
+    .cta-btn-line,
+    .cta-btn-web {
+      width: 328px; /* 本番と同じ */
+      height: 74px;
+    }
+  }
+
+  .cta-btn-text {
+    flex: 1;
+    text-align: center;
+  }
+
+  .cta-btn-arrow {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: translateY(-50%) rotate(-45deg);
+  }
+
+  /* Instagram バナー - 本番完コピ */
+  .cta-btn-instagram {
+    padding: 0;
+    background: transparent;
+    width: auto;
+  }
+
+  .cta-btn-instagram img {
+    height: 60px;
+    width: auto;
+  }
+
+  @media (min-width: 768px) {
+    .cta-btn-instagram img {
+      height: 74px; /* 本番と同じ比率 */
+    }
+  }
+
+  /* お問い合わせリンク - 本番完コピ */
+  .cta-contact {
+    margin: 0;
+  }
+
+  .cta-contact a {
+    font-size: 16px;
+    color: #2D2D2D;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s ease;
+  }
+
+  .cta-contact a::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #2D2D2D;
+    border-bottom: 2px solid #2D2D2D;
+    transform: rotate(-45deg);
+  }
+
+  .cta-contact a:hover {
+    opacity: 0.7;
+  }
+
+  /* Variant: service */
+  .cta-section--service {
+    padding: 60px 20px 100px;
+  }
+
+  @media (min-width: 768px) {
+    .cta-section--service {
+      padding: 80px 86px 120px;
+    }
+  }
+</style>

@@ -1,0 +1,11 @@
+---
+// 汎用JSON-LDコンポーネント
+export interface Props {
+  data: Record<string, unknown>;
+}
+
+const { data } = Astro.props;
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(data, null, 2)} />
+

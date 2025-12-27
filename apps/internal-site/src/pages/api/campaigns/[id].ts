@@ -13,6 +13,7 @@ type CampaignInput = {
   title?: unknown;
   slug?: unknown;
   description?: unknown;
+  content?: unknown;
   image_url?: unknown;
   start_date?: unknown;
   end_date?: unknown;
@@ -63,12 +64,13 @@ export const GET: APIRoute = async ({ locals, params }) => {
     const idResponse = requireParam(id, 'Campaign ID');
     if (idResponse) return idResponse;
     
-    // キャンペーン基本情報取得
+    // キャンペーン基本情報取得（IDまたはslugで検索）
     const campaign = await queryFirst<{
       id: string;
       title: string;
       slug: string;
       description: string | null;
+      content: string | null;
       image_url: string | null;
       start_date: string | null;
       end_date: string | null;
@@ -80,8 +82,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
       updated_at: string;
     }>(
       db,
-      'SELECT * FROM campaigns WHERE id = ?',
-      [id]
+      'SELECT * FROM campaigns WHERE id = ? OR slug = ?',
+      [id, id]
     );
     
     if (!campaign) {
@@ -123,11 +125,22 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     if (envResponse) return envResponse;
 
     const db = getDB(locals.runtime.env);
-    const id = params.id;
+    const idOrSlug = params.id;
     const data: CampaignInput = await request.json();
     
-    const idResponse = requireParam(id, 'Campaign ID');
+    const idResponse = requireParam(idOrSlug, 'Campaign ID');
     if (idResponse) return idResponse;
+    
+    // まずキャンペーンを取得して実際のIDを取得
+    const campaign = await queryFirst<{ id: string }>(
+      db,
+      'SELECT id FROM campaigns WHERE id = ? OR slug = ?',
+      [idOrSlug, idOrSlug]
+    );
+    if (!campaign) {
+      return jsonResponse(404, { error: 'Campaign not found' });
+    }
+    const actualId = campaign.id;
     
     const validation = validateCampaignInput(data);
     if (!validation.ok) {
@@ -137,7 +150,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
     const existing = await queryFirst<{ id: string }>(
       db,
       'SELECT id FROM campaigns WHERE slug = ? AND id != ? LIMIT 1',
-      [validation.slug, id]
+      [validation.slug, actualId]
     );
     if (existing) {
       return jsonResponse(409, { error: 'Slug already exists' });
@@ -150,6 +163,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
           title = ?,
           slug = ?,
           description = ?,
+          content = ?,
           image_url = ?,
           start_date = ?,
           end_date = ?,
@@ -164,14 +178,15 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
         validation.title,
         validation.slug,
         normalizeString(data.description) || null,
+        normalizeString(data.content) || null,
         normalizeString(data.image_url) || null,
         normalizeString(data.start_date) || null,
         normalizeString(data.end_date) || null,
-        normalizeString(data.campaign_type) || 'discount',
+        normalizeString(data.campaign_type) || 'campaign',
         parseNumber(data.priority, 0),
         Boolean(data.is_published) ? 1 : 0,
         parseNumber(data.sort_order, 0),
-        id
+        actualId
       ]
     );
     
@@ -181,7 +196,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
       await executeDB(
         db,
         'DELETE FROM campaign_plans WHERE campaign_id = ?',
-        [id]
+        [actualId]
       );
       
       // 新しいプランを追加
@@ -195,7 +210,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
           `,
           [
-            id,
+            actualId,
             plan.treatment_plan_id,
             plan.discount_type || 'percentage',
             plan.discount_value || null,
@@ -207,7 +222,7 @@ export const PUT: APIRoute = async ({ locals, params, request }) => {
       }
     }
     
-    return jsonResponse(200, { success: true, id });
+    return jsonResponse(200, { success: true, id: actualId });
   });
 };
 
@@ -220,16 +235,26 @@ export const DELETE: APIRoute = async ({ locals, params }) => {
     if (envResponse) return envResponse;
 
     const db = getDB(locals.runtime.env);
-    const id = params.id;
+    const idOrSlug = params.id;
     
-    const idResponse = requireParam(id, 'Campaign ID');
+    const idResponse = requireParam(idOrSlug, 'Campaign ID');
     if (idResponse) return idResponse;
+    
+    // まずキャンペーンを取得して実際のIDを取得
+    const campaign = await queryFirst<{ id: string }>(
+      db,
+      'SELECT id FROM campaigns WHERE id = ? OR slug = ?',
+      [idOrSlug, idOrSlug]
+    );
+    if (!campaign) {
+      return jsonResponse(404, { error: 'Campaign not found' });
+    }
     
     // campaign_plans は CASCADE で削除される想定
     const result = await executeDB(
       db,
       'DELETE FROM campaigns WHERE id = ?',
-      [id]
+      [campaign.id]
     );
     
     return jsonResponse(200, { success: true });

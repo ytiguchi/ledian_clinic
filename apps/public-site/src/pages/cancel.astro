@@ -1,0 +1,144 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+import CtaSection from '../components/CtaSection.astro';
+import '../styles/legal.css';
+---
+
+<PublicLayout 
+  title="キャンセルポリシー" 
+  description="Ledian Clinicのキャンセルポリシーです。"
+>
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1 class="page-title">キャンセルポリシー</h1>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="legal-section">
+    <div class="container">
+      <div class="legal-content">
+        <p class="legal-intro">ご予約のキャンセル・変更については、以下のポリシーに基づき対応させていただきます。</p>
+
+        <h2>当日キャンセル</h2>
+        <p>ご予約当日のキャンセルまたは、別日への予約変更の場合、以下のキャンセル料を請求いたします。</p>
+        <table class="cancel-table">
+          <thead>
+            <tr>
+              <th>施術内容</th>
+              <th>キャンセル料</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>通常施術</td>
+              <td>3,000円</td>
+            </tr>
+            <tr>
+              <td>医師施術</td>
+              <td>施術料金の50%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>キャンセル・変更方法</h2>
+        <ul>
+          <li>キャンセル・変更は、LINEまたはお電話にてご連絡ください。</li>
+          <li>WEB予約システムからもキャンセル・変更が可能です。</li>
+          <li>営業時間外のご連絡は、翌営業日の受付となります。</li>
+        </ul>
+
+        <h2>遅刻について</h2>
+        <ul>
+          <li>予約時間を15分以上過ぎてもご連絡がない場合、無断キャンセル扱いとなる場合がございます。</li>
+          <li>遅刻により施術時間が短縮される場合がございます。その場合も施術料金は変わりません。</li>
+          <li>大幅な遅刻の場合、施術をお断りする場合がございます。</li>
+        </ul>
+
+        <h2>サブスクリプションの解約について</h2>
+        <ul>
+          <li>サブスクリプションの解約は、次回更新日の7日前までにお申し出ください。</li>
+          <li>期日を過ぎた場合、翌月分が課金されます。</li>
+          <li>月の途中で解約した場合、日割り計算での返金は行っておりません。</li>
+          <li>未使用回数分の返金・繰越はできません。</li>
+        </ul>
+
+        <h2>返金について</h2>
+        <ul>
+          <li>施術後の返金は原則として承っておりません。</li>
+          <li>施術前であっても、一部サービスについては返金できない場合がございます。</li>
+          <li>コース契約の中途解約については、スタッフまでご相談ください。</li>
+        </ul>
+
+        <div class="contact-note">
+          <h3>ご不明点がございましたら</h3>
+          <p>キャンセルポリシーについてご不明点がございましたら、お気軽にスタッフまでお問い合わせください。</p>
+          <p>電話番号: <a href="tel:050-8889-3863">050-8889-3863</a></p>
+        </div>
+
+        <p class="legal-date">2024年7月1日制定</p>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+
+<style>
+  .cancel-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 30px;
+  }
+  
+  .cancel-table th,
+  .cancel-table td {
+    padding: 15px 20px;
+    border: 1px solid #e5e0d8;
+    font-size: 14px;
+    text-align: left;
+  }
+  
+  .cancel-table th {
+    background: #f9f7f4;
+    font-weight: 600;
+    color: #000;
+  }
+  
+  .cancel-table td {
+    color: #333;
+  }
+  
+  .cancel-table tbody tr:last-child td:last-child {
+    color: #c00;
+    font-weight: 600;
+  }
+  
+  .contact-note {
+    background: #f9f7f4;
+    padding: 25px;
+    margin: 30px 0;
+  }
+  
+  .contact-note h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 10px;
+  }
+  
+  .contact-note p {
+    margin: 0 0 5px;
+  }
+  
+  .contact-note a {
+    color: #5885A3;
+    text-decoration: none;
+  }
+  
+  .contact-note a:hover {
+    text-decoration: underline;
+  }
+</style>
+

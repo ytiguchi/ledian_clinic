@@ -1,0 +1,372 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/page-common.css';
+
+// D1からキャンペーン/ニュースを取得
+const db = Astro.locals.runtime.env.DB;
+
+type Campaign = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  start_date: string | null;
+  campaign_type: string | null;
+};
+
+// 画像マッピング（slugからローカル画像パスへ）
+const imageMap: Record<string, string> = {
+  'eve-v-muse': '/images/news/eve-v-muse.jpg',
+  'friend': '/images/news/friend.png',
+  'holidaycampaign': '/images/news/holidaycampaign.png',
+  'artmake': '/images/news/artmake.jpg',
+  'tribyu': '/images/news/tribyu.jpg',
+  'lhala-doctor': '/images/news/lhala-doctor.jpg',
+  'ito': '/images/news/ito.jpg',
+  'shibouyoukai': '/images/news/shibouyoukai.png',
+  'hyaluronicacid': '/images/news/hyaluronicacid.jpg',
+  'cancel': '/images/news/cancel.jpg',
+  'picotoning': '/images/news/picotoning.jpg',
+  'botox': '/images/news/botox.jpg',
+  'ellisyssense': '/images/news/ellisyssense.jpg',
+  'medicaldiet': '/images/news/medicaldiet.png',
+  'rybelsus': '/images/news/rybelsus.jpg',
+};
+
+let campaigns: Campaign[] = [];
+try {
+  const result = await db.prepare(`
+    SELECT id, title, slug, description, image_url, start_date, campaign_type
+    FROM campaigns
+    WHERE is_published = 1
+    ORDER BY start_date DESC, created_at DESC
+  `).all();
+  campaigns = result.results as Campaign[];
+} catch (e) {
+  console.error('Failed to fetch campaigns:', e);
+}
+
+// 日付フォーマット
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return `${y}年${m}月${d}日`;
+}
+
+// 画像URLを取得
+function getImageUrl(campaign: Campaign): string | null {
+  // 1. DBのimage_urlを優先
+  if (campaign.image_url?.startsWith('/')) {
+    return campaign.image_url;
+  }
+  // 2. imageMapから取得（フォールバック）
+  if (imageMap[campaign.slug]) {
+    return imageMap[campaign.slug];
+  }
+  return null;
+}
+
+// タイプラベル
+function getTypeLabel(type: string | null): { label: string; class: string } {
+  switch (type) {
+    case 'campaign':
+      return { label: 'キャンペーン', class: 'type-campaign' };
+    case 'new_service':
+      return { label: '新サービス', class: 'type-new-service' };
+    case 'news':
+      return { label: 'お知らせ', class: 'type-news' };
+    default:
+      return { label: '', class: '' };
+  }
+}
+---
+
+<PublicLayout 
+  title="おすすめ情報一覧" 
+  description="Ledian Clinicからのお知らせ、キャンペーン情報、新サービスのご案内をお届けします。"
+>
+  <!-- Page Header - 本番サイト準拠 -->
+  <section class="page-header">
+    <div class="container">
+      <h2 class="page-title-en">RECOMMENDATION</h2>
+      <p class="page-title-ja">おすすめ情報一覧</p>
+    </div>
+  </section>
+
+  <!-- Filter Tabs -->
+  <section class="filter-section">
+    <div class="container">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">すべて</button>
+        <button class="filter-tab" data-filter="campaign">🎁 キャンペーン</button>
+        <button class="filter-tab" data-filter="new_service">✨ 新サービス</button>
+        <button class="filter-tab" data-filter="news">📢 お知らせ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- News List - 本番サイト準拠 -->
+  <section class="news-section">
+    <div class="container">
+      {campaigns.length > 0 ? (
+        <ul class="news-grid">
+          {campaigns.map((item) => {
+            const imageUrl = getImageUrl(item);
+            const typeInfo = getTypeLabel(item.campaign_type);
+            return (
+              <li class="news-card" data-type={item.campaign_type || 'all'}>
+                <a href={`/news/${item.slug}/`} class="news-card-link">
+                  <div class="news-card-image">
+                    {imageUrl ? (
+                      <img src={imageUrl} alt={item.title} loading="lazy" />
+                    ) : (
+                      <div class="news-card-placeholder">
+                        <span>No Image</span>
+                      </div>
+                    )}
+                    {typeInfo.label && (
+                      <span class={`news-type-badge ${typeInfo.class}`}>{typeInfo.label}</span>
+                    )}
+                  </div>
+                  <div class="news-card-content">
+                    <p class="news-card-date">{formatDate(item.start_date)}</p>
+                    <h3 class="news-card-title">{item.title}</h3>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div class="no-data">
+          <p>現在、お知らせはありません。</p>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+
+<script>
+  // タブフィルタ機能
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.filter-tab');
+    const cards = document.querySelectorAll('.news-card');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // アクティブタブ切り替え
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        const filter = tab.getAttribute('data-filter');
+        
+        // カードのフィルタリング
+        cards.forEach(card => {
+          const cardType = card.getAttribute('data-type');
+          if (filter === 'all' || cardType === filter) {
+            (card as HTMLElement).style.display = '';
+          } else {
+            (card as HTMLElement).style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  /* ===== 本番サイト準拠デザイン ===== */
+  
+  /* Page Header */
+  .page-header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    background: #FFFCFA;
+  }
+  
+  .page-title-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    color: #C4A882;
+    margin: 0 0 10px;
+  }
+  
+  .page-title-ja {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+    margin: 0;
+    letter-spacing: 0.1em;
+  }
+  
+  /* Filter Tabs */
+  .filter-section {
+    padding: 0 20px 30px;
+    background: #FFFCFA;
+  }
+  
+  .filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .filter-tab {
+    padding: 12px 24px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: #333;
+    background: #F5F2EC;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-tab:hover {
+    background: #EBE6DC;
+  }
+  
+  .filter-tab.active {
+    background: #C4A882;
+    color: #fff;
+  }
+  
+  /* News Section */
+  .news-section {
+    padding: 40px 20px 80px;
+    background: #FFFCFA;
+  }
+  
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  @media (min-width: 768px) {
+    .news-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+  }
+  
+  .news-card {
+    list-style: none;
+  }
+  
+  .news-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .news-card-image {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    margin-bottom: 10px;
+    background: #EFF2F4;
+    border-radius: 4px;
+  }
+  
+  .news-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .news-card-link:hover .news-card-image img {
+    transform: scale(1.05);
+  }
+  
+  .news-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #EFF2F4;
+    color: #999;
+    font-size: 12px;
+  }
+  
+  .news-type-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: 12px;
+    color: #fff;
+  }
+  
+  .type-campaign {
+    background: #E57373;
+  }
+  
+  .type-new-service {
+    background: #64B5F6;
+  }
+  
+  .type-news {
+    background: #81C784;
+  }
+  
+  .news-card-date {
+    font-size: 12px;
+    color: #B6BCBE;
+    margin: 0 0 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  
+  .news-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #000;
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+  
+  .no-data {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+  }
+  
+  @media (max-width: 768px) {
+    .page-title-en {
+      font-size: 24px;
+    }
+    
+    .filter-tabs {
+      gap: 8px;
+    }
+    
+    .filter-tab {
+      padding: 10px 16px;
+      font-size: 12px;
+    }
+  }
+</style>

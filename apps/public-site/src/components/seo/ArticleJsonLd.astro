@@ -1,0 +1,47 @@
+---
+import JsonLd from './JsonLd.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  url: string;
+  imageUrl?: string;
+  datePublished: string;
+  dateModified?: string;
+}
+
+const { title, description, url, imageUrl, datePublished, dateModified } = Astro.props;
+const SITE_URL = 'https://ledianclinic.jp';
+
+const articleData = {
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": title,
+  "description": description,
+  "url": `${SITE_URL}${url}`,
+  "image": imageUrl ? `${SITE_URL}${imageUrl}` : `${SITE_URL}/images/og-image.png`,
+  "datePublished": datePublished,
+  "dateModified": dateModified || datePublished,
+  "author": {
+    "@type": "Organization",
+    "@id": "https://ledianclinic.jp/#organization",
+    "name": "Ledian Clinic"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://ledianclinic.jp/#organization",
+    "name": "Ledian Clinic",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://ledianclinic.jp/images/logo.svg"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": `${SITE_URL}${url}`
+  }
+};
+---
+
+<JsonLd data={articleData} />
+

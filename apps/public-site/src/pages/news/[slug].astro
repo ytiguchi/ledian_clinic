@@ -1,0 +1,237 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import ArticleJsonLd from '../../components/seo/ArticleJsonLd.astro';
+import BreadcrumbJsonLd from '../../components/seo/BreadcrumbJsonLd.astro';
+
+export const prerender = false;
+
+interface Campaign {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  content: string | null;
+  image_url: string | null;
+  start_date: string | null;
+  campaign_type: string;
+}
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/news/');
+}
+
+const db = Astro.locals.runtime.env.DB;
+
+let campaign: Campaign | null = null;
+try {
+  const result = await db.prepare(`
+    SELECT id, title, slug, description, content, image_url, start_date, campaign_type
+    FROM campaigns
+    WHERE slug = ? AND is_published = 1
+  `).bind(slug).first();
+  campaign = result as Campaign | null;
+} catch (e) {
+  console.error('Failed to fetch campaign:', e);
+}
+
+if (!campaign) {
+  return Astro.redirect('/news/');
+}
+
+// 日付フォーマット
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return `${y}年${m}月${d}日`;
+}
+
+const formattedDate = formatDate(campaign.start_date);
+
+// 画像URL（DBから取得、なければslugベースのフォールバック）
+const imageUrl = campaign.image_url || `/images/news/${campaign.slug}.jpg`;
+---
+
+<PublicLayout title={campaign.title} description={campaign.description || `${campaign.title}についてのお知らせ`}>
+  <!-- SEO: JSON-LD -->
+  <ArticleJsonLd 
+    title={campaign.title}
+    description={campaign.description || campaign.title}
+    url={`/news/${campaign.slug}/`}
+    imageUrl={imageUrl}
+    datePublished={campaign.start_date || new Date().toISOString()}
+  />
+  <BreadcrumbJsonLd items={[
+    { name: 'おすすめ情報', url: '/news/' },
+    { name: campaign.title, url: `/news/${campaign.slug}/` }
+  ]} />
+
+  <!-- Hero Image -->
+  <section class="news-hero">
+    <img src={imageUrl} alt={campaign.title} class="hero-image" />
+  </section>
+
+  <!-- Article Content -->
+  <article class="news-article">
+    <div class="container">
+      <div class="article-meta">
+        <time datetime={campaign.start_date || ''}>{formattedDate}</time>
+      </div>
+      <h1 class="article-title">{campaign.title}</h1>
+      
+      <div class="article-content">
+        {campaign.content ? (
+          <Fragment set:html={campaign.content} />
+        ) : campaign.description ? (
+          <p>{campaign.description}</p>
+        ) : null}
+      </div>
+
+      <div class="back-link-wrapper">
+        <a href="/news/" class="back-link">
+          <span class="back-arrow">←</span>
+          おすすめ情報一覧に戻る
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <!-- CTA Section -->
+  <CtaSection />
+</PublicLayout>
+
+<style>
+  /* Hero Section */
+  .news-hero {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0 20px;
+    margin-bottom: 40px;
+  }
+
+  .hero-image {
+    max-width: 800px;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Article */
+  .news-article {
+    padding-bottom: 60px;
+  }
+
+  .news-article .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .article-meta {
+    margin-bottom: 10px;
+  }
+
+  .article-meta time {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: #999;
+  }
+
+  .article-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .article-title {
+      font-size: 20px;
+    }
+  }
+
+  /* Article Content */
+  .article-content {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    line-height: 1.9;
+    color: #333;
+  }
+
+  .article-content :global(p) {
+    margin-bottom: 1.5em;
+  }
+
+  .article-content :global(strong) {
+    font-weight: 600;
+  }
+
+  .article-content :global(hr) {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 30px 0;
+  }
+
+  .article-content :global(a) {
+    color: #b8977e;
+    text-decoration: underline;
+  }
+
+  .article-content :global(a:hover) {
+    color: #9a7d66;
+  }
+
+  .article-content :global(ul),
+  .article-content :global(ol) {
+    margin: 1.5em 0;
+    padding-left: 1.5em;
+  }
+
+  .article-content :global(li) {
+    margin-bottom: 0.5em;
+  }
+
+  .article-content :global(img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 20px auto;
+  }
+
+  /* Back Link */
+  .back-link-wrapper {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover {
+    color: #b8977e;
+  }
+
+  .back-arrow {
+    font-size: 16px;
+  }
+</style>
+

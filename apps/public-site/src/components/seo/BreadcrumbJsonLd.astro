@@ -1,0 +1,35 @@
+---
+import JsonLd from './JsonLd.astro';
+
+export interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+export interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+const SITE_URL = 'https://ledianclinic.jp';
+
+// ホームを先頭に追加
+const fullItems = [
+  { name: 'ホーム', url: '/' },
+  ...items
+];
+
+const breadcrumbData = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": fullItems.map((item, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "name": item.name,
+    "item": `${SITE_URL}${item.url}`
+  }))
+};
+---
+
+<JsonLd data={breadcrumbData} />
+

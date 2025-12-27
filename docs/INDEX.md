@@ -1,152 +1,120 @@
-# ドキュメントインデックス
+﻿# Ledian Clinic プロジェクト ドキュメント
 
-最終更新: 2024-12-27
+最終更新: 2025-12-27
 
-## 🎯 スタートガイド
-
-**初めての方へ**:
-1. [起動・運用の入口](./START.md) - 迷ったらここ
-2. [ロードマップ](./ROADMAP.md) - 現在の進捗と今後の計画
-3. [タスク一覧](./tasks.md) - 具体的なタスク
-
----
-
-## 🚀 公開サイト（ledianclinic.jp）← 進行中！
+## 🚀 クイックスタート
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [公開サイト構築計画](./PUBLIC_SITE_PLAN.md) ⭐ | 全体計画・進捗状況 |
-| [公開サイトデプロイ手順](./DEPLOY_PUBLIC.md) ⭐ | デプロイ方法 |
-| [ロードマップ](./ROADMAP.md) | 本番までのステップ |
-
-**現在の進捗: 40%**
-- ✅ トップページ、サービス一覧、料金表
-- ⏳ 施術詳細、キャンペーン、SEO
+| [START.md](./START.md) | ローカル環境での起動手順 |
+| [ROADMAP.md](./ROADMAP.md) | プロジェクト全体の進捗とロードマップ |
 
 ---
 
-## 🔧 内部サイト（管理画面）
+## 📱 アプリケーション
+
+### Public Site（公開サイト）
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md) | 何を目指しているか |
-| [内部サイト設定](./INTERNAL_SITE_CONFIG.md) | 設定ファイルと環境構成 |
-| [内部サイトデプロイ](./DEPLOY_INTERNAL.md) | デプロイ方法 |
-| [進捗状況](./internal-site-progress.md) | 詳細な進捗 |
+| [PUBLIC_SITE_PLAN.md](./PUBLIC_SITE_PLAN.md) | 公開サイトの構築計画と進捗 |
+| [DEPLOY_PUBLIC.md](./DEPLOY_PUBLIC.md) | 公開サイトのデプロイ手順 |
+| [SEO_ROADMAP.md](./SEO_ROADMAP.md) | SEO/AIO/LLMO対策ロードマップ |
 
-**現在の進捗: 75%**
-- ✅ 料金管理、施術管理、キャンペーン管理
-- ✅ 症例写真管理、新商品導入管理
+**ステージングURL:** https://develop.ledian-clinic-public.pages.dev  
+**本番URL:** https://ledianclinic.jp (DNS切り替え待ち)
 
----
-
-## 📊 ロードマップ・計画
+### Internal Site（管理サイト）
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [ロードマップ](./ROADMAP.md) ⭐ | 進捗状況と今後の計画 |
-| [タスク一覧](./tasks.md) | 具体的なタスクリスト |
-| [包括的ロードマップ](./COMPREHENSIVE_ROADMAP.md) | 全体像（参考） |
+| [INTERNAL_SITE_PURPOSE.md](./INTERNAL_SITE_PURPOSE.md) | 管理サイトの目的と機能 |
+| [INTERNAL_SITE_CONFIG.md](./INTERNAL_SITE_CONFIG.md) | 設定と環境変数 |
+| [DEPLOY_INTERNAL.md](./DEPLOY_INTERNAL.md) | 管理サイトのデプロイ手順 |
+
+**本番URL:** https://ledian-clinic-internal.pages.dev
 
 ---
 
-## 🔌 API・連携（デザイナー向け）
+## 🗄️ データベース / D1
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [デザイナー向けAPI仕様](./API_FOR_DESIGNER.md) ⭐ | デザイナーはここから |
-| [システム統合ガイド](./DESIGNER_INTEGRATION.md) | デザイナー向け統合ガイド |
-| [API実装計画](./API_IMPLEMENTATION_PLAN.md) | API実装の方針 |
+| [D1_ENVIRONMENT.md](./D1_ENVIRONMENT.md) | D1環境とバインディング設定 |
+| [D1_SINGLE_DB.md](./D1_SINGLE_DB.md) | 単一DB構成の説明 |
+| [database/d1/README.md](../database/d1/README.md) | マイグレーション手順 |
+| [SCHEMA_UNIFICATION.md](./SCHEMA_UNIFICATION.md) | スキーマ統一方針 |
+| [seed-and-sync.md](./seed-and-sync.md) | データ投入・同期フロー |
+
+**スキーマ定義:** `database/schema_d1_full.sql`  
+**マイグレーション:** `database/d1/migrations/`
 
 ---
 
-## ⚙️ 設定・環境
+## 🚢 デプロイ / インフラ
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [D1データベース設定](./D1_SINGLE_DB.md) | D1データベース設定 |
-| [アプリ構成](./apps-structure.md) | 2サイト運用の基本方針 |
-| [ローカル開発ガイド](./local-dev-guide.md) | ローカル環境セットアップ |
+| [ci-deploy.md](./ci-deploy.md) | GitHub ActionsによるCI/CD |
+| [infra-cloudflare.md](./infra-cloudflare.md) | Cloudflareインフラ構成 |
 
 ---
 
-## 🗄️ データベース
+## 🔌 API / 連携
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [D1マイグレーション](../database/d1/migrations/) | マイグレーションファイル |
-| [D1マイグレーション運用](../database/d1/README.md) | 現行スキーマ/運用メモ |
-| [D1スキーマ（正本）](../database/schema_d1_full.sql) | スキーマ定義 |
-| [スキーマ拡張計画](./SCHEMA_EXTENSION_PLAN.md) | 今後の拡張計画 |
+| [API_FOR_DESIGNER.md](./API_FOR_DESIGNER.md) | デザイナー向けAPIリファレンス |
+| [DESIGNER_INTEGRATION.md](./DESIGNER_INTEGRATION.md) | デザイナー連携ガイド |
+| [API_IMPLEMENTATION_PLAN.md](./API_IMPLEMENTATION_PLAN.md) | API実装計画 |
 
 ---
 
-## 🐛 トラブルシューティング
+## 🔧 トラブルシューティング
 
 | ドキュメント | 説明 |
 |-------------|------|
-| [APIデバッグ](./DEBUG_API.md) | API動作確認・デバッグ |
-| [キャンペーン管理](./TROUBLESHOOTING_CAMPAIGNS.md) | キャンペーンのトラブル |
+| [DEBUG_API.md](./DEBUG_API.md) | APIデバッグ手順 |
+| [TROUBLESHOOTING_CAMPAIGNS.md](./TROUBLESHOOTING_CAMPAIGNS.md) | キャンペーン関連の問題解決 |
+| [node-upgrade-guide.md](./node-upgrade-guide.md) | Node.jsアップグレード手順 |
 
 ---
 
-## 目的別ナビゲーション
+## 📐 アーキテクチャ
 
-### 🎨 デザイナーの方
-1. [システム統合ガイド](./DESIGNER_INTEGRATION.md)
-2. [デザイナー向けAPI仕様](./API_FOR_DESIGNER.md)
-
-### 💻 開発者の方
-1. [ロードマップ](./ROADMAP.md)
-2. [公開サイト構築計画](./PUBLIC_SITE_PLAN.md)
-3. [公開サイトデプロイ手順](./DEPLOY_PUBLIC.md)
-
-### 📋 プロジェクトマネージャーの方
-1. [ロードマップ](./ROADMAP.md)
-2. [内部サイトの目的](./INTERNAL_SITE_PURPOSE.md)
+| ドキュメント | 説明 |
+|-------------|------|
+| [apps-structure.md](./apps-structure.md) | アプリケーション構成 |
+| [directory-structure.md](./directory-structure.md) | ディレクトリ構造 |
+| [campaign-schema.md](./campaign-schema.md) | キャンペーンスキーマ |
 
 ---
 
-## プロジェクト構成
+## 📝 その他
+
+| ドキュメント | 説明 |
+|-------------|------|
+| [AI.md](./AI.md) | AI向けコンテキスト・用語集 |
+
+---
+
+## 📦 アーカイブ
+
+過去の計画や廃止されたドキュメントは `docs/archive/` に移動しました。
 
 ```
-ledianclinic/
-├── apps/
-│   ├── internal-site/     # 管理画面（75%完了）
-│   │   └── src/
-│   │       ├── pages/     # 管理画面ページ
-│   │       └── components/
-│   │
-│   └── public-site/       # 公開サイト（40%完了）← NEW!
-│       ├── src/
-│       │   ├── pages/     # 公開ページ
-│       │   ├── components/
-│       │   └── layouts/
-│       └── public/
-│           └── images/    # ダウンロード済み画像（37ファイル）
-│
-├── database/
-│   ├── d1/
-│   │   └── migrations/    # D1マイグレーション
-│   └── schema_d1_full.sql # スキーマ定義
-│
-└── docs/                  # ドキュメント
+docs/archive/
+├── ARCHIVE.md              # 廃止ドキュメント一覧
+├── COMPREHENSIVE_ROADMAP.md # 包括的ロードマップ（旧）
+├── DATA_NORMALIZATION_ROADMAP.md
+├── HOW_TO_START.md         # → START.mdに統合
+├── QUICK_START.md          # → START.mdに統合
+├── NEXT_WEEK.md
+├── TRAINING_FEATURE_PROPOSAL.md
+├── artifact-roadmap.md
+├── frontend-current-state.md
+├── internal-site-progress.md
+├── local-dev-guide.md      # → START.mdに統合
+├── local-development-setup.md
+└── tasks.md
 ```
-
----
-
-## 最終的な目標
-
-### 短期（進行中）
-- ✅ 内部サイト基盤構築
-- ✅ 料金管理機能
-- ✅ 症例写真管理機能
-- 🔄 **公開サイト再構築（ledianclinic.jp）** → [計画書](./PUBLIC_SITE_PLAN.md)
-
-### 中期（6-12ヶ月）
-- POSシステム連携
-- カルテシステム連携
-
-### 長期（12ヶ月以降）
-- その他システム連携
-- データ分析機能

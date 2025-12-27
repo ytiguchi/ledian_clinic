@@ -13,8 +13,10 @@ type CampaignInput = {
   title?: unknown;
   slug?: unknown;
   description?: unknown;
+  content?: unknown;
   start_date?: unknown;
   end_date?: unknown;
+  campaign_type?: unknown;
   discount_type?: unknown;
   discount_value?: unknown;
   is_published?: unknown;
@@ -59,6 +61,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
     const db = getDB(locals.runtime.env);
     
     const isPublished = parseIsPublishedParam(url.searchParams.get('is_published'));
+    const campaignType = url.searchParams.get('campaign_type');
     
     let query = `
       SELECT 
@@ -68,6 +71,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
         c.description,
         c.start_date,
         c.end_date,
+        c.campaign_type,
         c.is_published,
         c.is_featured,
         c.discount_type,
@@ -87,6 +91,11 @@ export const GET: APIRoute = async ({ locals, url }) => {
       params.push(isPublished);
     }
     
+    if (campaignType) {
+      query += ' AND c.campaign_type = ?';
+      params.push(campaignType);
+    }
+    
     query += ' GROUP BY c.id ORDER BY c.start_date DESC, c.created_at DESC';
     
     const campaigns = await queryDB<{
@@ -96,6 +105,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
       description: string | null;
       start_date: string | null;
       end_date: string | null;
+      campaign_type: string | null;
       is_published: number;
       is_featured: number;
       discount_type: string | null;
@@ -146,18 +156,20 @@ export const POST: APIRoute = async ({ locals, request }) => {
       db,
       `
         INSERT INTO campaigns (
-          id, title, slug, description,
-          start_date, end_date, discount_type, discount_value,
+          id, title, slug, description, content,
+          start_date, end_date, campaign_type, discount_type, discount_value,
           is_published, is_featured
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         campaignId,
         validation.title,
         validation.slug,
         normalizeString(data.description) || null,
+        normalizeString(data.content) || null,
         normalizeString(data.start_date) || null,
         normalizeString(data.end_date) || null,
+        normalizeString(data.campaign_type) || 'campaign',
         normalizeString(data.discount_type) || 'fixed',
         discountValue,
         Boolean(data.is_published) ? 1 : 0,

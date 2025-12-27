@@ -1,0 +1,376 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+---
+
+<PublicLayout 
+  title="院長紹介" 
+  description="Ledian Clinic院長の紹介と、クリニックのコンセプトをご紹介します。"
+>
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h2 class="page-header-title-en">Clinic doctor</h2>
+      <p class="page-header-title-ja">院長紹介ページ</p>
+    </div>
+  </section>
+
+  <!-- Doctor Section - 本番サイトと同じ2カラムレイアウト -->
+  <section class="doctor-section">
+    <div class="container">
+      <div class="doctor-content">
+        <!-- 左カラム: 写真 -->
+        <div class="doctor-image-wrapper">
+          <div class="doctor-image">
+            <img src="/images/doctor/doctor-okumura.jpg" alt="院長 奥村瞬" />
+            <div class="doctor-name-overlay">
+              <span class="doctor-label">院長</span>
+              <span class="doctor-name-en">Shun Okumura</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右カラム: プロフィール -->
+        <div class="doctor-info">
+          <p class="doctor-badge">院長</p>
+          <h2 class="doctor-name-ja">奥村 瞬</h2>
+          <p class="doctor-name-en-sub">Shun Okumura</p>
+          
+          <div class="doctor-message">
+            <h3 class="section-title">MESSAGE</h3>
+            <p>このたび、前任の吉川先生よりバトンを引き継ぎ、Ledian Clinic 六本木の院長に就任いたしました奥村と申します。吉川先生が築いてこられた温かいクリニックの雰囲気を大切にしながら、さらに皆さまに寄り添える場所を目指してまいります。</p>
+            <p>杏林大学医学部を卒業後、都内の医療機関で外科系診療を経験し、医師としての基礎をしっかりと築いてきました。外科で培った丁寧さと、からだの構造を読み解く視点は、いまの美容医療にも自然とつながっています。</p>
+            <p>その後、美容医療の分野に専門を移し、複数のクリニックで院長・副院長を歴任。注入治療から外科施術まで幅広く携わり、患者さま一人ひとりに合わせた"無理のない自然な美しさ"を大切にしてきました。</p>
+            <p>気軽に相談できて、安心して任せられる場所であることを大切に、美容医療をもっと身近で心地よい体験にできるよう取り組んでいます。</p>
+          </div>
+          
+          <div class="doctor-career">
+            <h3 class="section-title">CAREER</h3>
+            <dl class="career-list">
+              <div class="career-item">
+                <dt>2014年</dt>
+                <dd>杏林大学医学部 卒業</dd>
+              </div>
+              <div class="career-item">
+                <dt>2021年</dt>
+                <dd>美容医療の分野に転向。<br/>複数クリニックにて院長・副院長を歴任。注入治療から外科施術まで幅広く経験を積む。</dd>
+              </div>
+              <div class="career-item">
+                <dt>2025年12月</dt>
+                <dd>Ledian Clinic 六本木の院長に就任。</dd>
+              </div>
+            </dl>
+          </div>
+          
+          <div class="doctor-qualifications">
+            <h3 class="section-title">資格・所属</h3>
+            <ul class="qualification-list">
+              <li>日本整形外科学会 専門医</li>
+              <li>日本美容医療学会（JAPSA） 会員</li>
+              <li>ボトックスビスタ® 認定医</li>
+              <li>ジュビダームビスタ® ボリューマ 認定医</li>
+              <li>ジュビダームビスタ® バイクロス 認定医</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Concept Section -->
+  <section class="concept-section">
+    <div class="container">
+      <div class="concept-header">
+        <h3 class="section-title">CONCEPT</h3>
+      </div>
+      <div class="concept-content">
+        <div class="concept-text">
+          <p>オシャレを楽しむように、お肌も"きらめく私"にアップデートしませんか？</p>
+          <p>もう韓国まで飛ばなくても大丈夫！最先端の美容皮膚科施術で、思わず触りたくなるような「ぷるぷる」な素肌を叶えましょう。効果はしっかり最大に、でもプライスは気軽に続けやすいようにこだわっています。</p>
+          <p>経験豊富なドクターや看護師が、お悩みや不安も優しく解消します。あなたの肌が持つポテンシャルを、医療の力でぐっと引き出します。</p>
+          <p>鏡を見るたび"きゅん"とする、毎日が"わくわく"楽しくなる。そんな体験をLedian Clinicで！ぜひ、お気軽に遊びに来てください♡</p>
+        </div>
+        <div class="concept-image">
+          <picture>
+            <source media="(max-width: 768px)" srcset="/images/doctor/clinic-concept-sp.webp" />
+            <img src="/images/doctor/clinic-concept-pc.webp" alt="Ledian Clinic店内" />
+          </picture>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection variant="default" lead="＼ まずは無料でお肌診断 ／" />
+</PublicLayout>
+
+<style>
+  /* Page Header */
+  .page-header {
+    background: #2D2D2D;
+    padding: 60px 20px;
+    text-align: center;
+  }
+  
+  .page-header-title-en {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: #fff;
+    margin: 0 0 10px;
+    letter-spacing: 0.1em;
+  }
+  
+  .page-header-title-ja {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+  }
+  
+  /* Doctor Section - 2カラムレイアウト */
+  .doctor-section {
+    padding: 80px 20px;
+    background: #fff;
+  }
+  
+  .doctor-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 50px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  
+  @media (min-width: 768px) {
+    .doctor-content {
+      grid-template-columns: 1fr 1.1fr;
+      gap: 60px;
+      align-items: start;
+    }
+  }
+  
+  /* 左カラム: 写真 */
+  .doctor-image-wrapper {
+    position: sticky;
+    top: 150px;
+  }
+  
+  .doctor-image {
+    position: relative;
+  }
+  
+  .doctor-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .doctor-name-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #2D2D2D;
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .doctor-name-overlay .doctor-label {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+  
+  .doctor-name-en {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+  }
+  
+  /* 右カラム: プロフィール */
+  .doctor-badge {
+    display: inline-block;
+    background: #2D2D2D;
+    color: #fff;
+    padding: 10px 35px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+  }
+  
+  .doctor-name-ja {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 8px;
+    letter-spacing: 0.1em;
+  }
+  
+  .doctor-name-en-sub {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #666;
+    margin: 0 0 35px;
+    letter-spacing: 0.05em;
+  }
+  
+  .section-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 25px;
+    letter-spacing: 0.1em;
+  }
+  
+  .doctor-message p {
+    font-size: 14px;
+    line-height: 2.2;
+    color: #333;
+    margin: 0 0 20px;
+  }
+  
+  .doctor-message p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .doctor-career {
+    margin-top: 50px;
+  }
+  
+  .career-list {
+    margin: 0;
+  }
+  
+  .career-item {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 30px;
+    padding: 18px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .career-item:first-child {
+    border-top: 1px solid #eee;
+  }
+  
+  .career-item dt {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+  }
+  
+  .career-item dd {
+    font-size: 14px;
+    line-height: 1.9;
+    color: #333;
+    margin: 0;
+  }
+  
+  /* Qualifications Section */
+  .doctor-qualifications {
+    margin-top: 50px;
+  }
+  
+  .qualification-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .qualification-list li {
+    font-size: 14px;
+    line-height: 2.2;
+    color: #333;
+    padding-left: 20px;
+    position: relative;
+  }
+  
+  .qualification-list li::before {
+    content: '・';
+    position: absolute;
+    left: 0;
+  }
+  
+  /* Concept Section */
+  .concept-section {
+    padding: 80px 20px;
+    background: #FFFCFA;
+  }
+  
+  .concept-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  
+  .concept-header .section-title {
+    margin-bottom: 0;
+  }
+  
+  .concept-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 50px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  @media (min-width: 768px) {
+    .concept-content {
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+  }
+  
+  .concept-text p {
+    font-size: 14px;
+    line-height: 2.2;
+    color: #333;
+    margin: 0 0 20px;
+  }
+  
+  .concept-text p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .concept-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  @media (max-width: 768px) {
+    .doctor-section {
+      padding: 60px 20px;
+    }
+    
+    .doctor-image-wrapper {
+      position: static;
+    }
+    
+    .section-title {
+      font-size: 20px;
+    }
+    
+    .career-item {
+      grid-template-columns: 80px 1fr;
+      gap: 20px;
+    }
+    
+    .doctor-career,
+    .doctor-qualifications {
+      margin-top: 40px;
+    }
+    
+    .concept-section {
+      padding: 60px 20px;
+    }
+  }
+</style>

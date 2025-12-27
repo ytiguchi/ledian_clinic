@@ -6,10 +6,10 @@ export const prerender = false;
 ---
 
 <Layout>
-  <div class="max-w-4xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-6" data-campaign-id={id}>
     <div>
-      <a href="/campaigns" class="text-accent hover:underline">← キャンペーン管理に戻る</a>
-      <h2 class="text-3xl font-bold mt-4">キャンペーン編集</h2>
+      <a href="/campaigns" class="text-accent hover:underline">← お知らせ管理に戻る</a>
+      <h2 class="text-3xl font-bold mt-4">記事編集</h2>
     </div>
 
     <div id="loadingMessage" class="bg-white rounded-lg shadow p-8 text-center">
@@ -24,7 +24,7 @@ export const prerender = false;
         <h3 class="text-xl font-semibold mb-4">基本情報</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">キャンペーン名 <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium mb-1">タイトル <span class="text-red-500">*</span></label>
             <input
               type="text"
               name="title"
@@ -44,22 +44,135 @@ export const prerender = false;
             />
           </div>
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium mb-1">説明</label>
+            <label class="block text-sm font-medium mb-1">概要（一覧表示用）</label>
             <textarea
               name="description"
               id="description"
-              rows="3"
+              rows="2"
               class="w-full px-4 py-2 border rounded-lg"
+              placeholder="一覧ページに表示される短い概要文"
             ></textarea>
           </div>
+        </div>
+      </div>
+      
+      <!-- リッチHTMLエディタ（全幅） -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">本文（HTML）</h3>
+            
+            <!-- エディタツールバー -->
+            <div class="flex flex-wrap gap-1 p-2 bg-gray-100 border border-b-0 rounded-t-lg">
+              <button type="button" onclick="insertHtmlTag('h2')" class="editor-btn" title="見出し2">
+                <span class="font-bold">H2</span>
+              </button>
+              <button type="button" onclick="insertHtmlTag('h3')" class="editor-btn" title="見出し3">
+                <span class="font-bold">H3</span>
+              </button>
+              <button type="button" onclick="insertHtmlTag('p')" class="editor-btn" title="段落">
+                <span>¶</span>
+              </button>
+              <span class="w-px h-6 bg-gray-300 mx-1"></span>
+              <button type="button" onclick="insertHtmlTag('strong')" class="editor-btn" title="太字">
+                <span class="font-bold">B</span>
+              </button>
+              <button type="button" onclick="insertHtmlTag('em')" class="editor-btn" title="斜体">
+                <span class="italic">I</span>
+              </button>
+              <button type="button" onclick="insertHtmlTag('u')" class="editor-btn" title="下線">
+                <span class="underline">U</span>
+              </button>
+              <span class="w-px h-6 bg-gray-300 mx-1"></span>
+              <button type="button" onclick="insertHtmlTag('ul')" class="editor-btn" title="箇条書き">
+                <span>• リスト</span>
+              </button>
+              <button type="button" onclick="insertHtmlTag('ol')" class="editor-btn" title="番号リスト">
+                <span>1. リスト</span>
+              </button>
+              <span class="w-px h-6 bg-gray-300 mx-1"></span>
+              <button type="button" id="uploadBtn" onclick="triggerImageUpload()" class="editor-btn" title="画像アップロード（WebP自動変換）">
+                <span>📤 画像UP</span>
+              </button>
+              <button type="button" id="urlBtn" onclick="insertImageUrl()" class="editor-btn" title="画像URL挿入">
+                <span>🔗 URL</span>
+              </button>
+              <input type="file" id="imageUploadInput" accept="image/*" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" />
+              <button type="button" onclick="insertLink()" class="editor-btn" title="リンク挿入">
+                <span>🔗 リンク</span>
+              </button>
+              <span class="w-px h-6 bg-gray-300 mx-1"></span>
+              <button type="button" onclick="insertTemplate('news-image')" class="editor-btn bg-blue-50" title="ニュース画像テンプレート">
+                <span>📰 ニュース画像</span>
+              </button>
+            </div>
+            
+            <!-- タブ切り替え -->
+            <div class="flex border-x border-gray-200 bg-gray-50">
+              <button type="button" id="tabHtml" onclick="switchTab('html')" class="editor-tab active">
+                📝 HTML
+              </button>
+              <button type="button" id="tabPreview" onclick="switchTab('preview')" class="editor-tab">
+                👁️ プレビュー
+              </button>
+              <button type="button" id="tabSplit" onclick="switchTab('split')" class="editor-tab">
+                ⬜ 分割表示
+              </button>
+            </div>
+            
+            <!-- エディタ本体 -->
+            <div id="editorContainer" class="border rounded-b-lg overflow-hidden">
+              <!-- HTML編集モード -->
+              <div id="htmlEditor" class="editor-pane">
+                <textarea
+                  name="content"
+                  id="content"
+                  rows="20"
+                  class="w-full h-[500px] px-4 py-3 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-accent focus:ring-inset"
+                  placeholder="HTMLを入力してください..."
+                  oninput="updatePreview()"
+                ></textarea>
+              </div>
+              
+              <!-- プレビューモード -->
+              <div id="previewPane" class="editor-pane hidden">
+                <div id="previewContent" class="w-full h-[500px] px-6 py-4 overflow-auto bg-white prose prose-sm max-w-none">
+                  <p class="text-gray-400">プレビューがここに表示されます</p>
+                </div>
+              </div>
+              
+              <!-- 分割表示モード -->
+              <div id="splitPane" class="editor-pane hidden">
+                <div class="grid grid-cols-2 divide-x h-[500px]">
+                  <div class="overflow-hidden">
+                    <textarea
+                      id="contentSplit"
+                      rows="20"
+                      class="w-full h-full px-4 py-3 font-mono text-sm border-0 resize-none focus:outline-none"
+                      placeholder="HTMLを入力..."
+                      oninput="syncContent(this); updatePreview()"
+                    ></textarea>
+                  </div>
+                  <div id="splitPreviewContent" class="px-6 py-4 overflow-auto bg-gray-50 prose prose-sm max-w-none">
+                    <p class="text-gray-400">プレビュー</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+        <p class="text-xs text-gray-500 mt-2">💡 ツールバーのボタンでHTMLタグを挿入できます。プレビュータブで表示確認ができます。</p>
+      </div>
+      
+      <!-- 表示設定 -->
+      <div>
+        <h3 class="text-xl font-semibold mb-4">表示設定</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">キャンペーン種別</label>
-            <select name="campaignType" id="campaignType" class="w-full px-4 py-2 border rounded-lg">
-              <option value="discount">割引</option>
-              <option value="bundle">セット</option>
-              <option value="point">ポイント</option>
-              <option value="referral">紹介</option>
+            <label class="block text-sm font-medium mb-1">表示カテゴリ</label>
+            <select name="campaign_type" id="campaign_type" class="w-full px-4 py-2 border rounded-lg">
+              <option value="campaign">🎁 キャンペーン</option>
+              <option value="new_service">✨ 新サービス</option>
+              <option value="news">📢 お知らせ</option>
             </select>
+            <p class="text-xs text-gray-500 mt-1">公開サイトでのフィルタ分類</p>
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">優先度</label>
@@ -112,9 +225,41 @@ export const prerender = false;
           </button>
         </div>
         
+        <!-- 画像アップロード結果モーダル -->
+        <div id="uploadResultModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div class="p-4 border-b flex justify-between items-center">
+              <h4 class="text-lg font-semibold">📤 画像アップロード完了</h4>
+              <button type="button" onclick="closeUploadModal()" class="text-gray-500 hover:text-gray-700">×</button>
+            </div>
+            <div class="p-4 space-y-4">
+              <div id="uploadedImagePreview" class="flex justify-center bg-gray-100 rounded-lg p-2">
+                <!-- プレビュー画像 -->
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">画像URL</label>
+                <div class="flex gap-2">
+                  <input type="text" id="uploadedImageUrl" readonly class="flex-1 px-3 py-2 border rounded-lg bg-gray-50 text-sm" />
+                  <button type="button" onclick="copyImageUrl()" class="px-3 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark text-sm">
+                    📋 コピー
+                  </button>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" onclick="insertUploadedImage()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  ✅ 本文に挿入
+                </button>
+                <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- プラン選択モーダル -->
         <div id="planSelectorModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+          <div class="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[70vh] flex flex-col">
             <div class="p-4 border-b flex justify-between items-center">
               <h4 class="text-lg font-semibold">通常メニューから選択</h4>
               <button onclick="togglePlanSelector()" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
@@ -174,12 +319,66 @@ export const prerender = false;
   </div>
 </Layout>
 
-<script define:vars={{ campaignId: id }}>
+<style>
+  .editor-btn {
+    @apply px-2 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 hover:border-gray-400 transition-colors;
+  }
+  .editor-btn:hover {
+    @apply bg-gray-100;
+  }
+  .editor-tab {
+    @apply px-4 py-2 text-sm font-medium text-gray-600 border-b-2 border-transparent hover:text-gray-800 hover:bg-gray-100 transition-colors;
+  }
+  .editor-tab.active {
+    @apply text-accent border-accent bg-white;
+  }
+  .editor-pane {
+    min-height: 500px;
+    width: 100%;
+  }
+  #editorContainer {
+    width: 100%;
+  }
+  #editorContainer textarea {
+    width: 100% !important;
+    min-width: 100%;
+  }
+  .editor-pane.hidden {
+    display: none !important;
+  }
+  /* プレビュー用のスタイル */
+  .prose img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  .prose h2 {
+    @apply text-xl font-bold mt-6 mb-3 text-gray-800 border-b pb-2;
+  }
+  .prose h3 {
+    @apply text-lg font-semibold mt-4 mb-2 text-gray-700;
+  }
+  .prose p {
+    @apply my-3 text-gray-600 leading-relaxed;
+  }
+  .prose ul, .prose ol {
+    @apply my-3 pl-6;
+  }
+  .prose li {
+    @apply my-1;
+  }
+  .prose a {
+    @apply text-accent underline hover:text-accent-light;
+  }
+</style>
+
+<script>
   interface CampaignData {
     id: string;
     title: string;
     slug: string;
     description: string | null;
+    content: string | null;
     start_date: string | null;
     end_date: string | null;
     campaign_type: string;
@@ -195,6 +394,9 @@ export const prerender = false;
     special_price: number | null;
     special_price_taxed: number | null;
   }
+
+  // Get campaignId from data attribute
+  const campaignId = document.querySelector('[data-campaign-id]')?.getAttribute('data-campaign-id') || '';
 
   let campaign: CampaignData | null = null;
   let plans: Plan[] = [];
@@ -284,6 +486,7 @@ export const prerender = false;
 
     const searchTerm = (document.getElementById('planSearchInput') as HTMLInputElement)?.value.toLowerCase() || '';
     const selectedPlanIds = plans.map(p => p.treatment_plan_id);
+    const isSearching = searchTerm.length > 0;
     
     // カテゴリ・サブカテゴリでグループ化
     const grouped: Record<string, Record<string, typeof allTreatmentPlans>> = {};
@@ -311,33 +514,51 @@ export const prerender = false;
       return;
     }
 
-    container.innerHTML = Object.entries(grouped).map(([categoryName, subcategories]) => `
-      <div class="mb-6">
-        <h5 class="font-semibold text-lg mb-3 text-gray-700 border-b pb-2">${escapeHtml(categoryName)}</h5>
-        ${Object.entries(subcategories).map(([subcategoryName, plans]) => `
-          <div class="ml-4 mb-4">
-            <h6 class="font-medium text-sm text-gray-600 mb-2">${escapeHtml(subcategoryName)}</h6>
-            <div class="space-y-1">
-              ${plans.map(plan => `
-                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition">
-                  <input
-                    type="checkbox"
-                    class="mr-3 w-4 h-4 text-accent"
-                    value="${plan.id}"
-                    onchange="handlePlanSelection('${plan.id}', this.checked)"
-                  />
-                  <div class="flex-1">
-                    <div class="font-medium">${escapeHtml(plan.treatment_name)}</div>
-                    <div class="text-sm text-gray-600">${escapeHtml(plan.plan_name)}</div>
-                    <div class="text-sm text-gray-500">¥${plan.price_taxed.toLocaleString()}（税込）</div>
-                  </div>
-                </label>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    `).join('');
+    // カテゴリごとのプラン数を計算
+    const categoryPlanCounts: Record<string, number> = {};
+    Object.entries(grouped).forEach(([categoryName, subcategories]) => {
+      categoryPlanCounts[categoryName] = Object.values(subcategories).reduce((sum, plans) => sum + plans.length, 0);
+    });
+
+    container.innerHTML = Object.entries(grouped).map(([categoryName, subcategories], catIndex) => {
+      const planCount = categoryPlanCounts[categoryName];
+      const isOpen = isSearching; // 検索中は開く、そうでなければ閉じる
+      return `
+      <details class="mb-2 border rounded-lg" ${isOpen ? 'open' : ''}>
+        <summary class="flex items-center justify-between p-3 cursor-pointer bg-gray-50 hover:bg-gray-100 rounded-lg font-medium">
+          <span>${escapeHtml(categoryName)}</span>
+          <span class="text-sm text-gray-500 bg-white px-2 py-1 rounded">${planCount}件</span>
+        </summary>
+        <div class="p-3 border-t max-h-[300px] overflow-y-auto">
+          ${Object.entries(subcategories).map(([subcategoryName, plans]) => `
+            <details class="mb-2" ${isSearching ? 'open' : ''}>
+              <summary class="text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-800 py-1">
+                ${escapeHtml(subcategoryName)} (${plans.length})
+              </summary>
+              <div class="ml-4 mt-1 space-y-1">
+                ${plans.map(plan => `
+                  <label class="flex items-center gap-2 p-2 text-sm border rounded hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      class="w-4 h-4 text-accent"
+                      value="${plan.id}"
+                      onchange="handlePlanSelection('${plan.id}', this.checked)"
+                    />
+                    <div class="flex-1 min-w-0">
+                      <div class="font-medium truncate">${escapeHtml(plan.treatment_name)}</div>
+                      <div class="text-xs text-gray-500 flex justify-between">
+                        <span class="truncate">${escapeHtml(plan.plan_name)}</span>
+                        <span class="whitespace-nowrap ml-2">¥${plan.price_taxed.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+            </details>
+          `).join('')}
+        </div>
+      </details>
+    `}).join('');
   }
 
   function handlePlanSelection(planId: string, isSelected: boolean) {
@@ -364,8 +585,9 @@ export const prerender = false;
     (document.getElementById('title') as HTMLInputElement).value = data.title;
     (document.getElementById('slug') as HTMLInputElement).value = data.slug;
     (document.getElementById('description') as HTMLTextAreaElement).value = data.description || '';
-    (document.getElementById('campaignType') as HTMLSelectElement).value = data.campaign_type;
-    (document.getElementById('priority') as HTMLInputElement).value = data.priority.toString();
+    (document.getElementById('content') as HTMLTextAreaElement).value = data.content || '';
+    (document.getElementById('campaign_type') as HTMLSelectElement).value = data.campaign_type || 'campaign';
+    (document.getElementById('priority') as HTMLInputElement).value = (data.priority ?? 0).toString();
     
     if (data.start_date) {
       (document.getElementById('startDate') as HTMLInputElement).value = data.start_date.split('T')[0];
@@ -375,6 +597,13 @@ export const prerender = false;
     }
     
     (document.getElementById('isPublished') as HTMLInputElement).checked = data.is_published === 1;
+    
+    // 分割ビューのテキストエリアも同期し、プレビューを更新
+    const contentSplit = document.getElementById('contentSplit') as HTMLTextAreaElement;
+    if (contentSplit) {
+      contentSplit.value = data.content || '';
+    }
+    updatePreview();
   }
 
   function renderPlanList() {
@@ -536,7 +765,8 @@ export const prerender = false;
         title: formData.get('title'),
         slug: formData.get('slug'),
         description: formData.get('description') || null,
-        campaign_type: formData.get('campaignType') || 'discount',
+        content: formData.get('content') || null,
+        campaign_type: formData.get('campaign_type') || 'campaign',
         priority: formData.get('priority') ? Number(formData.get('priority')) : 0,
         start_date: formData.get('startDate') || null,
         end_date: formData.get('endDate') || null,
@@ -571,4 +801,324 @@ export const prerender = false;
   (window as any).handlePlanSelection = handlePlanSelection;
   (window as any).removePlan = removePlan;
   (window as any).updatePlanPreview = updatePlanPreview;
+
+  // ========================================
+  // HTMLエディタ機能
+  // ========================================
+  
+  let currentTab = 'html';
+
+  function switchTab(tab: string) {
+    currentTab = tab;
+    
+    // タブのアクティブ状態を更新
+    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`)?.classList.add('active');
+    
+    // ペインの表示切替
+    const htmlEditor = document.getElementById('htmlEditor');
+    const previewPane = document.getElementById('previewPane');
+    const splitPane = document.getElementById('splitPane');
+    
+    htmlEditor?.classList.add('hidden');
+    previewPane?.classList.add('hidden');
+    splitPane?.classList.add('hidden');
+    
+    if (tab === 'html') {
+      htmlEditor?.classList.remove('hidden');
+    } else if (tab === 'preview') {
+      previewPane?.classList.remove('hidden');
+      updatePreview();
+    } else if (tab === 'split') {
+      splitPane?.classList.remove('hidden');
+      // 分割ビューのテキストエリアを同期
+      const content = (document.getElementById('content') as HTMLTextAreaElement)?.value || '';
+      (document.getElementById('contentSplit') as HTMLTextAreaElement).value = content;
+      updatePreview();
+    }
+  }
+
+  function syncContent(source: HTMLTextAreaElement) {
+    const content = source.value;
+    (document.getElementById('content') as HTMLTextAreaElement).value = content;
+  }
+
+  function updatePreview() {
+    let content = (document.getElementById('content') as HTMLTextAreaElement)?.value || '';
+    const previewContent = document.getElementById('previewContent');
+    const splitPreviewContent = document.getElementById('splitPreviewContent');
+    
+    // 相対パスの画像を公開サイトのURLに変換
+    // 本番か開発かを検出
+    const isDev = window.location.hostname.includes('develop') || window.location.hostname.includes('pages.dev');
+    const publicSiteBase = isDev 
+      ? 'https://develop.ledian-clinic-public.pages.dev' 
+      : 'https://ledianclinic.jp';
+    content = content.replace(/src="\/images\//g, `src="${publicSiteBase}/images/`);
+    
+    // プレビュー用のスタイルを適用
+    const previewHtml = content || '<p class="text-gray-400">プレビューがここに表示されます</p>';
+    
+    if (previewContent) {
+      previewContent.innerHTML = previewHtml;
+    }
+    if (splitPreviewContent) {
+      splitPreviewContent.innerHTML = content || '<p class="text-gray-400">プレビュー</p>';
+    }
+  }
+
+  function insertHtmlTag(tag: string) {
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    
+    let insertText = '';
+    
+    switch (tag) {
+      case 'ul':
+        insertText = `<ul>\n  <li>${selectedText || 'リスト項目'}</li>\n</ul>`;
+        break;
+      case 'ol':
+        insertText = `<ol>\n  <li>${selectedText || 'リスト項目'}</li>\n</ol>`;
+        break;
+      case 'h2':
+        insertText = `<h2>${selectedText || '見出し2'}</h2>`;
+        break;
+      case 'h3':
+        insertText = `<h3>${selectedText || '見出し3'}</h3>`;
+        break;
+      case 'p':
+        insertText = `<p>${selectedText || 'テキスト'}</p>`;
+        break;
+      default:
+        insertText = `<${tag}>${selectedText || 'テキスト'}</${tag}>`;
+    }
+    
+    textarea.value = textarea.value.substring(0, start) + insertText + textarea.value.substring(end);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+    updatePreview();
+  }
+
+  // 画像アップロード関連
+  let lastUploadedUrl = '';
+  
+  function triggerImageUpload() {
+    const input = document.getElementById('imageUploadInput') as HTMLInputElement;
+    if (input) input.click();
+  }
+
+  // WebP変換関数
+  async function convertToWebP(file: File, quality: number = 0.85): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      // すでにWebPの場合はそのまま返す
+      if (file.type === 'image/webp') {
+        resolve(file);
+        return;
+      }
+
+      const img = new Image();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx?.drawImage(img, 0, 0);
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('WebP変換に失敗しました'));
+            }
+          },
+          'image/webp',
+          quality
+        );
+      };
+
+      img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function handleImageUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // アップロード中の表示
+    const uploadBtn = document.getElementById('uploadBtn') as HTMLButtonElement;
+    const originalText = uploadBtn?.innerHTML;
+    if (uploadBtn) {
+      uploadBtn.innerHTML = '<span class="animate-pulse">⏳ 変換中...</span>';
+      uploadBtn.disabled = true;
+    }
+
+    try {
+      // WebPに変換
+      const webpBlob = await convertToWebP(file);
+      const webpFile = new File([webpBlob], file.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+      
+      if (uploadBtn) {
+        uploadBtn.innerHTML = '<span class="animate-pulse">⏳ UP中...</span>';
+      }
+
+      const formData = new FormData();
+      formData.append('file', webpFile);
+      formData.append('type', 'news');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.url) {
+        lastUploadedUrl = result.url;
+        showUploadResult(result.url, webpBlob);
+      } else {
+        alert('アップロードに失敗しました: ' + (result.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('アップロード中にエラーが発生しました');
+    } finally {
+      if (uploadBtn) {
+        uploadBtn.innerHTML = originalText || '<span>📤 画像UP</span>';
+        uploadBtn.disabled = false;
+      }
+      input.value = ''; // リセット
+    }
+  }
+
+  function showUploadResult(url: string, blob: Blob) {
+    const modal = document.getElementById('uploadResultModal');
+    const preview = document.getElementById('uploadedImagePreview');
+    const urlInput = document.getElementById('uploadedImageUrl') as HTMLInputElement;
+    
+    if (preview) {
+      preview.innerHTML = `<img src="${URL.createObjectURL(blob)}" alt="アップロード画像" style="max-height: 200px; max-width: 100%; object-fit: contain;" />`;
+    }
+    if (urlInput) {
+      urlInput.value = url;
+    }
+    modal?.classList.remove('hidden');
+  }
+
+  function closeUploadModal() {
+    document.getElementById('uploadResultModal')?.classList.add('hidden');
+  }
+
+  function copyImageUrl() {
+    const urlInput = document.getElementById('uploadedImageUrl') as HTMLInputElement;
+    if (urlInput) {
+      navigator.clipboard.writeText(urlInput.value);
+      const btn = document.querySelector('[onclick="copyImageUrl()"]') as HTMLButtonElement;
+      if (btn) {
+        const original = btn.innerHTML;
+        btn.innerHTML = '✅ コピー完了';
+        setTimeout(() => btn.innerHTML = original, 1500);
+      }
+    }
+  }
+
+  function insertUploadedImage() {
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (textarea && lastUploadedUrl) {
+      const start = textarea.selectionStart;
+      const imgTag = `<img src="${lastUploadedUrl}" alt="" style="width: 100%; max-width: 100%;" />`;
+      textarea.value = textarea.value.substring(0, start) + imgTag + textarea.value.substring(start);
+      textarea.focus();
+      updatePreview();
+    }
+    closeUploadModal();
+  }
+
+  function insertImageUrl() {
+    const url = prompt('画像URLを入力してください:', 'https://');
+    if (!url) return;
+    
+    const alt = prompt('画像の説明（alt属性）を入力してください:', '');
+    
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const imgTag = `<img src="${url}" alt="${alt || ''}" style="width: 100%; max-width: 100%;" />`;
+    
+    textarea.value = textarea.value.substring(0, start) + imgTag + textarea.value.substring(start);
+    textarea.focus();
+    updatePreview();
+  }
+
+  function insertLink() {
+    const url = prompt('リンク先URLを入力してください:', 'https://');
+    if (!url) return;
+    
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end) || 'リンクテキスト';
+    
+    const linkTag = `<a href="${url}" target="_blank">${selectedText}</a>`;
+    
+    textarea.value = textarea.value.substring(0, start) + linkTag + textarea.value.substring(end);
+    textarea.focus();
+    updatePreview();
+  }
+
+  function insertTemplate(templateName: string) {
+    const textarea = document.getElementById('content') as HTMLTextAreaElement;
+    if (!textarea) return;
+    
+    let template = '';
+    
+    switch (templateName) {
+      case 'news-image':
+        template = `<div class="news-content-images">
+  <img src="/images/news/content/YOUR_IMAGE.jpg" alt="画像の説明" style="width: 100%; max-width: 100%;" />
+</div>
+
+<p>ここに本文を入力してください。</p>
+
+<h3>詳細情報</h3>
+<ul>
+  <li>項目1</li>
+  <li>項目2</li>
+  <li>項目3</li>
+</ul>`;
+        break;
+    }
+    
+    const start = textarea.selectionStart;
+    textarea.value = textarea.value.substring(0, start) + template + textarea.value.substring(start);
+    textarea.focus();
+    updatePreview();
+  }
+
+  // ファイル入力のイベントリスナー
+  document.getElementById('imageUploadInput')?.addEventListener('change', handleImageUpload);
+
+  // エディタ関数をグローバルに公開
+  (window as any).switchTab = switchTab;
+  (window as any).insertHtmlTag = insertHtmlTag;
+  (window as any).triggerImageUpload = triggerImageUpload;
+  (window as any).handleImageUpload = handleImageUpload;
+  (window as any).insertImageUrl = insertImageUrl;
+  (window as any).insertLink = insertLink;
+  (window as any).insertTemplate = insertTemplate;
+  (window as any).updatePreview = updatePreview;
+  (window as any).syncContent = syncContent;
+  (window as any).closeUploadModal = closeUploadModal;
+  (window as any).copyImageUrl = copyImageUrl;
+  (window as any).insertUploadedImage = insertUploadedImage;
 </script>

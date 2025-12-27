@@ -27,60 +27,91 @@ const isHome = currentPath === '/';
   </div>
 </header>
 
-<!-- Mobile Menu -->
-<nav class="mobile-nav" id="mobile-nav" aria-hidden="true">
-  <div class="mobile-nav-header">
-    <a href="/" class="mobile-nav-logo">
+<!-- Full Screen Menu Overlay - 本番サイト完全再現 -->
+<nav class="fullscreen-nav" id="fullscreen-nav" aria-hidden="true">
+  <div class="fullscreen-nav-header">
+    <a href="/" class="fullscreen-nav-logo">
       <img src="/images/header-logo.svg" alt="Ledian Clinic" />
     </a>
-    <button type="button" class="mobile-nav-close" id="menu-close" aria-label="メニューを閉じる">
-      <img src="/images/header-close.svg" alt="閉じる" />
+    <button type="button" class="fullscreen-nav-close" id="menu-close" aria-label="メニューを閉じる">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 6L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </button>
   </div>
   
-  <div class="mobile-nav-inner">
-    <ul class="mobile-nav-list">
-      <li><a href="/">ホーム</a></li>
+  <div class="fullscreen-nav-body">
+    <ul class="fullscreen-nav-list">
       <li><a href="/service/">サービス一覧</a></li>
       <li><a href="/price/">料金表</a></li>
-      <li><a href="/doctor/">医師紹介</a></li>
-      <li><a href="/news/">お知らせ</a></li>
-      <li><a href="/subscription/">サブスクリプション</a></li>
-      <li><a href="/contact/">お問い合わせ</a></li>
+      <li><a href="/subscription/">サブスクプラン</a></li>
+      <li><a href="/doctor/">院長紹介</a></li>
+      <li><a href="/#access">アクセス</a></li>
+      <li><a href="/news/">おすすめ情報</a></li>
+      <li><a href="/career/">採用情報</a></li>
+      <li><a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284/reservations/new?menu_ids=5af3da73-e7f0-4930-b35b-ec3cf98b21ea" target="_blank" rel="noopener">無料カウンセリング予約</a></li>
+      <li><a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" target="_blank" rel="noopener">WEB予約</a></li>
     </ul>
     
-    <div class="mobile-nav-cta">
-      <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm" class="btn-nav btn-nav-line" target="_blank" rel="noopener">
-        LINEでかんたん予約
-      </a>
-      <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="btn-nav btn-nav-web" target="_blank" rel="noopener">
-        WEB予約
-      </a>
-    </div>
+    <ul class="fullscreen-nav-footer">
+      <li><a href="/terms">利用規約</a></li>
+      <li><a href="/privacy-policy">個人情報保護方針</a></li>
+      <li><a href="/legal">特定商取引法に基づく表記</a></li>
+      <li><a href="/use-terms">施設利用規約</a></li>
+      <li><a href="/cancel">キャンセルポリシー</a></li>
+      <li><a href="/contact/">お問い合わせ</a></li>
+    </ul>
   </div>
 </nav>
 
-<!-- Overlay -->
-<div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
-
 <style>
+  /* ============================================
+     Header - 本番サイト完コピ版
+     本番: height 130px (PC), padding 0 ~94px
+     ============================================ */
   .header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    background: rgba(255, 252, 250, 0.95);
-    backdrop-filter: blur(10px);
+    background: #FFFFFF;
+    height: 60px; /* SP: 60px */
+  }
+  
+  @media (min-width: 768px) {
+    .header {
+      height: 80px; /* Tablet */
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .header {
+      height: 130px; /* PC: 本番と同じ */
+    }
   }
   
   .header-inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 1200px;
+    max-width: 1240px;
+    height: 100%;
     margin: 0 auto;
-    padding: 12px 20px;
+    padding: 0 20px;
+  }
+  
+  @media (min-width: 768px) {
+    .header-inner {
+      padding: 0 40px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .header-inner {
+      padding: 0 94px; /* 本番と同じ */
+    }
   }
   
   .header-logo {
@@ -96,13 +127,19 @@ const isHome = currentPath === '/';
   }
   
   .header-logo img {
-    height: 28px;
+    height: 28px; /* SP */
     width: auto;
   }
   
   @media (min-width: 768px) {
     .header-logo img {
-      height: 32px;
+      height: 32px; /* Tablet */
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .header-logo img {
+      height: 38px; /* PC: 本番と同じ */
     }
   }
   
@@ -118,187 +155,343 @@ const isHome = currentPath === '/';
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
     background: none;
     border: none;
+    padding: 0;
     cursor: pointer;
   }
   
   .header-menu-btn img {
-    width: 28px;
-    height: 28px;
+    width: 40px; /* SP */
+    height: 22px;
   }
   
-  /* Mobile Navigation */
-  .mobile-nav {
+  @media (min-width: 768px) {
+    .header-menu-btn img {
+      width: 50px;
+      height: 28px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .header-menu-btn img {
+      width: 73px; /* 本番の画像サイズ */
+      height: 40px;
+    }
+  }
+  
+  /* ============================================
+     Fullscreen Navigation - 高級感のあるアニメーション
+     PC: フルスクリーン + 3列グリッド
+     SP: フルスクリーン + 1列縦並び
+     アニメーション: ふわっとしたフェード + 各要素のスタッガー
+     ============================================ */
+  .fullscreen-nav {
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    max-width: 400px;
+    inset: 0;
     z-index: 2000;
-    background: var(--color-bg, #FFFCFA);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
+    background: #FFFFFF;
+    opacity: 0;
+    visibility: hidden;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    transition: opacity 0.6s cubic-bezier(0.25, 0.1, 0.25, 1),
+                visibility 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
   
-  .mobile-nav.active {
-    transform: translateX(0);
+  .fullscreen-nav.active {
+    opacity: 1;
+    visibility: visible;
   }
   
-  .mobile-nav-header {
+  .fullscreen-nav.closing {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s cubic-bezier(0.25, 0.1, 0.25, 1),
+                visibility 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  
+  /* 各要素のスタッガーアニメーション */
+  .fullscreen-nav .fullscreen-nav-header,
+  .fullscreen-nav .fullscreen-nav-list li,
+  .fullscreen-nav .fullscreen-nav-footer {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  
+  .fullscreen-nav.active .fullscreen-nav-header {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.1s;
+  }
+  
+  .fullscreen-nav.active .fullscreen-nav-list li {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(1) { transition-delay: 0.15s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(2) { transition-delay: 0.2s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(3) { transition-delay: 0.25s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(4) { transition-delay: 0.3s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(5) { transition-delay: 0.35s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(6) { transition-delay: 0.4s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(7) { transition-delay: 0.45s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(8) { transition-delay: 0.5s; }
+  .fullscreen-nav.active .fullscreen-nav-list li:nth-child(9) { transition-delay: 0.55s; }
+  
+  .fullscreen-nav.active .fullscreen-nav-footer {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.6s;
+  }
+  
+  /* 閉じる時のアニメーション（逆順でフェードアウト）*/
+  .fullscreen-nav.closing .fullscreen-nav-header,
+  .fullscreen-nav.closing .fullscreen-nav-list li,
+  .fullscreen-nav.closing .fullscreen-nav-footer {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition-delay: 0s;
+  }
+  
+  /* Header area in fullscreen nav */
+  .fullscreen-nav-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--color-border, #e5e0d8);
+    padding: 18px 20px;
+    flex-shrink: 0;
   }
   
-  .mobile-nav-logo img {
-    height: 28px;
+  @media (min-width: 768px) {
+    .fullscreen-nav-header {
+      justify-content: center;
+      padding: 30px 60px 20px;
+      position: relative;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .fullscreen-nav-header {
+      padding: 50px 94px 30px;
+    }
+  }
+  
+  .fullscreen-nav-logo img {
+    height: 24px;
     width: auto;
   }
   
-  .mobile-nav-close {
-    padding: 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
+  @media (min-width: 768px) {
+    .fullscreen-nav-logo img {
+      height: 32px;
+    }
   }
   
-  .mobile-nav-close img {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .mobile-nav-inner {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    padding: 0 20px 30px;
-    overflow-y: auto;
-  }
-  
-  .mobile-nav-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    flex: 1;
-  }
-  
-  .mobile-nav-list li {
-    border-bottom: 1px solid var(--color-border, #e5e0d8);
-  }
-  
-  .mobile-nav-list a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 0;
-    font-size: 0.9375rem;
-    color: var(--color-text, #000);
-    text-decoration: none;
-    transition: opacity 0.3s ease;
-  }
-  
-  .mobile-nav-list a::after {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-right: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
-    transform: rotate(-45deg);
-  }
-  
-  .mobile-nav-list a:hover {
-    opacity: 0.7;
-  }
-  
-  .mobile-nav-cta {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 30px;
-  }
-  
-  .btn-nav {
+  .fullscreen-nav-close {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    transition: opacity 0.3s ease;
+  }
+  
+  .fullscreen-nav-close:hover {
+    opacity: 0.6;
+  }
+  
+  @media (min-width: 768px) {
+    .fullscreen-nav-close {
+      position: absolute;
+      right: 60px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+    }
+    
+    .fullscreen-nav-close svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+  
+  /* Body area with nav links */
+  .fullscreen-nav-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px 40px;
+  }
+  
+  @media (min-width: 768px) {
+    .fullscreen-nav-body {
+      padding: 0 80px 60px;
+      justify-content: flex-start;
+      padding-top: 5vh;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .fullscreen-nav-body {
+      padding: 0 94px 80px;
+      padding-top: 8vh;
+    }
+  }
+  
+  /* Main navigation list */
+  .fullscreen-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* SP: 1列縦並び */
+  .fullscreen-nav-list li {
+    border-bottom: 1px solid #E5E5E5;
+  }
+  
+  .fullscreen-nav-list li:first-child {
+    border-top: none;
+  }
+  
+  .fullscreen-nav-list a {
+    display: block;
+    padding: 20px 0;
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: #333;
     text-decoration: none;
-    text-align: center;
-    transition: all 0.3s ease;
+    letter-spacing: 0.08em;
+    position: relative;
+    transition: color 0.4s cubic-bezier(0.25, 0.1, 0.25, 1),
+                transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
   
-  .btn-nav-line {
-    background: #06c755;
-    color: #fff;
+  .fullscreen-nav-list a:hover {
+    color: #8B7355;
+    transform: translateX(4px);
   }
   
-  .btn-nav-line:hover {
-    background: #05a847;
+  /* PC: 3列グリッド - 本番サイト完全再現 */
+  @media (min-width: 768px) {
+    .fullscreen-nav-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0 60px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .fullscreen-nav-list li {
+      border-bottom: 1px solid #E5E5E5;
+    }
+    
+    .fullscreen-nav-list a {
+      padding: 24px 0;
+      font-size: 1.25rem;
+    }
   }
   
-  .btn-nav-web {
-    background: var(--color-text-dark, #2D2D2D);
-    color: #fff;
+  @media (min-width: 1024px) {
+    .fullscreen-nav-list {
+      gap: 0 80px;
+      max-width: 1100px;
+    }
+    
+    .fullscreen-nav-list a {
+      padding: 26px 0;
+      font-size: 1.375rem;
+    }
   }
   
-  .btn-nav-web:hover {
-    background: #000;
+  /* Footer links - 左寄せ */
+  .fullscreen-nav-footer {
+    list-style: none;
+    margin: 0;
+    padding: 40px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
   }
   
-  /* Overlay */
-  .mobile-nav-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1500;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+  @media (min-width: 768px) {
+    .fullscreen-nav-footer {
+      max-width: 1100px;
+      margin: 50px auto 0;
+      gap: 12px 30px;
+      justify-content: flex-start;
+    }
   }
   
-  .mobile-nav-overlay.active {
-    opacity: 1;
-    visibility: visible;
+  .fullscreen-nav-footer a {
+    font-size: 0.8125rem;
+    color: #888;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  
+  .fullscreen-nav-footer a:hover {
+    color: #8B7355;
   }
 </style>
 
 <script>
   const menuBtn = document.getElementById('menu-btn');
   const menuClose = document.getElementById('menu-close');
-  const mobileNav = document.getElementById('mobile-nav');
-  const overlay = document.getElementById('mobile-nav-overlay');
+  const fullscreenNav = document.getElementById('fullscreen-nav');
   
   function openMenu() {
-    mobileNav?.classList.add('active');
-    overlay?.classList.add('active');
-    mobileNav?.setAttribute('aria-hidden', 'false');
+    fullscreenNav?.classList.remove('closing');
+    fullscreenNav?.classList.add('active');
+    fullscreenNav?.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
   }
   
   function closeMenu() {
-    mobileNav?.classList.remove('active');
-    overlay?.classList.remove('active');
-    mobileNav?.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+    if (!fullscreenNav?.classList.contains('active')) return;
+    
+    // Add closing animation class
+    fullscreenNav?.classList.add('closing');
+    fullscreenNav?.classList.remove('active');
+    
+    // Wait for animation to complete before fully hiding
+    setTimeout(() => {
+      fullscreenNav?.classList.remove('closing');
+      fullscreenNav?.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }, 500);
   }
   
   menuBtn?.addEventListener('click', openMenu);
   menuClose?.addEventListener('click', closeMenu);
-  overlay?.addEventListener('click', closeMenu);
   
   // Close on Escape key
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && mobileNav?.classList.contains('active')) {
+    if (e.key === 'Escape' && fullscreenNav?.classList.contains('active')) {
       closeMenu();
     }
+  });
+  
+  // Close when clicking a nav link
+  const navLinks = fullscreenNav?.querySelectorAll('a');
+  navLinks?.forEach(link => {
+    link.addEventListener('click', () => {
+      // Only close for internal links (not external)
+      if (!link.hasAttribute('target')) {
+        closeMenu();
+      }
+    });
   });
 </script>

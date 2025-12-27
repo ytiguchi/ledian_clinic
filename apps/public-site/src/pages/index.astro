@@ -1,5 +1,6 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
+import CtaSection from '../components/CtaSection.astro';
 
 // D1からデータ取得
 const db = Astro.locals.runtime.env.DB;
@@ -20,7 +21,7 @@ try {
     SELECT id, title, slug, description, image_url, start_date
     FROM campaigns
     WHERE is_published = 1
-    ORDER BY start_date DESC, sort_order
+    ORDER BY start_date DESC
     LIMIT 4
   `).all();
   campaigns = result.results as Campaign[];
@@ -36,25 +37,25 @@ const photos = [
   { src: '/images/photos/clinic-04.png', alt: '店内写真イメージ04' },
 ];
 
-// 3つの魅力（ダウンロード済み画像使用）
+// 3つの魅力（USP）
 const points = [
   {
-    image: '/images/points/point-img01.png',
+    image: '/images/points/point-img02.png',  // 元2枚目→1枚目
     numberImage: '/images/points/point01.svg',
-    title: 'スピーディーな施術',
-    desc: ['六本木の多忙な皆さまのために', 'スピーディーな問診・施術を行います。'],
+    title: '仕事帰りでも通える。平日21時まで＆スムーズ導線',
+    desc: ['「待ち時間が少なく、短時間で終わった」', 'というお声をいただいています。'],
   },
   {
-    image: '/images/points/point-img02.png',
+    image: '/images/points/point-img03.png',  // 元3枚目→2枚目
     numberImage: '/images/points/point02.svg',
-    title: '好アクセス',
-    desc: ['六本木交差点から徒歩1分、営業時間は、平日10時-21時・土日祝11時-20時'],
+    title: '初診料・再診料・肌診断・カウンセリング無料',
+    desc: ['施術前に"総額"を提示します。', '追加料金の心配なく安心してご来院いただけます。'],
   },
   {
-    image: '/images/points/point-img03.png',
+    image: '/images/points/point-img01.png',  // 元1枚目→3枚目
     numberImage: '/images/points/point03.svg',
-    title: 'リーズナブルな価格',
-    desc: ['通いやすいお得な料金でご案内、', '無理なく続けられる美容ケア。'],
+    title: '完全個室×清潔感。安心して相談できる空間',
+    desc: ['「説明が分かりやすい」「声かけがちょうど良い」', 'など安心のお声を多くいただいています。'],
   },
 ];
 
@@ -105,45 +106,52 @@ function formatDate(dateStr: string | null): string {
 }
 ---
 
-<PublicLayout title="ホーム">
-  <!-- Hero Section / Slider -->
+<PublicLayout 
+  title="ホーム"
+  description="六本木駅徒歩1分のLedian Clinic（レディアンクリニック）。最新美容機器と続けやすい価格で、肌治療・注入治療・痩身治療など幅広い美容医療を提供。"
+>
+  <!-- Hero Section / Slider - 本番完コピ版 -->
   <section class="hero">
-    <div class="hero-bg" style="background-image: url('/images/theme/hero-bg.svg')"></div>
-    <div class="hero-slider">
+    <div class="hero-slider-wrapper">
       <!-- PC版スライダー -->
-      <div class="hero-slides hidden-sp">
-        <div class="hero-slide active">
-          <img src="/images/slider/slider-pc-01.png" alt="Ledian Clinic" />
+      <div class="hero-slides hero-slides-pc">
+        <div class="hero-slide active" data-slide="0">
+          <img src="/images/hero/slider-pc-01.png" alt="Ledian Clinic" />
         </div>
-        <div class="hero-slide">
-          <img src="/images/slider/slider-pc-02.png" alt="Ledian Clinic" />
+        <div class="hero-slide" data-slide="1">
+          <img src="/images/hero/slider-pc-02.png" alt="Ledian Clinic" />
         </div>
-        <div class="hero-slide">
-          <img src="/images/slider/slider-pc-03.png" alt="Ledian Clinic" />
+        <div class="hero-slide" data-slide="2">
+          <img src="/images/hero/slider-pc-03.png" alt="Ledian Clinic" />
         </div>
       </div>
       <!-- SP版スライダー -->
-      <div class="hero-slides hidden-pc">
-        <div class="hero-slide active">
-          <img src="/images/slider/slider-sp-01.png" alt="Ledian Clinic" />
+      <div class="hero-slides hero-slides-sp">
+        <div class="hero-slide active" data-slide="0">
+          <img src="/images/hero/slider-sp-01.png" alt="Ledian Clinic" />
         </div>
-        <div class="hero-slide">
-          <img src="/images/slider/slider-sp-02.png" alt="Ledian Clinic" />
+        <div class="hero-slide" data-slide="1">
+          <img src="/images/hero/slider-sp-02.png" alt="Ledian Clinic" />
         </div>
-        <div class="hero-slide">
-          <img src="/images/slider/slider-sp-03.png" alt="Ledian Clinic" />
+        <div class="hero-slide" data-slide="2">
+          <img src="/images/hero/slider-sp-03.png" alt="Ledian Clinic" />
         </div>
+      </div>
+      <!-- スライダーインジケーター -->
+      <div class="hero-indicators">
+        <span class="hero-indicator active" data-slide="0"></span>
+        <span class="hero-indicator" data-slide="1"></span>
+        <span class="hero-indicator" data-slide="2"></span>
       </div>
     </div>
     
     <div class="hero-content">
       <h1 class="hero-title">
-        <span class="hero-title-line">Why fly to Seoul?</span>
-        <span class="hero-title-line">The best is right here.</span>
+        <span class="hero-title-line hero-title-line-1">韓国クオリティを、美容習慣に。</span>
+        <span class="hero-title-line hero-title-line-2">続けやすい価格と完全個室で、肌管理を日常へ</span>
       </h1>
       <div class="hero-text">
-        <p></p>
-        <p>まだ韓国行ってる？韓国美容好きも納得のクオリティを、もっと身近に。Ledian Clinicは最新美容機器と、通いやすい価格を実現。完全個室のゆったり空間で、続けられる美容習慣を。</p>
+        <!-- キャッチコピーのみでシンプルに -->
       </div>
     </div>
   </section>
@@ -187,10 +195,11 @@ function formatDate(dateStr: string | null): string {
   <!-- Service Section -->
   <section class="section service">
     <div class="container">
-      <div class="section-header">
-        <h2 class="section-title-en">SERVICE</h2>
-        <p class="section-title-ja">サービスメニュー</p>
-      </div>
+      <div class="service-wrapper">
+        <div class="service-header">
+          <h2 class="section-title-en">SERVICE</h2>
+          <p class="section-title-ja">サービスメニュー</p>
+        </div>
 
       <ul class="service-grid">
         {serviceCards.map((card) => (
@@ -207,34 +216,11 @@ function formatDate(dateStr: string | null): string {
           </li>
         ))}
       </ul>
+      </div>
     </div>
   </section>
 
-  <!-- CTA Section -->
-  <section class="cta-section">
-    <div class="cta-inner">
-      <ul class="cta-buttons">
-        <li>
-          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
-            LINEでかんたん予約
-          </a>
-        </li>
-        <li>
-          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
-            WEB予約
-          </a>
-        </li>
-        <li>
-          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
-            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
-          </a>
-        </li>
-      </ul>
-      <p class="cta-contact">
-        <a href="/contact/">お問い合わせはこちらから</a>
-      </p>
-    </div>
-  </section>
+  <CtaSection variant="home" />
 
   <!-- Point Section -->
   <section class="section point">
@@ -272,31 +258,7 @@ function formatDate(dateStr: string | null): string {
     </div>
   </section>
 
-  <!-- CTA Section 2 -->
-  <section class="cta-section">
-    <div class="cta-inner">
-      <ul class="cta-buttons">
-        <li>
-          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
-            LINEでかんたん予約
-          </a>
-        </li>
-        <li>
-          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
-            WEB予約
-          </a>
-        </li>
-        <li>
-          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
-            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
-          </a>
-        </li>
-      </ul>
-      <p class="cta-contact">
-        <a href="/contact/">お問い合わせはこちらから</a>
-      </p>
-    </div>
-  </section>
+  <CtaSection variant="home" />
 
   <!-- Photo Section -->
   <section class="section photo">
@@ -327,7 +289,7 @@ function formatDate(dateStr: string | null): string {
       <div class="access-content">
         <div class="access-map-wrapper">
           <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3241.4680068851164!2d139.73054717677954!3d35.66246467259384!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188b9b7adbb537%3A0x3a50e3c18d0efae4!2z44Os44OH44Kj44Ki44Oz44Kv44Oq44OL44OD44Kv5YWt5pys5pyo!5e0!3m2!1sja!2sjp!4v1703000000000!5m2!1sja!2sjp" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d810.399190628485!2d139.73242973493717!3d35.66230529385702!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188b02269b1f21%3A0x5ff4d0a1edc15f8d!2sLedian%20Clinic%20Roppongi!5e0!3m2!1sja!2sjp!4v1727759998504!5m2!1sja!2sjp" 
             class="access-map"
             allowfullscreen=""
             loading="lazy"
@@ -346,126 +308,228 @@ function formatDate(dateStr: string | null): string {
     </div>
   </section>
 
-  <!-- CTA Section 3 (Bottom) -->
-  <section class="cta-section cta-section-bottom">
-    <div class="cta-inner">
-      <ul class="cta-buttons">
-        <li>
-          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
-            LINEでかんたん予約
-          </a>
-        </li>
-        <li>
-          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
-            WEB予約
-          </a>
-        </li>
-        <li>
-          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
-            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
-          </a>
-        </li>
-      </ul>
-      <p class="cta-contact">
-        <a href="/contact/">お問い合わせはこちらから</a>
-      </p>
-    </div>
-  </section>
+  <CtaSection variant="home" className="cta-section-bottom" />
 </PublicLayout>
 
 <style>
-  /* Hero Section - 現サイト完全コピー */
+  /* ============================================
+     Hero Section - 本番サイト完コピ版
+     本番: スライダー中央配置、キャッチコピー左下重ね
+     ============================================ */
   .hero {
     position: relative;
     background-color: var(--color-bg);
     overflow: hidden;
+    padding: 0 20px;
   }
   
-  .hero-bg {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0.3;
+  @media (min-width: 768px) {
+    .hero {
+      display: flex;
+      align-items: stretch;
+      min-height: 500px;
+      padding: 0;
+    }
   }
   
-  .hero-slider {
+  @media (min-width: 1024px) {
+    .hero {
+      min-height: 600px;
+    }
+  }
+  
+  .hero-slider-wrapper {
     position: relative;
-    z-index: 1;
+    width: 100%;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-slider-wrapper {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 82%;
+      height: 100%;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .hero-slider-wrapper {
+      width: 78%;
+    }
   }
   
   .hero-slides {
     position: relative;
+    height: 100%;
+  }
+  
+  .hero-slides-pc {
+    display: none;
+  }
+  
+  .hero-slides-sp {
+    display: block;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-slides-pc {
+      display: block;
+      height: 100%;
+    }
+    .hero-slides-sp {
+      display: none;
+    }
   }
   
   .hero-slide {
     display: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    height: 100%;
   }
   
   .hero-slide.active {
     display: block;
+    opacity: 1;
   }
   
   .hero-slide img {
     width: 100%;
     height: auto;
     display: block;
+    max-width: 100%;
   }
   
+  @media (min-width: 768px) {
+    .hero-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  
+  /* スライダーインジケーター */
+  .hero-indicators {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-indicators {
+      bottom: 30px;
+      right: 30px;
+    }
+  }
+  
+  .hero-indicator {
+    width: 30px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .hero-indicator.active {
+    background: #2D2D2D;
+  }
+  
+  /* キャッチコピー */
   .hero-content {
     position: relative;
-    z-index: 2;
-    padding: 40px 20px 60px;
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-    background: linear-gradient(to bottom, transparent, var(--color-bg) 20%);
+    z-index: 10;
+    padding: 30px 20px 50px;
+    text-align: left;
+    background: var(--color-bg);
   }
   
+  @media (min-width: 768px) {
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      width: 45%;
+      max-width: 500px;
+      padding: 60px 50px 60px 86px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: var(--color-bg);
+      flex-shrink: 0;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .hero-content {
+      width: 40%;
+      max-width: 550px;
+      padding: 80px 60px 80px 94px;
+    }
+  }
+  
+  /* 見出し */
   .hero-title {
-    font-family: var(--font-serif);
-    font-size: 1.5rem;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 22px;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    color: var(--color-text);
+    letter-spacing: 2px;
+    line-height: 1.7;
+    margin-bottom: 0;
+    color: #000;
+  }
+  
+  @media (min-width: 768px) {
+    .hero-title {
+      font-size: 26px;
+      letter-spacing: 3px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .hero-title {
+      font-size: 32px;
+      letter-spacing: 4px;
+      line-height: 1.6;
+    }
+  }
+  
+  @media (min-width: 1200px) {
+    .hero-title {
+      font-size: 36px;
+      letter-spacing: 5px;
+    }
   }
   
   .hero-title-line {
     display: block;
   }
   
+  .hero-title-line-1 {
+    color: #000;
+    margin-bottom: 8px;
+  }
+  
+  .hero-title-line-2 {
+    color: #B6BCBE;
+    font-size: 0.85em;
+  }
+  
   .hero-text {
-    font-size: 0.9375rem;
-    line-height: 2;
-    color: var(--color-text-dark);
+    display: none;
   }
   
-  .hero-text p {
-    margin: 0;
-  }
-  
-  @media (min-width: 768px) {
-    .hero-title {
-      font-size: 2.25rem;
-    }
-    .hero-content {
-      padding: 50px 20px 80px;
-    }
-  }
-  
-  /* Section Styles */
+  /* Section Styles - 本番値: margin: 94px 0, padding: 0 94px */
   .section {
-    padding: 80px 0;
+    padding: 94px 0;
+    margin: 0;
   }
   
   @media (max-width: 768px) {
     .section {
-      padding: 50px 0;
+      padding: 60px 0;
     }
   }
   
@@ -474,25 +538,31 @@ function formatDate(dateStr: string | null): string {
     margin-bottom: 50px;
   }
   
+  /* 本番値: fontSize: 38px, fontWeight: 700, letterSpacing: 4px, lineHeight: 38px */
   .section-title-en {
-    font-family: var(--font-serif);
-    font-size: 1.75rem;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 38px;
     font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--color-text);
-    margin-bottom: 10px;
+    letter-spacing: 4px;
+    line-height: 38px;
+    color: #000;
+    margin: 0;
   }
   
-  @media (min-width: 768px) {
+  @media (max-width: 768px) {
     .section-title-en {
-      font-size: 2rem;
+      font-size: 28px;
+      line-height: 28px;
     }
   }
   
+  /* 本番値: fontSize: 18px, fontWeight: 400, color: rgb(182, 188, 190), margin: 10px 0 */
   .section-title-ja {
-    font-size: 0.875rem;
-    color: var(--color-gray-medium);
+    font-size: 18px;
+    font-weight: 400;
+    color: #B6BCBE;
     letter-spacing: 0.1em;
+    margin: 10px 0 0;
   }
   
   /* Recommendation Section */
@@ -503,7 +573,7 @@ function formatDate(dateStr: string | null): string {
   .recommendation-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 15px;
     list-style: none;
     margin: 0 0 40px;
     padding: 0;
@@ -512,7 +582,7 @@ function formatDate(dateStr: string | null): string {
   @media (min-width: 768px) {
     .recommendation-list {
       grid-template-columns: repeat(4, 1fr);
-      gap: 30px;
+      gap: 24px;
     }
   }
   
@@ -525,8 +595,8 @@ function formatDate(dateStr: string | null): string {
     position: relative;
     aspect-ratio: 1;
     overflow: hidden;
-    margin-bottom: 12px;
-    background: var(--color-bg-gray);
+    margin-bottom: 10px;
+    background: #EFF2F4;
   }
   
   .news-card-image img {
@@ -547,16 +617,17 @@ function formatDate(dateStr: string | null): string {
   }
   
   .news-card-date {
-    font-size: 0.75rem;
-    color: var(--color-gray-medium);
-    margin-bottom: 5px;
+    font-size: 12px;
+    color: #B6BCBE;
+    margin-bottom: 8px;
   }
   
+  /* 本番値: fontSize: 16px, fontWeight: 700, lineHeight: 20px */
   .news-card-title {
-    font-size: 0.9375rem;
-    font-weight: 400;
-    line-height: 1.6;
-    color: var(--color-text);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #000;
   }
   
   .no-data {
@@ -570,44 +641,88 @@ function formatDate(dateStr: string | null): string {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 15px 50px;
-    font-size: 0.875rem;
+    padding: 16px 60px;
+    font-size: 14px;
     font-weight: 400;
-    letter-spacing: 0.1em;
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    background: var(--color-white);
+    letter-spacing: 0.05em;
+    color: #000;
+    border: 1px solid #e5e0d8;
+    background: #fff;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
   }
   
   .btn-more::after {
     content: '';
     position: absolute;
-    right: 20px;
+    right: 24px;
     top: 50%;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
-    border-right: 1px solid var(--color-text);
-    border-bottom: 1px solid var(--color-text);
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid #000;
+    border-bottom: 1.5px solid #000;
     transform: translateY(-50%) rotate(-45deg);
   }
   
   .btn-more:hover {
-    background: var(--color-bg-gray);
+    background: #f9f7f4;
     opacity: 1;
   }
   
-  /* Service Section */
+  /* Service Section - 本番完コピ */
   .service {
-    background: var(--color-white);
+    background: #EFF2F4; /* 薄いグレー背景 */
+  }
+  
+  /* 本番と同じボーダー付きラッパー */
+  .service-wrapper {
+    background: #fff;
+    border: 1px solid #E5E0D8;
+    padding: 50px 40px;
+  }
+  
+  @media (max-width: 768px) {
+    .service-wrapper {
+      padding: 30px 20px;
+    }
+  }
+  
+  .service-header {
+    margin-bottom: 40px;
+    position: relative;
+    padding-bottom: 20px;
+  }
+  
+  .service-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 120px;
+    right: 0;
+    height: 1px;
+    background: #E5E0D8;
+  }
+  
+  @media (max-width: 768px) {
+    .service-header::after {
+      left: 100px;
+    }
+  }
+  
+  .service-header .section-title-en {
+    text-align: left;
+    margin-bottom: 5px;
+  }
+  
+  .service-header .section-title-ja {
+    text-align: left;
+    margin: 0;
   }
   
   .service-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 20px;
     list-style: none;
     margin: 0;
@@ -616,46 +731,76 @@ function formatDate(dateStr: string | null): string {
   
   @media (min-width: 768px) {
     .service-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 30px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 25px;
     }
   }
   
+  /* 本番値: display: flex, padding: 28px, border-radius: 5px, background: #fff */
   .service-card {
-    display: block;
-    background: var(--color-white);
-    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: #fff;
+    border: none;
+    border-radius: 0;
+    padding: 20px;
     text-decoration: none;
     transition: all 0.3s ease;
     position: relative;
+    box-shadow: none;
+    min-height: 120px;
+  }
+  
+  @media (min-width: 768px) {
+    .service-card {
+      padding: 25px;
+      min-height: 160px;
+    }
   }
   
   .service-card:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    opacity: 1;
+    opacity: 0.7;
   }
   
   .service-card::after {
-    content: '';
+    content: '>';
     position: absolute;
     right: 15px;
-    bottom: 15px;
-    width: 30px;
-    height: 30px;
-    background: url('/images/icons/service-arrow.svg') no-repeat center;
-    background-size: contain;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    font-weight: 300;
+    color: #2D2D2D;
   }
   
+  @media (min-width: 768px) {
+    .service-card::after {
+      right: 20px;
+      font-size: 24px;
+    }
+  }
+  
+  /* 本番値: width: ~200px, height: ~142px */
   .service-card-image {
-    position: relative;
-    aspect-ratio: 16/9;
+    flex-shrink: 0;
+    width: 100px;
+    height: auto;
     overflow: hidden;
+    margin-right: 15px;
+  }
+  
+  @media (min-width: 768px) {
+    .service-card-image {
+      width: 180px;
+      margin-right: 20px;
+    }
   }
   
   .service-card-image img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
     transition: transform 0.5s ease;
   }
   
@@ -664,135 +809,36 @@ function formatDate(dateStr: string | null): string {
   }
   
   .service-card-content {
-    padding: 20px;
-    padding-bottom: 50px;
-  }
-  
-  .service-card-title {
-    font-size: 1rem;
-    font-weight: 500;
-    margin-bottom: 8px;
-    color: var(--color-text);
-    line-height: 1.4;
-  }
-  
-  .service-card-desc {
-    font-size: 0.8125rem;
-    color: var(--color-text-light);
-    line-height: 1.7;
-  }
-  
-  /* CTA Section */
-  .cta-section {
-    background: var(--color-bg);
-    padding: 40px 20px;
-  }
-  
-  .cta-inner {
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  
-  .cta-buttons {
+    flex: 1;
+    min-width: 0; /* テキストの折り返しを有効に */
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    gap: 15px;
-    list-style: none;
-    margin: 0 0 20px;
-    padding: 0;
-    flex-wrap: wrap;
+    padding-right: 30px;
   }
   
-  .cta-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px 30px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    border-radius: 0;
-    transition: all 0.3s ease;
-    position: relative;
+  /* 本番値: fontSize: 18px, fontWeight: 700, margin: 0, lineHeight: 1.4 */
+  .service-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: #2D2D2D;
+    line-height: 1.4;
+    word-break: keep-all; /* 日本語の折り返し制御 */
   }
   
-  .cta-btn::after {
-    content: '';
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    border-right: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
-    transform: translateY(-50%) rotate(-45deg);
+  @media (min-width: 768px) {
+    .service-card-title {
+      font-size: 18px;
+    }
   }
   
-  .cta-btn-line {
-    background: #06c755;
-    color: var(--color-white);
-    min-width: 200px;
-  }
-  
-  .cta-btn-line:hover {
-    background: #05a847;
-    opacity: 1;
-  }
-  
-  .cta-btn-web {
-    background: var(--color-text-dark);
-    color: var(--color-white);
-    min-width: 150px;
-  }
-  
-  .cta-btn-web:hover {
-    background: var(--color-black);
-    opacity: 1;
-  }
-  
-  .cta-btn-instagram {
-    padding: 0;
-    background: transparent;
-    width: 60px;
-    height: 60px;
-  }
-  
-  .cta-btn-instagram::after {
-    display: none;
-  }
-  
-  .cta-btn-instagram img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-  
-  .cta-contact {
+  /* 本番値: fontSize: 12px, lineHeight: 18px */
+  .service-card-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.6;
     margin: 0;
-  }
-  
-  .cta-contact a {
-    font-size: 0.875rem;
-    color: var(--color-text);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .cta-contact a::after {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-right: 1px solid var(--color-text);
-    border-bottom: 1px solid var(--color-text);
-    transform: rotate(-45deg);
-  }
-  
-  .cta-contact a:hover {
-    opacity: 0.7;
   }
   
   /* Point Section */
@@ -849,16 +895,16 @@ function formatDate(dateStr: string | null): string {
   }
   
   .point-title {
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 700;
     margin-bottom: 15px;
-    color: var(--color-text);
+    color: #000;
   }
   
   .point-desc {
-    font-size: 0.875rem;
-    color: var(--color-text-light);
-    line-height: 1.9;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.8;
   }
   
   /* Photo Section */
@@ -938,11 +984,6 @@ function formatDate(dateStr: string | null): string {
     text-decoration: underline;
   }
   
-  /* CTA Bottom */
-  .cta-section-bottom {
-    padding-bottom: 100px;
-  }
-  
   /* Utility classes */
   .hidden-sp {
     display: block;
@@ -967,24 +1008,52 @@ function formatDate(dateStr: string | null): string {
 </style>
 
 <script>
-  // シンプルなスライダー機能
+  // ヒーロースライダー - 本番完コピ版
   document.addEventListener('DOMContentLoaded', () => {
-    const slidersPC = document.querySelectorAll('.hidden-sp .hero-slide');
-    const slidersSP = document.querySelectorAll('.hidden-pc .hero-slide');
-    let currentSlide = 0;
+    const slidesPC = document.querySelectorAll('.hero-slides-pc .hero-slide');
+    const slidesSP = document.querySelectorAll('.hero-slides-sp .hero-slide');
+    const indicators = document.querySelectorAll('.hero-indicator');
+    const totalSlides = slidesPC.length;
+    if (totalSlides === 0) return;
     
-    function nextSlide() {
-      // PC slides
-      slidersPC.forEach(slide => slide.classList.remove('active'));
-      slidersSP.forEach(slide => slide.classList.remove('active'));
+    let currentSlide = 0;
+    let autoPlayInterval: ReturnType<typeof setInterval>;
+    
+    function goToSlide(index: number) {
+      // 全スライドを非アクティブに
+      slidesPC.forEach(slide => slide.classList.remove('active'));
+      slidesSP.forEach(slide => slide.classList.remove('active'));
+      indicators.forEach(indicator => indicator.classList.remove('active'));
       
-      currentSlide = (currentSlide + 1) % slidersPC.length;
-      
-      if (slidersPC[currentSlide]) slidersPC[currentSlide].classList.add('active');
-      if (slidersSP[currentSlide]) slidersSP[currentSlide].classList.add('active');
+      // 指定スライドをアクティブに
+      currentSlide = index;
+      if (slidesPC[currentSlide]) slidesPC[currentSlide].classList.add('active');
+      if (slidesSP[currentSlide]) slidesSP[currentSlide].classList.add('active');
+      if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
     }
     
-    // Auto-play every 5 seconds
-    setInterval(nextSlide, 5000);
+    function nextSlide() {
+      goToSlide((currentSlide + 1) % totalSlides);
+    }
+    
+    function startAutoPlay() {
+      autoPlayInterval = setInterval(nextSlide, 5000);
+    }
+    
+    function stopAutoPlay() {
+      clearInterval(autoPlayInterval);
+    }
+    
+    // インジケータークリックイベント
+    indicators.forEach((indicator, index) => {
+      indicator.addEventListener('click', () => {
+        stopAutoPlay();
+        goToSlide(index);
+        startAutoPlay();
+      });
+    });
+    
+    // 自動再生開始
+    startAutoPlay();
   });
 </script>

@@ -1,0 +1,130 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+import CtaSection from '../components/CtaSection.astro';
+import '../styles/legal.css';
+---
+
+<PublicLayout 
+  title="特定商取引法に基づく表記" 
+  description="Ledian Clinicの特定商取引法に基づく表記です。"
+>
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1 class="page-title">特定商取引法に基づく表記</h1>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="legal-section">
+    <div class="container">
+      <div class="legal-content">
+        <table class="legal-table">
+          <tbody>
+            <tr>
+              <th>事業者名</th>
+              <td>Ledian Clinic</td>
+            </tr>
+            <tr>
+              <th>代表者</th>
+              <td>院長 吉川 彩也佳</td>
+            </tr>
+            <tr>
+              <th>所在地</th>
+              <td>〒106-0032 東京都港区六本木５丁目２−２ トーマスビル</td>
+            </tr>
+            <tr>
+              <th>電話番号</th>
+              <td>050-8889-3863</td>
+            </tr>
+            <tr>
+              <th>メールアドレス</th>
+              <td>お問い合わせフォームよりご連絡ください</td>
+            </tr>
+            <tr>
+              <th>営業時間</th>
+              <td>平日 10:00-21:00 / 土日祝 11:00-20:00</td>
+            </tr>
+            <tr>
+              <th>サービス料金</th>
+              <td>各サービスページおよび料金表をご確認ください。表示価格は税込です。</td>
+            </tr>
+            <tr>
+              <th>サービス料金以外の必要料金</th>
+              <td>インターネット接続料金、通信料金等はお客様のご負担となります。</td>
+            </tr>
+            <tr>
+              <th>お支払い方法</th>
+              <td>現金、クレジットカード（VISA、MasterCard、JCB、AMEX、Diners）、電子マネー</td>
+            </tr>
+            <tr>
+              <th>お支払い時期</th>
+              <td>施術後、当日お支払いとなります。サブスクリプションは毎月自動決済となります。</td>
+            </tr>
+            <tr>
+              <th>サービス提供時期</th>
+              <td>ご予約いただいた日時に施術を提供いたします。</td>
+            </tr>
+            <tr>
+              <th>キャンセル・返金について</th>
+              <td>キャンセルポリシーをご確認ください。施術後の返金は原則として承っておりません。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+
+<style>
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 24px;
+    }
+  }
+  
+  .legal-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .legal-table th,
+  .legal-table td {
+    padding: 15px 20px;
+    border: 1px solid #e5e0d8;
+    font-size: 14px;
+    line-height: 1.8;
+    vertical-align: top;
+  }
+  
+  .legal-table th {
+    background: #f9f7f4;
+    font-weight: 600;
+    color: #000;
+    width: 200px;
+    text-align: left;
+  }
+  
+  .legal-table td {
+    color: #333;
+  }
+  
+  @media (max-width: 768px) {
+    .legal-table th,
+    .legal-table td {
+      display: block;
+      width: 100%;
+    }
+    
+    .legal-table th {
+      border-bottom: none;
+    }
+    
+    .legal-table td {
+      padding-top: 10px;
+    }
+  }
+</style>
+

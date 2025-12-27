@@ -1,0 +1,42 @@
+---
+import JsonLd from './JsonLd.astro';
+
+export interface Props {
+  name: string;
+  description: string;
+  url: string;
+  imageUrl?: string;
+  priceRange?: string;
+  category?: string;
+}
+
+const { name, description, url, imageUrl, priceRange, category } = Astro.props;
+const SITE_URL = 'https://ledianclinic.jp';
+
+const serviceData = {
+  "@context": "https://schema.org",
+  "@type": "MedicalProcedure",
+  "name": name,
+  "description": description,
+  "url": `${SITE_URL}${url}`,
+  "image": imageUrl ? `${SITE_URL}${imageUrl}` : undefined,
+  "procedureType": "https://schema.org/CosmeticProcedure",
+  "category": category || "美容皮膚科",
+  "provider": {
+    "@type": "MedicalClinic",
+    "@id": "https://ledianclinic.jp/#organization",
+    "name": "Ledian Clinic（レディアンクリニック六本木）"
+  },
+  ...(priceRange && {
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "JPY",
+      "price": priceRange,
+      "availability": "https://schema.org/InStock"
+    }
+  })
+};
+---
+
+<JsonLd data={serviceData} />
+

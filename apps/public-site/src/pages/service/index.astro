@@ -1,5 +1,8 @@
 ---
 import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/page-common.css';
+import '../../styles/service.css';
 
 // D1からデータ取得
 const db = Astro.locals.runtime.env.DB;
@@ -78,38 +81,36 @@ const groupedByCategory = Array.from(categoryMap.values());
     </div>
   </section>
 
-  <!-- Category Navigation -->
-  <section class="category-nav">
-    <div class="container">
-      <ul class="category-nav-list">
-        {groupedByCategory.map((cat) => (
-          <li>
-            <a href={`#category-${cat.id}`} class="category-nav-item">
-              <span class="category-nav-text">{cat.name}</span>
-              <svg class="category-nav-arrow" width="8" height="12" viewBox="0 0 8 12" fill="none">
-                <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  <!-- Service Groups by Category -->
+  <!-- Service Section with Category Navigation -->
   <section class="service-section">
     <div class="container">
+      <!-- 本番サイト準拠：カテゴリナビとサービス一覧を1つのボーダーボックスに -->
+      <div class="service-content-wrapper">
+        <!-- Category Navigation -->
+        <nav class="category-nav">
+          <ul class="category-nav-list">
+            {groupedByCategory.map((cat) => (
+              <li>
+                <a href={`#category-${cat.id}`} class="category-nav-item">
+                  <span class="category-nav-text">{cat.name}</span>
+                  <img src="/images/icons/service-arrow-down.svg" alt="" class="category-nav-arrow" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+
+      <!-- Service Groups by Category (outside the nav wrapper) -->
       {groupedByCategory.map((cat) => (
         <div class="category-group" id={`category-${cat.id}`}>
           <h4 class="category-title">{cat.name}</h4>
-          <ul class="service-list">
+          <ul class="service-grid">
             {cat.services.map((service) => (
-              <li>
-                <a href={`/service/${service.slug}/`} class="service-item">
-                  <span class="service-item-name">{service.name_ja}</span>
-                  <svg class="service-item-arrow" width="8" height="12" viewBox="0 0 8 12" fill="none">
-                    <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+              <li class="service-grid-item">
+                <a href={`/service/${service.slug}/`} class="service-link">
+                  <span class="service-name">{service.name_ja}</span>
+                  <img src="/images/icons/service-arrow-pink.svg" alt="" class="service-arrow-img" />
                 </a>
               </li>
             ))}
@@ -125,344 +126,7 @@ const groupedByCategory = Array.from(categoryMap.values());
     </div>
   </section>
 
-  <!-- CTA Section -->
-  <section class="cta-section">
-    <div class="cta-inner">
-      <ul class="cta-buttons">
-        <li>
-          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="cta-btn cta-btn-line" target="_blank" rel="noopener noreferrer">
-            LINEでかんたん予約
-          </a>
-        </li>
-        <li>
-          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="cta-btn cta-btn-web" target="_blank" rel="noopener noreferrer">
-            WEB予約
-          </a>
-        </li>
-        <li>
-          <a href="https://www.instagram.com/Ledian_clinic/" class="cta-btn cta-btn-instagram" target="_blank" rel="noopener noreferrer">
-            <img src="/images/icons/cta-instagram.png" alt="Instagram" />
-          </a>
-        </li>
-      </ul>
-      <p class="cta-contact">
-        <a href="/contact/">お問い合わせはこちらから</a>
-      </p>
-    </div>
-  </section>
+  <CtaSection variant="service" lead="＼ まずは無料カウンセリング ／" />
 </PublicLayout>
 
-<style>
-  /* Breadcrumb - 現サイト準拠 */
-  .breadcrumb {
-    padding: 12px 0;
-    background: var(--color-bg-gray, #EFF2F4);
-    font-size: 0.75rem;
-  }
-  
-  .breadcrumb-list {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .breadcrumb-list li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-text-light, #666);
-  }
-  
-  .breadcrumb-list li:not(:last-child)::after {
-    content: '';
-    width: 4px;
-    height: 4px;
-    border-right: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
-    transform: rotate(-45deg);
-  }
-  
-  .breadcrumb-list a {
-    color: var(--color-text, #000);
-    text-decoration: none;
-  }
-  
-  .breadcrumb-list a:hover {
-    text-decoration: underline;
-  }
-  
-  /* Page Header - 現サイト準拠 */
-  .page-header {
-    padding: 50px 0 30px;
-    text-align: center;
-    background: var(--color-bg, #FFFCFA);
-  }
-  
-  .page-title {
-    font-family: var(--font-sans);
-    font-size: 1.5rem;
-    font-weight: 400;
-    margin: 0 0 8px;
-    color: var(--color-text, #000);
-    letter-spacing: 0.1em;
-  }
-  
-  @media (min-width: 768px) {
-    .page-title {
-      font-size: 1.75rem;
-    }
-  }
-  
-  .page-title-en {
-    font-family: var(--font-serif);
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    color: var(--color-gray-medium, #B6BCBE);
-    margin: 0;
-  }
-  
-  /* Category Navigation - 現サイト準拠 */
-  .category-nav {
-    padding: 30px 0;
-    background: var(--color-bg, #FFFCFA);
-  }
-  
-  .category-nav-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    list-style: none;
-    margin: 0;
-    padding: 25px;
-    background: var(--color-white, #fff);
-    border: 1px solid var(--color-border-light, #f0ece6);
-  }
-  
-  @media (min-width: 768px) {
-    .category-nav-list {
-      gap: 10px;
-      padding: 30px;
-    }
-  }
-  
-  .category-nav-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    font-size: 0.75rem;
-    color: var(--color-text, #000);
-    border: 1px solid var(--color-border, #e5e0d8);
-    background: var(--color-white, #fff);
-    text-decoration: none;
-    transition: all 0.3s ease;
-  }
-  
-  @media (min-width: 768px) {
-    .category-nav-item {
-      font-size: 0.8125rem;
-      padding: 12px 20px;
-    }
-  }
-  
-  .category-nav-item:hover {
-    background: var(--color-blue, #5885A3);
-    border-color: var(--color-blue, #5885A3);
-    color: var(--color-white, #fff);
-    opacity: 1;
-  }
-  
-  .category-nav-arrow {
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-  }
-  
-  .category-nav-item:hover .category-nav-arrow {
-    opacity: 1;
-  }
-  
-  /* Service Section */
-  .service-section {
-    padding: 0 0 60px;
-    background: var(--color-bg, #FFFCFA);
-  }
 
-  /* Category Group - 本番サイト準拠 */
-  .category-group {
-    margin-bottom: 0;
-  }
-
-  .category-title {
-    font-family: var(--font-sans);
-    font-size: 0.9375rem;
-    font-weight: 500;
-    padding: 15px 20px;
-    margin: 0;
-    background: var(--color-bg-gray, #EFF2F4);
-    color: var(--color-text, #000);
-    letter-spacing: 0.05em;
-  }
-  
-  .service-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .service-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--color-white, #fff);
-    border-bottom: 1px solid var(--color-border-light, #f0ece6);
-    text-decoration: none;
-    color: var(--color-text, #000);
-    transition: background 0.3s ease;
-  }
-  
-  .service-item:hover {
-    background: var(--color-bg-gray, #EFF2F4);
-    opacity: 1;
-  }
-  
-  .service-item-name {
-    font-size: 0.875rem;
-    line-height: 1.5;
-  }
-  
-  .service-item-arrow {
-    color: var(--color-gray-medium, #B6BCBE);
-    flex-shrink: 0;
-    transition: transform 0.3s ease;
-  }
-  
-  .service-item:hover .service-item-arrow {
-    transform: translateX(3px);
-    color: var(--color-text, #000);
-  }
-  
-  .no-data {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--color-gray-medium, #B6BCBE);
-  }
-  
-  /* CTA Section - 現サイト準拠 */
-  .cta-section {
-    background: var(--color-bg, #FFFCFA);
-    padding: 40px 20px 60px;
-  }
-  
-  .cta-inner {
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  
-  .cta-buttons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    list-style: none;
-    margin: 0 0 20px;
-    padding: 0;
-    flex-wrap: wrap;
-  }
-  
-  .cta-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px 30px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-decoration: none;
-    border-radius: 0;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-  
-  .cta-btn::after {
-    content: '';
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    border-right: 1px solid currentColor;
-    border-bottom: 1px solid currentColor;
-    transform: translateY(-50%) rotate(-45deg);
-  }
-  
-  .cta-btn-line {
-    background: #06c755;
-    color: var(--color-white, #fff);
-    min-width: 200px;
-  }
-  
-  .cta-btn-line:hover {
-    background: #05a847;
-    opacity: 1;
-  }
-  
-  .cta-btn-web {
-    background: var(--color-text-dark, #2D2D2D);
-    color: var(--color-white, #fff);
-    min-width: 150px;
-  }
-  
-  .cta-btn-web:hover {
-    background: var(--color-black, #000);
-    opacity: 1;
-  }
-  
-  .cta-btn-instagram {
-    padding: 0;
-    background: transparent;
-    width: 60px;
-    height: 60px;
-  }
-  
-  .cta-btn-instagram::after {
-    display: none;
-  }
-  
-  .cta-btn-instagram img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-  
-  .cta-contact {
-    margin: 0;
-  }
-  
-  .cta-contact a {
-    font-size: 0.875rem;
-    color: var(--color-text, #000);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .cta-contact a::after {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-right: 1px solid var(--color-text, #000);
-    border-bottom: 1px solid var(--color-text, #000);
-    transform: rotate(-45deg);
-  }
-  
-  .cta-contact a:hover {
-    opacity: 0.7;
-  }
-</style>

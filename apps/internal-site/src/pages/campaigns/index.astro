@@ -7,15 +7,15 @@ import Layout from '../../components/Layout.astro';
     <!-- Page Header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">キャンペーン管理</h1>
-        <p class="page-subtitle">プロモーション・割引キャンペーンを管理します</p>
+        <h1 class="page-title">お知らせ管理</h1>
+        <p class="page-subtitle">ニュース・キャンペーン・お知らせを管理します</p>
       </div>
       <a href="/campaigns/new" class="btn btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        新規キャンペーン
+        新規作成
       </a>
     </div>
 
@@ -30,6 +30,15 @@ import Layout from '../../components/Layout.astro';
             <option value="unpublished">非公開のみ</option>
           </select>
         </div>
+        <div class="filter-item">
+          <label class="label">表示カテゴリ</label>
+          <select class="select" id="typeFilter">
+            <option value="">すべて</option>
+            <option value="campaign">キャンペーン</option>
+            <option value="new_service">新サービス</option>
+            <option value="news">お知らせ</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -38,7 +47,8 @@ import Layout from '../../components/Layout.astro';
       <table class="table">
         <thead>
           <tr>
-            <th>キャンペーン名</th>
+            <th>タイトル</th>
+            <th class="text-center">カテゴリ</th>
             <th>期間</th>
             <th class="text-center">対象プラン数</th>
             <th class="text-center">状態</th>
@@ -47,7 +57,7 @@ import Layout from '../../components/Layout.astro';
         </thead>
         <tbody id="campaignTableBody">
           <tr>
-            <td colspan="5">
+            <td colspan="6">
               <div class="loading">読み込み中...</div>
             </td>
           </tr>
@@ -66,7 +76,7 @@ import Layout from '../../components/Layout.astro';
 
   .filter-grid {
     display: grid;
-    grid-template-columns: 200px;
+    grid-template-columns: 200px 200px;
     gap: 1rem;
   }
 
@@ -200,12 +210,14 @@ import Layout from '../../components/Layout.astro';
 
   let campaigns: Campaign[] = [];
   let selectedPublished: string = '';
+  let selectedType: string = '';
 
   async function loadCampaigns() {
     try {
       const params = new URLSearchParams();
       if (selectedPublished === 'published') params.append('is_published', '1');
       if (selectedPublished === 'unpublished') params.append('is_published', '0');
+      if (selectedType) params.append('campaign_type', selectedType);
 
       const res = await fetch(`/api/campaigns?${params.toString()}`);
       if (!res.ok) {
@@ -235,11 +247,11 @@ import Layout from '../../components/Layout.astro';
     if (campaigns.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">
+          <td colspan="6">
             <div class="empty-state">
               <div class="empty-state-icon">🎁</div>
-              <div class="empty-state-title">キャンペーンがありません</div>
-              <div class="empty-state-desc">新規キャンペーンを作成してください</div>
+              <div class="empty-state-title">記事がありません</div>
+              <div class="empty-state-desc">新規記事を作成してください</div>
             </div>
           </td>
         </tr>
@@ -251,6 +263,7 @@ import Layout from '../../components/Layout.astro';
       const period = getPeriodText(campaign.start_date, campaign.end_date);
       const status = getStatus(campaign);
       const statusBadgeClass = campaign.is_published ? 'badge-success' : 'badge-neutral';
+      const categoryInfo = getCategoryInfo(campaign.campaign_type);
       
       return `
         <tr>
@@ -259,6 +272,9 @@ import Layout from '../../components/Layout.astro';
               <span class="campaign-title">${escapeHtml(campaign.title)}</span>
               ${campaign.description ? `<span class="campaign-desc">${escapeHtml(campaign.description)}</span>` : ''}
             </div>
+          </td>
+          <td class="text-center">
+            <span class="badge ${categoryInfo.badgeClass}">${categoryInfo.label}</span>
           </td>
           <td>
             <span class="campaign-period">${period}</span>
@@ -308,6 +324,19 @@ import Layout from '../../components/Layout.astro';
     if (campaign.is_published && (!start || now >= start) && (!end || now <= end)) return '実施中';
     return '';
   }
+  
+  function getCategoryInfo(type: string): { label: string; badgeClass: string } {
+    switch (type) {
+      case 'campaign':
+        return { label: '🎁 キャンペーン', badgeClass: 'badge-warning' };
+      case 'new_service':
+        return { label: '✨ 新サービス', badgeClass: 'badge-info' };
+      case 'news':
+        return { label: '📢 お知らせ', badgeClass: 'badge-neutral' };
+      default:
+        return { label: type || '未設定', badgeClass: 'badge-neutral' };
+    }
+  }
 
   function escapeHtml(text: string): string {
     const div = document.createElement('div');
@@ -320,7 +349,7 @@ import Layout from '../../components/Layout.astro';
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">
+          <td colspan="6">
             <div class="empty-state" style="color: var(--color-error)">
               <div class="empty-state-icon">⚠️</div>
               <div class="empty-state-title">${escapeHtml(message)}</div>
@@ -332,7 +361,7 @@ import Layout from '../../components/Layout.astro';
   }
 
   async function deleteCampaign(id: string) {
-    if (!confirm('このキャンペーンを削除しますか？関連するプラン設定も削除されます。')) return;
+    if (!confirm('この記事を削除しますか？関連するプラン設定も削除されます。')) return;
     
     try {
       const res = await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
@@ -353,6 +382,12 @@ import Layout from '../../components/Layout.astro';
     const publishedFilter = document.getElementById('publishedFilter') as HTMLSelectElement;
     publishedFilter?.addEventListener('change', () => {
       selectedPublished = publishedFilter.value;
+      loadCampaigns();
+    });
+    
+    const typeFilter = document.getElementById('typeFilter') as HTMLSelectElement;
+    typeFilter?.addEventListener('change', () => {
+      selectedType = typeFilter.value;
       loadCampaigns();
     });
   });

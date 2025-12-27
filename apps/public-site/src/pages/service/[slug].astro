@@ -1,0 +1,1086 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import ServiceJsonLd from '../../components/seo/ServiceJsonLd.astro';
+import FaqJsonLd from '../../components/seo/FaqJsonLd.astro';
+import BreadcrumbJsonLd from '../../components/seo/BreadcrumbJsonLd.astro';
+
+const { slug } = Astro.params;
+const db = Astro.locals.runtime.env.DB;
+
+// service_contents からメインデータ取得
+type ServiceContent = {
+  id: string;
+  name_ja: string;
+  name_en: string | null;
+  slug: string;
+  about_subtitle: string | null;
+  about_description: string | null;
+  hero_image_url: string | null;
+  subcategory_id: string | null;
+};
+
+type ServiceFeature = {
+  id: string;
+  title: string;
+  description: string | null;
+  icon_url: string | null;
+  sort_order: number;
+};
+
+type ServiceRecommendation = {
+  id: string;
+  text: string;
+  sort_order: number;
+};
+
+type ServiceOverview = {
+  duration: string | null;
+  downtime: string | null;
+  frequency: string | null;
+  makeup: string | null;
+  bathing: string | null;
+  contraindications: string | null;
+};
+
+type ServiceFaq = {
+  id: string;
+  question: string;
+  answer: string | null;
+  sort_order: number;
+};
+
+type TreatmentPlan = {
+  treatment_name: string;
+  treatment_description: string | null;
+  plan_name: string;
+  sessions: number;
+  price: number;
+  price_taxed: number;
+  is_recommended: number;
+  notes: string | null;
+};
+
+type CaseStudy = {
+  id: string;
+  before_image_url: string | null;
+  after_image_url: string | null;
+  caption: string | null;
+  treatment_content: string | null;
+  treatment_cost_text: string | null;
+  treatment_count: number | null;
+};
+
+let service: ServiceContent | null = null;
+let features: ServiceFeature[] = [];
+let recommendations: ServiceRecommendation[] = [];
+let overview: ServiceOverview | null = null;
+let faqs: ServiceFaq[] = [];
+let pricePlans: TreatmentPlan[] = [];
+let cases: CaseStudy[] = [];
+let categoryName: string = '';
+
+try {
+  // メインサービス情報
+  const serviceResult = await db.prepare(`
+    SELECT sc.id, sc.name_ja, sc.name_en, sc.slug, 
+           sc.about_subtitle, sc.about_description, sc.hero_image_url,
+           sc.subcategory_id
+    FROM service_contents sc
+    WHERE sc.slug = ? AND sc.is_published = 1
+  `).bind(slug).first();
+  
+  if (serviceResult) {
+    service = serviceResult as ServiceContent;
+    
+    // カテゴリ名取得
+    if (service.subcategory_id) {
+      const catResult = await db.prepare(`
+        SELECT c.name as category_name
+        FROM subcategories sub
+        JOIN categories c ON sub.category_id = c.id
+        WHERE sub.id = ?
+      `).bind(service.subcategory_id).first();
+      if (catResult) {
+        categoryName = (catResult as { category_name: string }).category_name;
+      }
+    }
+    
+    // 特徴・こだわり
+    const featuresResult = await db.prepare(`
+      SELECT id, title, description, icon_url, sort_order
+      FROM service_features
+      WHERE service_content_id = ?
+      ORDER BY sort_order
+    `).bind(service.id).all();
+    features = featuresResult.results as ServiceFeature[];
+    
+    // おすすめの方
+    const recsResult = await db.prepare(`
+      SELECT id, text, sort_order
+      FROM service_recommendations
+      WHERE service_content_id = ?
+      ORDER BY sort_order
+    `).bind(service.id).all();
+    recommendations = recsResult.results as ServiceRecommendation[];
+    
+    // 施術概要
+    const overviewResult = await db.prepare(`
+      SELECT duration, downtime, frequency, makeup, bathing, contraindications
+      FROM service_overviews
+      WHERE service_content_id = ?
+    `).bind(service.id).first();
+    overview = overviewResult as ServiceOverview | null;
+    
+    // よくある質問
+    const faqsResult = await db.prepare(`
+      SELECT id, question, answer, sort_order
+      FROM service_faqs
+      WHERE service_content_id = ?
+      ORDER BY sort_order
+    `).bind(service.id).all();
+    faqs = faqsResult.results as ServiceFaq[];
+    
+    // 料金プラン（treatments + treatment_plans）
+    const plansResult = await db.prepare(`
+      SELECT 
+        t.name as treatment_name,
+        t.description as treatment_description,
+        tp.plan_name,
+        tp.sessions,
+        tp.price,
+        tp.price_taxed,
+        tp.is_recommended,
+        tp.notes
+      FROM treatments t
+      JOIN treatment_plans tp ON t.id = tp.treatment_id
+      WHERE t.service_content_id = ? AND t.is_active = 1 AND tp.is_active = 1 AND tp.is_public = 1
+      ORDER BY t.sort_order, tp.sort_order
+    `).bind(service.id).all();
+    pricePlans = plansResult.results as TreatmentPlan[];
+    
+    // 症例写真（treatment_before_afters - subcategory_idで紐付け）
+    if (service.subcategory_id) {
+      const casesResult = await db.prepare(`
+        SELECT id, before_image_url, after_image_url, caption, 
+               treatment_content, treatment_cost_text, treatment_count
+        FROM treatment_before_afters
+        WHERE subcategory_id = ? AND is_published = 1
+        ORDER BY sort_order
+        LIMIT 6
+      `).bind(service.subcategory_id).all();
+      cases = casesResult.results as CaseStudy[];
+    }
+  }
+} catch (e) {
+  console.error('Failed to fetch service data:', e);
+}
+
+// 404
+if (!service) {
+  return Astro.redirect('/service/');
+}
+
+// 料金をグループ化（treatment_name単位）
+type GroupedPlan = {
+  name: string;
+  description: string | null;
+  plans: TreatmentPlan[];
+};
+
+const groupedPlans: GroupedPlan[] = [];
+pricePlans.forEach(plan => {
+  const existing = groupedPlans.find(g => g.name === plan.treatment_name);
+  if (existing) {
+    existing.plans.push(plan);
+  } else {
+    groupedPlans.push({
+      name: plan.treatment_name,
+      description: plan.treatment_description,
+      plans: [plan]
+    });
+  }
+});
+
+function formatPrice(price: number): string {
+  return price.toLocaleString('ja-JP');
+}
+---
+
+<PublicLayout title={service.name_ja} description={service.about_description || `${service.name_ja}の詳細・料金のご案内`}>
+  <!-- SEO: JSON-LD -->
+  <ServiceJsonLd 
+    name={service.name_ja}
+    description={service.about_description || `${service.name_ja}の詳細・料金のご案内`}
+    url={`/service/${slug}/`}
+    imageUrl={service.hero_image_url || undefined}
+    category={categoryName}
+    priceRange={pricePlans.length > 0 ? `${Math.min(...pricePlans.map(p => p.price_taxed))}` : undefined}
+  />
+  <BreadcrumbJsonLd items={[
+    { name: 'サービス一覧', url: '/service/' },
+    { name: service.name_ja, url: `/service/${slug}/` }
+  ]} />
+  {faqs.length > 0 && (
+    <FaqJsonLd items={faqs.map(faq => ({
+      question: faq.question,
+      answer: faq.answer || ''
+    }))} />
+  )}
+
+  <main class="service-detail">
+    <!-- パンくずリスト -->
+    <nav class="breadcrumb">
+      <ul>
+        <li><a href="/">ホーム</a></li>
+        <li><a href="/service/">サービス一覧</a></li>
+        <li>{service.name_ja}</li>
+      </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      {service.hero_image_url && (
+        <div class="hero-image">
+          <img src={service.hero_image_url} alt={service.name_ja} />
+        </div>
+      )}
+      <div class="hero-content">
+        <div class="hero-titles">
+          <h1 class="hero-title-ja">{service.name_ja}</h1>
+          {service.name_en && <h2 class="hero-title-en">{service.name_en}</h2>}
+        </div>
+        {(service.about_subtitle || service.about_description) && (
+          <div class="hero-about">
+            <h3 class="about-label">ABOUT</h3>
+            <div class="about-content">
+              {service.about_subtitle && <h4 class="about-subtitle">{service.about_subtitle}</h4>}
+              {service.about_description && <p class="about-description">{service.about_description}</p>}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+
+    <!-- ページ内ナビゲーション -->
+    <nav class="page-nav">
+      <ul>
+        {features.length > 0 && (
+          <li><a href="#features">特徴・こだわり<img src="/images/icons/product-arrow.svg" alt="" class="nav-arrow-img" /></a></li>
+        )}
+        {recommendations.length > 0 && (
+          <li><a href="#recommend">おすすめの方<img src="/images/icons/product-arrow.svg" alt="" class="nav-arrow-img" /></a></li>
+        )}
+        {cases.length > 0 && (
+          <li><a href="#cases">症例紹介<img src="/images/icons/product-arrow.svg" alt="" class="nav-arrow-img" /></a></li>
+        )}
+        {overview && (
+          <li><a href="#overview">施術概要<img src="/images/icons/product-arrow.svg" alt="" class="nav-arrow-img" /></a></li>
+        )}
+        {groupedPlans.length > 0 && (
+          <li><a href="#price">料金表<img src="/images/icons/product-arrow.svg" alt="" class="nav-arrow-img" /></a></li>
+        )}
+        {faqs.length > 0 && (
+          <li><a href="#faq">よくある質問<img src="/images/icons/product-arrow.svg" alt="" class="nav-arrow-img" /></a></li>
+        )}
+      </ul>
+    </nav>
+
+    <!-- 特徴・こだわり -->
+    {features.length > 0 && (
+      <section id="features" class="section features-section">
+        <div class="container">
+          <div class="section-header">
+            <img src="/images/icons/product-icon.svg" alt="" class="section-icon" />
+            <div class="section-titles">
+              <h2 class="section-title">特徴・こだわり</h2>
+              <span class="section-subtitle">FEATURES</span>
+            </div>
+          </div>
+          <div class="features-list">
+            {features.map((feature) => (
+              <div class="feature-item">
+                <h4 class="feature-title">{feature.title}</h4>
+                {feature.description && <p class="feature-description">{feature.description}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- おすすめの方 -->
+    {recommendations.length > 0 && (
+      <section id="recommend" class="section recommend-section">
+        <div class="container">
+          <div class="section-header">
+            <img src="/images/icons/product-icon.svg" alt="" class="section-icon" />
+            <div class="section-titles">
+              <h3 class="section-title">おすすめの方・適応症状</h3>
+              <span class="section-subtitle">RECOMMEND</span>
+            </div>
+          </div>
+          <div class="recommend-list">
+            {recommendations.map((rec) => (
+              <p class="recommend-item">{rec.text}</p>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- 症例紹介 -->
+    {cases.length > 0 && (
+      <section id="cases" class="section cases-section">
+        <div class="container">
+          <div class="section-header">
+            <img src="/images/icons/product-icon.svg" alt="" class="section-icon" />
+            <div class="section-titles">
+              <h3 class="section-title">症例紹介</h3>
+              <span class="section-subtitle">CASES</span>
+            </div>
+          </div>
+          <div class="cases-grid">
+            {cases.map((caseItem) => (
+              <div class="case-item">
+                <div class="case-images">
+                  {caseItem.before_image_url && (
+                    <div class="case-before">
+                      <span class="case-label">BEFORE</span>
+                      <img src={caseItem.before_image_url} alt="Before" loading="lazy" />
+                      {caseItem.caption && <p class="case-caption">{caseItem.caption.split('\n')[0]}</p>}
+                    </div>
+                  )}
+                  {caseItem.after_image_url && (
+                    <div class="case-after">
+                      <span class="case-label">AFTER</span>
+                      <img src={caseItem.after_image_url} alt="After" loading="lazy" />
+                      {caseItem.treatment_cost_text && (
+                        <p class="case-cost">{caseItem.treatment_cost_text}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- 施術概要 -->
+    {overview && (
+      <section id="overview" class="section overview-section">
+        <div class="container">
+          <div class="section-header">
+            <img src="/images/icons/product-icon.svg" alt="" class="section-icon" />
+            <div class="section-titles">
+              <h3 class="section-title">施術概要</h3>
+              <span class="section-subtitle">OVERVIEW</span>
+            </div>
+          </div>
+          <table class="overview-table">
+            <thead>
+              <tr>
+                <th>項目</th>
+                <th>内容</th>
+              </tr>
+            </thead>
+            <tbody>
+              {overview.duration && (
+                <tr>
+                  <td>施術時間</td>
+                  <td>{overview.duration}</td>
+                </tr>
+              )}
+              {overview.downtime && (
+                <tr>
+                  <td>ダウンタイム</td>
+                  <td>{overview.downtime}</td>
+                </tr>
+              )}
+              {overview.frequency && (
+                <tr>
+                  <td>施術頻度</td>
+                  <td>{overview.frequency}</td>
+                </tr>
+              )}
+              {overview.makeup && (
+                <tr>
+                  <td>メイク</td>
+                  <td>{overview.makeup}</td>
+                </tr>
+              )}
+              {overview.bathing && (
+                <tr>
+                  <td>入浴</td>
+                  <td>{overview.bathing}</td>
+                </tr>
+              )}
+              {overview.contraindications && (
+                <tr>
+                  <td>禁忌</td>
+                  <td>{overview.contraindications}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    )}
+
+    <!-- 料金表 -->
+    {groupedPlans.length > 0 && (
+      <section id="price" class="section price-section">
+        <div class="container">
+          <div class="section-header">
+            <img src="/images/icons/product-icon.svg" alt="" class="section-icon" />
+            <div class="section-titles">
+              <h3 class="section-title">料金表</h3>
+              <span class="section-subtitle">PRICE</span>
+            </div>
+          </div>
+          <div class="price-tables">
+            {groupedPlans.map((group) => (
+              <table class="price-table">
+                <tbody>
+                  {group.plans.map((plan, idx) => (
+                    <tr>
+                      {idx === 0 && (
+                        <td class="treatment-name" rowspan={group.plans.length}>
+                          {plan.is_recommended === 1 && <span class="badge-popular">人気No.1</span>}
+                          <span class="name">{group.name}</span>
+                          {group.description && <span class="desc">({group.description})</span>}
+                        </td>
+                      )}
+                      <td class="plan-sessions">{plan.plan_name}</td>
+                      <td class="plan-price">
+                        <span class="price-base">{formatPrice(plan.price)}円</span>
+                        <span class="price-taxed">(税込{formatPrice(plan.price_taxed)}円)</span>
+                      </td>
+                      {idx === 0 && group.plans[0].notes && (
+                        <td class="plan-notes" rowspan={group.plans.length}>{group.plans[0].notes}</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- よくある質問 -->
+    {faqs.length > 0 && (
+      <section id="faq" class="section faq-section">
+        <div class="container">
+          <div class="section-header">
+            <img src="/images/icons/product-icon.svg" alt="" class="section-icon" />
+            <div class="section-titles">
+              <h3 class="section-title">よくある質問</h3>
+              <span class="section-subtitle">FAQ</span>
+            </div>
+          </div>
+          <div class="faq-list">
+            {faqs.map((faq) => (
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span>{faq.question}</span>
+                  <span class="faq-toggle"></span>
+                </summary>
+                {faq.answer && <div class="faq-answer">{faq.answer}</div>}
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- サブスクバナー -->
+    <section class="subscription-banner">
+      <a href="/subscription/">
+        <img src="/images/theme/subscription-banner.jpg" alt="サブスクリプション" />
+      </a>
+    </section>
+
+    <CtaSection variant="home" />
+  </main>
+</PublicLayout>
+
+<style>
+  .service-detail {
+    padding-top: 0;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* パンくずリスト */
+  .breadcrumb {
+    padding: 15px 20px;
+    background: #F8F8F8;
+  }
+
+  .breadcrumb ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb li {
+    font-size: 12px;
+    color: #666;
+  }
+
+  .breadcrumb li:not(:last-child)::after {
+    content: '>';
+    margin: 0 10px;
+    color: #999;
+  }
+
+  .breadcrumb a {
+    color: #666;
+    text-decoration: none;
+  }
+
+  .breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    position: relative;
+    background: #fff;
+  }
+
+  .hero-image {
+    width: 100%;
+    max-height: 400px;
+    overflow: hidden;
+  }
+
+  .hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .hero-titles {
+    margin-bottom: 30px;
+  }
+
+  .hero-title-ja {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: #000;
+  }
+
+  .hero-title-en {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: #B6BCBE;
+    margin: 0;
+  }
+
+  .hero-about {
+    border-left: 3px solid #000;
+    padding-left: 20px;
+  }
+
+  .about-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 10px;
+    letter-spacing: 0.1em;
+  }
+
+  .about-subtitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 10px;
+  }
+
+  .about-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+    margin: 0;
+  }
+
+  /* ページ内ナビゲーション */
+  .page-nav {
+    background: #F8F8F8;
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  .page-nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .page-nav li {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .page-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .page-nav a:hover {
+    background: #EAEAEA;
+    border-bottom-color: #000;
+  }
+
+  .nav-arrow-img {
+    width: 10px;
+    height: 10px;
+    margin-left: 8px;
+  }
+
+  /* Section共通 */
+  .section {
+    padding: 60px 0;
+  }
+
+  .section:nth-child(odd) {
+    background: #fff;
+  }
+
+  .section:nth-child(even) {
+    background: #F8F8F8;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .section-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .section-titles {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #000;
+  }
+
+  .section-subtitle {
+    font-size: 12px;
+    color: #B6BCBE;
+    letter-spacing: 0.1em;
+  }
+
+  /* Features Section */
+  .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .feature-item {
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .feature-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: #000;
+  }
+
+  .feature-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+    margin: 0;
+  }
+
+  /* Recommend Section */
+  .recommend-list {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+  }
+
+  .recommend-item {
+    position: relative;
+    padding-left: 25px;
+    margin: 0 0 15px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  .recommend-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .recommend-item::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #000;
+    font-weight: bold;
+  }
+
+  /* Cases Section */
+  .cases-section {
+    background: #F8F8F8;
+  }
+
+  .cases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+
+  @media (max-width: 768px) {
+    .cases-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  .case-item {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .case-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .case-before,
+  .case-after {
+    position: relative;
+  }
+
+  .case-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #fff;
+    z-index: 1;
+  }
+
+  .case-before .case-label {
+    background: #666;
+  }
+
+  .case-after .case-label {
+    background: #000;
+  }
+
+  .case-before img,
+  .case-after img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .case-caption,
+  .case-cost {
+    padding: 10px 15px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #333;
+    background: #fff;
+    margin: 0;
+  }
+
+  .case-cost {
+    font-weight: 500;
+  }
+
+  /* Overview Section */
+  .overview-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+
+  .overview-table th,
+  .overview-table td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid #E5E5E5;
+    font-size: 14px;
+  }
+
+  .overview-table thead th {
+    background: #F8F8F8;
+    font-weight: 700;
+  }
+
+  .overview-table td:first-child {
+    width: 120px;
+    font-weight: 500;
+    background: #FAFAFA;
+  }
+
+  /* Price Section */
+  .price-tables {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .price-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .price-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #E5E5E5;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  .price-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .treatment-name {
+    background: #FAFAFA;
+    width: 200px;
+  }
+
+  .treatment-name .badge-popular {
+    display: inline-block;
+    background: #E74C3C;
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+  }
+
+  .treatment-name .name {
+    display: block;
+    font-weight: 700;
+    color: #000;
+  }
+
+  .treatment-name .desc {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+  }
+
+  .plan-sessions {
+    width: 80px;
+    text-align: center;
+  }
+
+  .plan-price {
+    text-align: right;
+  }
+
+  .plan-price .price-base {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+  }
+
+  .plan-price .price-taxed {
+    display: block;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .plan-notes {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.6;
+    width: 250px;
+  }
+
+  /* FAQ Section */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .faq-item {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 25px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #000;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-toggle {
+    width: 12px;
+    height: 12px;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .faq-toggle::before,
+  .faq-toggle::after {
+    content: '';
+    position: absolute;
+    background: #333;
+    transition: transform 0.3s ease;
+  }
+
+  .faq-toggle::before {
+    width: 12px;
+    height: 2px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  .faq-toggle::after {
+    width: 2px;
+    height: 12px;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .faq-item[open] .faq-toggle::after {
+    transform: translateX(-50%) rotate(90deg);
+  }
+
+  .faq-answer {
+    padding: 0 25px 20px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+  }
+
+  /* サブスクバナー */
+  .subscription-banner {
+    padding: 40px 20px;
+    text-align: center;
+    background: #fff;
+  }
+
+  .subscription-banner a {
+    display: inline-block;
+  }
+
+  .subscription-banner img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  /* レスポンシブ */
+  @media (max-width: 768px) {
+    .hero-title-ja {
+      font-size: 24px;
+    }
+
+    .hero-title-en {
+      font-size: 14px;
+    }
+
+    .page-nav a {
+      padding: 12px 8px;
+      font-size: 12px;
+    }
+
+    .section-title {
+      font-size: 20px;
+    }
+
+    .overview-table td:first-child {
+      width: 100px;
+    }
+
+    .treatment-name {
+      width: auto;
+    }
+
+    .plan-notes {
+      width: auto;
+    }
+
+    .price-table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+</style>
+

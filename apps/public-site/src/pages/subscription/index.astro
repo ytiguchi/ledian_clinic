@@ -1,0 +1,239 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import CtaSection from '../../components/CtaSection.astro';
+import '../../styles/page-common.css';
+---
+
+<PublicLayout 
+  title="サブスクリプション" 
+  description="Ledian Clinicのサブスクリプションプラン。お得な定額サービスで、続けられる美容習慣を。"
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li aria-current="page">サブスクリプション</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1 class="page-title">サブスクリプション</h1>
+      <p class="page-title-en">SUBSCRIPTION</p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="subscription-section">
+    <div class="container">
+      <div class="subscription-banner">
+        <img src="/images/theme/subscription-banner.jpg" alt="お得なサブスクメニュー" />
+      </div>
+      
+      <div class="subscription-intro">
+        <h2 class="section-title">美肌サブスク</h2>
+        <p class="section-desc">月額定額で、お肌のメンテナンスを続けやすく。<br/>忙しい方にもおすすめの、続けられる美容習慣です。</p>
+      </div>
+
+      <div class="subscription-plans">
+        <div class="plan-card">
+          <h3 class="plan-title">美肌サブスク ライト</h3>
+          <p class="plan-price"><span class="price-amount">¥9,900</span><span class="price-unit">/月（税込）</span></p>
+          <ul class="plan-features">
+            <li>ハイドラジェントル 月1回</li>
+            <li>ケアシス導入 月1回</li>
+          </ul>
+        </div>
+        
+        <div class="plan-card featured">
+          <div class="plan-badge">おすすめ</div>
+          <h3 class="plan-title">美肌サブスク スタンダード</h3>
+          <p class="plan-price"><span class="price-amount">¥19,800</span><span class="price-unit">/月（税込）</span></p>
+          <ul class="plan-features">
+            <li>ハイドラジェントル 月2回</li>
+            <li>ケアシス導入 月2回</li>
+            <li>マッサージピール 月1回</li>
+          </ul>
+        </div>
+        
+        <div class="plan-card">
+          <h3 class="plan-title">美肌サブスク プレミアム</h3>
+          <p class="plan-price"><span class="price-amount">¥39,800</span><span class="price-unit">/月（税込）</span></p>
+          <ul class="plan-features">
+            <li>ハイドラジェントル 月4回</li>
+            <li>ケアシス導入 月4回</li>
+            <li>マッサージピール 月2回</li>
+            <li>フォトフェイシャル 月1回</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="subscription-note">
+        <h4>ご利用にあたって</h4>
+        <ul>
+          <li>サブスクリプションは月額自動更新です。</li>
+          <li>解約は次回更新日の7日前までにお申し出ください。</li>
+          <li>未使用分の繰越はできません。</li>
+          <li>詳細はスタッフまでお問い合わせください。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <CtaSection />
+</PublicLayout>
+
+<style>
+  /* Subscription Section */
+  .subscription-section {
+    padding: 60px 20px 80px;
+    background: #FFFCFA;
+  }
+  
+  .subscription-banner {
+    max-width: 800px;
+    margin: 0 auto 60px;
+  }
+  
+  .subscription-banner img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .subscription-intro {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 50px;
+  }
+  
+  .section-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 20px;
+  }
+  
+  .section-desc {
+    font-size: 14px;
+    line-height: 2;
+    color: #666;
+    margin: 0;
+  }
+  
+  /* Plans */
+  .subscription-plans {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto 50px;
+  }
+  
+  @media (min-width: 768px) {
+    .subscription-plans {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+  }
+  
+  .plan-card {
+    background: #fff;
+    border: 1px solid #e5e0d8;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+  }
+  
+  .plan-card.featured {
+    border: 2px solid #BFA046;
+  }
+  
+  .plan-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #BFA046;
+    color: #fff;
+    padding: 4px 16px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .plan-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 15px;
+  }
+  
+  .plan-price {
+    margin: 0 0 20px;
+  }
+  
+  .price-amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: #BFA046;
+  }
+  
+  .price-unit {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .plan-features {
+    list-style: none;
+    margin: 0;
+    padding: 20px 0 0;
+    border-top: 1px solid #eee;
+    text-align: left;
+  }
+  
+  .plan-features li {
+    font-size: 14px;
+    color: #333;
+    padding: 8px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+  
+  .plan-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #BFA046;
+  }
+  
+  /* Note */
+  .subscription-note {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    background: #fff;
+    border: 1px solid #e5e0d8;
+  }
+  
+  .subscription-note h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 15px;
+  }
+  
+  .subscription-note ul {
+    margin: 0;
+    padding: 0 0 0 20px;
+  }
+  
+  .subscription-note li {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.8;
+  }
+</style>
+

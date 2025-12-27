@@ -5,8 +5,8 @@ import Layout from '../../components/Layout.astro';
 <Layout>
   <div class="max-w-4xl mx-auto space-y-6">
     <div>
-      <a href="/campaigns" class="text-accent hover:underline">← キャンペーン管理に戻る</a>
-      <h2 class="text-3xl font-bold mt-4">新規キャンペーン作成</h2>
+      <a href="/campaigns" class="text-accent hover:underline">← お知らせ管理に戻る</a>
+      <h2 class="text-3xl font-bold mt-4">新規記事作成</h2>
     </div>
 
     <form class="bg-white rounded-lg shadow p-6 space-y-6" id="campaignForm">
@@ -15,7 +15,7 @@ import Layout from '../../components/Layout.astro';
         <h3 class="text-xl font-semibold mb-4">基本情報</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">キャンペーン名 <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium mb-1">タイトル <span class="text-red-500">*</span></label>
             <input
               type="text"
               name="title"
@@ -38,23 +38,34 @@ import Layout from '../../components/Layout.astro';
             <p class="text-xs text-gray-500 mt-1">URL用の識別子（英数字とハイフンのみ）</p>
           </div>
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium mb-1">説明</label>
+            <label class="block text-sm font-medium mb-1">概要（一覧表示用）</label>
             <textarea
               name="description"
               id="description"
-              rows="3"
-              placeholder="キャンペーンの説明を入力してください"
+              rows="2"
+              placeholder="一覧ページに表示される短い概要文"
               class="w-full px-4 py-2 border rounded-lg"
             ></textarea>
           </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">本文（HTML可）</label>
+            <textarea
+              name="content"
+              id="content"
+              rows="10"
+              placeholder="記事の本文を入力（HTMLタグ使用可）"
+              class="w-full px-4 py-2 border rounded-lg font-mono text-sm"
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-1">詳細ページに表示される記事本文。HTMLタグを使用できます。</p>
+          </div>
           <div>
-            <label class="block text-sm font-medium mb-1">キャンペーン種別</label>
-            <select name="campaignType" id="campaignType" class="w-full px-4 py-2 border rounded-lg">
-              <option value="discount">割引</option>
-              <option value="bundle">セット</option>
-              <option value="point">ポイント</option>
-              <option value="referral">紹介</option>
+            <label class="block text-sm font-medium mb-1">表示カテゴリ</label>
+            <select name="campaign_type" id="campaign_type" class="w-full px-4 py-2 border rounded-lg">
+              <option value="campaign">🎁 キャンペーン</option>
+              <option value="new_service">✨ 新サービス</option>
+              <option value="news">📢 お知らせ</option>
             </select>
+            <p class="text-xs text-gray-500 mt-1">公開サイトでのフィルタ分類</p>
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">優先度</label>
@@ -171,7 +182,8 @@ import Layout from '../../components/Layout.astro';
         title: formData.get('title'),
         slug: formData.get('slug'),
         description: formData.get('description') || null,
-        campaign_type: formData.get('campaignType') || 'discount',
+        content: formData.get('content') || null,
+        campaign_type: formData.get('campaign_type') || 'campaign',
         priority: formData.get('priority') ? Number(formData.get('priority')) : 0,
         start_date: formData.get('startDate') || null,
         end_date: formData.get('endDate') || null,

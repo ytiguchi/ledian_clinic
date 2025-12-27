@@ -86,17 +86,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
       },
     });
 
-    // 公開URLを生成
-    // R2バケットがパブリックアクセス可能な場合、以下のURL形式を使用
-    // 注意: 実際の環境に合わせてURLを調整してください
-    // const publicUrl = `https://pub-${locals.runtime.env.STORAGE.accountId}.r2.dev/${fileKey}`;
-    
-    // カスタムドメインを使用する場合（推奨）:
-    // const publicUrl = `https://assets.ledianclinic.jp/${fileKey}`;
-    
-    // 一時的には、R2バケットのパブリックURLを使用
-    // 実際のデプロイ時には、カスタムドメインを設定してください
-    const publicUrl = fileKey; // フロントエンドで適切なURLに変換
+    // R2パブリックURL
+    const R2_PUBLIC_BASE = 'https://pub-7fb3b78717844555a19c9c9ccae5f2f9.r2.dev';
+    const publicUrl = `${R2_PUBLIC_BASE}/${fileKey}`;
 
     return new Response(JSON.stringify({
       success: true,

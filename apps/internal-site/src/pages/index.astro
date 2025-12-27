@@ -48,7 +48,7 @@ import Layout from '../components/Layout.astro';
         <div class="stat-content">
           <div class="stat-icon">🎁</div>
           <div class="stat-info">
-            <p class="stat-label">アクティブキャンペーン</p>
+            <p class="stat-label">公開中のお知らせ</p>
             <p class="stat-value" id="campaignsCount">-</p>
           </div>
         </div>
@@ -67,8 +67,8 @@ import Layout from '../components/Layout.astro';
         
         <a href="/campaigns" class="action-card">
           <span class="action-icon">🎁</span>
-          <span class="action-title">キャンペーン</span>
-          <span class="action-desc">キャンペーン管理</span>
+          <span class="action-title">お知らせ管理</span>
+          <span class="action-desc">ニュース・キャンペーン</span>
         </a>
         
         <a href="/menu" class="action-card">
@@ -88,7 +88,7 @@ import Layout from '../components/Layout.astro';
     <!-- Active Campaigns -->
     <section class="section animate-fade-in" style="animation-delay: 0.3s">
       <div class="section-header">
-        <h2 class="section-title">アクティブなキャンペーン</h2>
+        <h2 class="section-title">公開中のお知らせ</h2>
         <a href="/campaigns" class="section-link">すべて見る →</a>
       </div>
       <div class="card">
@@ -420,7 +420,7 @@ import Layout from '../components/Layout.astro';
       if (!container) return;
 
       if (activeCampaigns.length === 0) {
-        container.innerHTML = '<div class="empty-state">アクティブなキャンペーンはありません</div>';
+        container.innerHTML = '<div class="empty-state">公開中のお知らせはありません</div>';
         return;
       }
 

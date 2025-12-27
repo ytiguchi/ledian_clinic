@@ -1,0 +1,106 @@
+---
+import JsonLd from './JsonLd.astro';
+
+// クリニックの基本情報（MedicalClinic + LocalBusiness）
+const clinicData = {
+  "@context": "https://schema.org",
+  "@type": ["MedicalClinic", "LocalBusiness"],
+  "@id": "https://ledianclinic.jp/#organization",
+  "name": "Ledian Clinic（レディアンクリニック六本木）",
+  "alternateName": "レディアンクリニック",
+  "description": "六本木駅徒歩1分の美容内科・美容皮膚科。最新美容機器と通いやすい価格で、続けられる美容習慣を。",
+  "url": "https://ledianclinic.jp",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://ledianclinic.jp/images/logo.svg",
+    "width": 200,
+    "height": 50
+  },
+  "image": "https://ledianclinic.jp/images/og-image.png",
+  "telephone": "+81-3-6721-1748",
+  "email": "info@ledianclinic.jp",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "六本木7-15-17 ユニ六本木ビル 8F",
+    "addressLocality": "港区",
+    "addressRegion": "東京都",
+    "postalCode": "106-0032",
+    "addressCountry": "JP"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 35.6625,
+    "longitude": 139.7314
+  },
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "10:00",
+      "closes": "19:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Saturday", "Sunday"],
+      "opens": "10:00",
+      "closes": "18:00"
+    }
+  ],
+  "priceRange": "¥¥",
+  "currenciesAccepted": "JPY",
+  "paymentAccepted": "現金, クレジットカード, 電子マネー",
+  "areaServed": {
+    "@type": "City",
+    "name": "東京都港区"
+  },
+  "medicalSpecialty": [
+    "美容皮膚科",
+    "美容内科"
+  ],
+  "availableService": [
+    {
+      "@type": "MedicalProcedure",
+      "name": "ポテンツァ"
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "ハイドラフェイシャル"
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "ヒアルロン酸注入"
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "ボトックス"
+    },
+    {
+      "@type": "MedicalProcedure",
+      "name": "ピコレーザー"
+    }
+  ],
+  "sameAs": [
+    "https://www.instagram.com/Ledian_clinic/",
+    "https://x.com/LedianClinic",
+    "https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt"
+  ]
+};
+
+// WebSite構造化データ
+const websiteData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://ledianclinic.jp/#website",
+  "url": "https://ledianclinic.jp",
+  "name": "Ledian Clinic（レディアンクリニック六本木）",
+  "description": "六本木駅徒歩1分の美容内科・美容皮膚科",
+  "publisher": {
+    "@id": "https://ledianclinic.jp/#organization"
+  },
+  "inLanguage": "ja-JP"
+};
+---
+
+<JsonLd data={clinicData} />
+<JsonLd data={websiteData} />
+

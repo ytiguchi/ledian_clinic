@@ -1,0 +1,249 @@
+---
+import PublicLayout from '../../layouts/PublicLayout.astro';
+import '../../styles/page-common.css';
+---
+
+<PublicLayout 
+  title="お問い合わせ" 
+  description="Ledian Clinicへのお問い合わせはこちらから。ご質問やご相談など、お気軽にお問い合わせください。"
+>
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb">
+    <div class="container">
+      <ol class="breadcrumb-list">
+        <li><a href="/">ホーム</a></li>
+        <li aria-current="page">お問い合わせ</li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1 class="page-title">お問い合わせ</h1>
+      <p class="page-title-en">CONTACT</p>
+    </div>
+  </section>
+
+  <!-- Contact Content -->
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-intro">
+        <p>Ledian Clinicへのお問い合わせは、下記の方法よりお願いいたします。</p>
+        <p>ご予約は、LINE または WEB予約が便利です。</p>
+      </div>
+      
+      <div class="contact-methods">
+        <div class="contact-card">
+          <h3 class="contact-card-title">LINE でお問い合わせ</h3>
+          <p class="contact-card-desc">LINEでお気軽にご相談・ご予約いただけます。</p>
+          <a href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg" class="contact-btn contact-btn-line" target="_blank" rel="noopener noreferrer">
+            LINEでかんたん予約
+          </a>
+        </div>
+        
+        <div class="contact-card">
+          <h3 class="contact-card-title">WEB でご予約</h3>
+          <p class="contact-card-desc">24時間いつでもWEBからご予約可能です。</p>
+          <a href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" class="contact-btn contact-btn-web" target="_blank" rel="noopener noreferrer">
+            WEB予約
+          </a>
+        </div>
+        
+        <div class="contact-card">
+          <h3 class="contact-card-title">お電話でのお問い合わせ</h3>
+          <p class="contact-card-desc">お電話でのご相談も承っております。</p>
+          <a href="tel:050-8889-3863" class="contact-tel">
+            <span class="tel-icon">📞</span>
+            <span class="tel-number">050-8889-3863</span>
+          </a>
+          <p class="contact-hours">受付時間: 平日 10:00-21:00 / 土日祝 11:00-20:00</p>
+        </div>
+      </div>
+      
+      <div class="clinic-info">
+        <h3 class="clinic-info-title">クリニック情報</h3>
+        <dl class="clinic-info-list">
+          <div class="clinic-info-item">
+            <dt>住所</dt>
+            <dd>〒106-0032 東京都港区六本木５丁目２−２ トーマスビル</dd>
+          </div>
+          <div class="clinic-info-item">
+            <dt>アクセス</dt>
+            <dd>六本木駅 徒歩2分 / 六本木交差点より 徒歩1分</dd>
+          </div>
+          <div class="clinic-info-item">
+            <dt>診療時間</dt>
+            <dd>平日 10:00-21:00 / 土日祝 11:00-20:00</dd>
+          </div>
+        </dl>
+        
+        <div class="clinic-map">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d810.399190628485!2d139.73242973493717!3d35.66230529385702!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x60188b02269b1f21%3A0x5ff4d0a1edc15f8d!2sLedian%20Clinic%20Roppongi!5e0!3m2!1sja!2sjp!4v1727759998504!5m2!1sja!2sjp"
+            width="100%"
+            height="300"
+            style="border:0;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Ledian Clinic 地図">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+</PublicLayout>
+
+<style>
+  /* Contact Section */
+  .contact-section {
+    padding: 60px 20px 80px;
+    background: #FFFCFA;
+  }
+  
+  .contact-intro {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 50px;
+  }
+  
+  .contact-intro p {
+    font-size: 14px;
+    line-height: 2;
+    color: #333;
+    margin: 0 0 10px;
+  }
+  
+  /* Contact Methods */
+  .contact-methods {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto 60px;
+  }
+  
+  @media (min-width: 768px) {
+    .contact-methods {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+  }
+  
+  .contact-card {
+    background: #fff;
+    border: 1px solid #e5e0d8;
+    padding: 30px;
+    text-align: center;
+  }
+  
+  .contact-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 10px;
+  }
+  
+  .contact-card-desc {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 20px;
+    line-height: 1.6;
+  }
+  
+  .contact-btn {
+    display: block;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  
+  .contact-btn-line {
+    background: #06c755;
+    color: #fff;
+  }
+  
+  .contact-btn-line:hover {
+    background: #05a847;
+    opacity: 1;
+  }
+  
+  .contact-btn-web {
+    background: #222;
+    color: #fff;
+  }
+  
+  .contact-btn-web:hover {
+    background: #000;
+    opacity: 1;
+  }
+  
+  .contact-tel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #000;
+    font-size: 20px;
+    font-weight: 600;
+  }
+  
+  .contact-hours {
+    font-size: 12px;
+    color: #999;
+    margin: 10px 0 0;
+  }
+  
+  /* Clinic Info */
+  .clinic-info {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: #fff;
+    border: 1px solid #e5e0d8;
+  }
+  
+  .clinic-info-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000;
+    margin: 0 0 25px;
+    text-align: center;
+  }
+  
+  .clinic-info-list {
+    margin: 0 0 30px;
+  }
+  
+  .clinic-info-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .clinic-info-item dt {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+  }
+  
+  .clinic-info-item dd {
+    font-size: 14px;
+    color: #000;
+    margin: 0;
+  }
+  
+  .clinic-map iframe {
+    width: 100%;
+    height: 300px;
+    border: none;
+  }
+</style>
+

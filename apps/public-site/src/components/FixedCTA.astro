@@ -1,93 +1,130 @@
 ---
-// Fixed Bottom CTA Bar（モバイル向け・現サイト準拠）
+// Fixed Bottom CTA Bar（モバイル向け・アプリ風デザイン）
 ---
 
-<div class="fixed-cta" id="fixed-cta">
-  <div class="fixed-cta-inner">
-    <a 
-      href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm" 
-      class="fixed-cta-btn fixed-cta-line"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <span class="fixed-cta-text">LINE予約</span>
-    </a>
-    <a 
-      href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" 
-      class="fixed-cta-btn fixed-cta-web"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <span class="fixed-cta-text">WEB予約</span>
-    </a>
-    <a 
-      href="tel:050-8889-3863" 
-      class="fixed-cta-btn fixed-cta-tel"
-    >
-      <span class="fixed-cta-text">電話</span>
-    </a>
-  </div>
-</div>
+<nav class="fixed-cta" id="fixed-cta" aria-label="予約・お問い合わせ">
+  <a 
+    href="https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm" 
+    class="fixed-cta-item"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <div class="fixed-cta-icon fixed-cta-icon-line">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+      </svg>
+    </div>
+    <span class="fixed-cta-label">LINE予約</span>
+  </a>
+  
+  <a 
+    href="https://reservation.medical-force.com/c/cb1fa0d3fc8a41f3943b2c61027e5284" 
+    class="fixed-cta-item"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <div class="fixed-cta-icon fixed-cta-icon-web">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="2"/>
+        <path d="M8 10h8"/>
+        <path d="M8 14h4"/>
+      </svg>
+    </div>
+    <span class="fixed-cta-label">WEB予約</span>
+  </a>
+  
+  <a 
+    href="tel:050-8889-3863" 
+    class="fixed-cta-item"
+  >
+    <div class="fixed-cta-icon fixed-cta-icon-tel">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+      </svg>
+    </div>
+    <span class="fixed-cta-label">電話</span>
+  </a>
+</nav>
 
 <style>
   .fixed-cta {
-    display: none; /* PC非表示 */
+    display: none;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     background: #fff;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    padding: 0;
+    box-shadow: 0 -1px 20px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    padding: 8px 0;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    transition: transform 0.3s ease;
   }
   
   @media (max-width: 768px) {
     .fixed-cta {
-      display: block;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
     }
   }
   
-  .fixed-cta-inner {
-    display: flex;
-    height: 60px;
-  }
-  
-  .fixed-cta-btn {
+  .fixed-cta-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    flex: 1;
     text-decoration: none;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    transition: opacity 0.3s ease;
-    gap: 2px;
+    padding: 6px 16px;
+    gap: 4px;
+    transition: all 0.2s ease;
+    border-radius: 12px;
+    min-width: 70px;
   }
   
-  .fixed-cta-btn:hover {
-    opacity: 0.9;
+  .fixed-cta-item:active {
+    transform: scale(0.95);
+    background: rgba(0, 0, 0, 0.05);
   }
   
-  .fixed-cta-line {
-    background: #06c755;
-    color: #fff;
+  .fixed-cta-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
   }
   
-  .fixed-cta-web {
-    background: #2D2D2D;
-    color: #fff;
+  .fixed-cta-icon svg {
+    width: 20px;
+    height: 20px;
   }
   
-  .fixed-cta-tel {
-    background: #5885A3;
-    color: #fff;
+  .fixed-cta-icon-line {
+    color: #06c755;
   }
   
-  .fixed-cta-text {
-    font-size: 0.6875rem;
-    letter-spacing: 0.05em;
+  .fixed-cta-icon-web {
+    color: #2D2D2D;
+  }
+  
+  .fixed-cta-icon-tel {
+    color: #5885A3;
+  }
+  
+  .fixed-cta-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #333;
+  }
+  
+  /* ホームインジケーター対応 */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .fixed-cta {
+      padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
   }
 </style>
 
@@ -102,7 +139,7 @@
     const footerRect = footer.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     
-    if (footerRect.top < windowHeight + 60) {
+    if (footerRect.top < windowHeight + 80) {
       fixedCta.style.transform = 'translateY(100%)';
     } else {
       fixedCta.style.transform = 'translateY(0)';

@@ -2,7 +2,14 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FixedCTA from '../components/FixedCTA.astro';
+import ClinicJsonLd from '../components/seo/ClinicJsonLd.astro';
 import '../styles/global.css';
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  PRODUCTION_ORIGIN,
+  buildFullTitle,
+} from '../lib/seo';
 
 export interface Props {
   title: string;
@@ -11,17 +18,16 @@ export interface Props {
   noIndex?: boolean;
 }
 
-const { 
+const {
   title,
-  description = 'Ledian Clinic（レディアンクリニック六本木）は、六本木駅徒歩1分の美容内科・美容皮膚科です。最新美容機器と通いやすい価格で、続けられる美容習慣を。',
-  ogImage = '/images/og-image.jpg',
+  description = DEFAULT_DESCRIPTION,
+  ogImage = DEFAULT_OG_IMAGE,
   noIndex = true, // ステージング中は全ページnoindex
 } = Astro.props;
 
-const siteTitle = 'Ledian Clinic（レディアンクリニック六本木）美容内科、美容皮膚科';
-const fullTitle = title === 'ホーム' ? siteTitle : `${title} | ${siteTitle}`;
+const fullTitle = buildFullTitle(title);
 // canonicalは常に本番URLを指す
-const canonicalURL = new URL(Astro.url.pathname, 'https://ledianclinic.jp');
+const canonicalURL = new URL(Astro.url.pathname, PRODUCTION_ORIGIN);
 ---
 
 <!DOCTYPE html>
@@ -32,8 +38,7 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://ledianclinic.jp');
     <meta name="description" content={description} />
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     
     <!-- SEO -->
     <link rel="canonical" href={canonicalURL.href} />
@@ -57,6 +62,9 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://ledianclinic.jp');
     <!-- Generator -->
     <meta name="generator" content={Astro.generator} />
     
+    <!-- JSON-LD Structured Data -->
+    <ClinicJsonLd />
+    
     <title>{fullTitle}</title>
   </head>
   <body>
@@ -72,7 +80,19 @@ const canonicalURL = new URL(Astro.url.pathname, 'https://ledianclinic.jp');
     <!-- Add padding for header and mobile fixed CTA -->
     <style>
       main {
-        padding-top: 56px; /* Header height */
+        padding-top: 60px; /* Header height SP */
+      }
+      
+      @media (min-width: 768px) {
+        main {
+          padding-top: 80px; /* Header height Tablet */
+        }
+      }
+      
+      @media (min-width: 1024px) {
+        main {
+          padding-top: 130px; /* Header height PC - 本番と同じ */
+        }
       }
       
       @media (max-width: 768px) {

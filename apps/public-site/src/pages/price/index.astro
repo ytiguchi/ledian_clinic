@@ -1,43 +1,57 @@
 ---
 import PublicLayout from '../../layouts/PublicLayout.astro';
+import '../../styles/price.css';
 
 // D1からデータ取得
 const db = Astro.locals.runtime.env.DB;
 
-// サブカテゴリを取得
+// カテゴリを取得
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+// サブカテゴリを取得（施術グループ）
 type Subcategory = {
   id: string;
+  category_id: string;
   name: string;
   slug: string;
 };
 
 // 施術とプランを取得
-type Treatment = {
-  id: string;
-  name: string;
-  slug: string;
-  subcategory_id: string;
-};
-
 type TreatmentPlan = {
   id: string;
   treatment_id: string;
   treatment_name: string;
   subcategory_id: string;
   subcategory_name: string;
+  category_id: string;
+  category_name: string;
   plan_name: string;
   sessions: number | null;
   quantity: string | null;
   price: number;
   price_taxed: number;
+  notes: string | null;
 };
 
+let categories: Category[] = [];
 let subcategories: Subcategory[] = [];
 let plans: TreatmentPlan[] = [];
 
 try {
-  const subcatResult = await db.prepare(`
+  const catResult = await db.prepare(`
     SELECT id, name, slug
+    FROM categories
+    WHERE is_active = 1
+    ORDER BY sort_order
+  `).all();
+  categories = catResult.results as Category[];
+
+  const subcatResult = await db.prepare(`
+    SELECT id, category_id, name, slug
     FROM subcategories
     WHERE is_active = 1
     ORDER BY sort_order
@@ -51,16 +65,20 @@ try {
       t.name as treatment_name,
       sc.id as subcategory_id,
       sc.name as subcategory_name,
+      c.id as category_id,
+      c.name as category_name,
       tp.plan_name,
       tp.sessions,
       tp.quantity,
       tp.price,
-      tp.price_taxed
+      tp.price_taxed,
+      tp.notes
     FROM treatment_plans tp
     JOIN treatments t ON tp.treatment_id = t.id
     JOIN subcategories sc ON t.subcategory_id = sc.id
-    WHERE tp.is_active = 1 AND t.is_active = 1 AND sc.is_active = 1
-    ORDER BY sc.sort_order, t.sort_order, tp.sort_order
+    JOIN categories c ON sc.category_id = c.id
+    WHERE tp.is_active = 1 AND t.is_active = 1 AND sc.is_active = 1 AND c.is_active = 1
+    ORDER BY c.sort_order, sc.sort_order, t.sort_order, tp.sort_order
   `).all();
   plans = planResult.results as TreatmentPlan[];
 } catch (e) {
@@ -89,15 +107,44 @@ plans.forEach(plan => {
   treatmentMap.get(plan.treatment_id)?.plans.push(plan);
 });
 
-// サブカテゴリごとにグループ化
-const groupedData = subcategories.map(subcat => ({
-  ...subcat,
-  treatments: Array.from(treatmentMap.values()).filter(t => t.subcategory_id === subcat.id)
-})).filter(group => group.treatments.length > 0);
+// サブカテゴリ→施術のマップを作成
+type SubcategoryWithTreatments = {
+  id: string;
+  name: string;
+  category_id: string;
+  treatments: TreatmentWithPlans[];
+};
+
+const subcategoryMap = new Map<string, SubcategoryWithTreatments>();
+subcategories.forEach(subcat => {
+  subcategoryMap.set(subcat.id, {
+    id: subcat.id,
+    name: subcat.name,
+    category_id: subcat.category_id,
+    treatments: Array.from(treatmentMap.values()).filter(t => t.subcategory_id === subcat.id)
+  });
+});
+
+// カテゴリ→サブカテゴリ→施術の3階層構造
+type CategoryWithSubcategories = {
+  id: string;
+  name: string;
+  subcategories: SubcategoryWithTreatments[];
+};
+
+const groupedData: CategoryWithSubcategories[] = categories.map(cat => ({
+  id: cat.id,
+  name: cat.name,
+  subcategories: Array.from(subcategoryMap.values())
+    .filter(sc => sc.category_id === cat.id && sc.treatments.length > 0)
+})).filter(group => group.subcategories.length > 0);
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('ja-JP').format(price);
 }
+
+// アクティブなカテゴリー名リストを作成（ナビ用）
+const activeCategories = groupedData.map(g => ({ id: g.id, name: g.name }));
 ---
 
 <PublicLayout 
@@ -122,66 +169,128 @@ function formatPrice(price: number): string {
     </div>
   </section>
 
-  <!-- Category Tags -->
-  <section class="category-section">
+  <!-- Category Navigation Grid -->
+  <section class="category-nav-section">
     <div class="container">
-      <div class="category-tags">
-        {subcategories.map((subcat) => (
-          <a href={`#price-group-${subcat.id}`} class="category-tag">
-            {subcat.name}
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
-              <path d="M4 2l4 4-4 4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-        ))}
-      </div>
+      <nav class="category-nav-box">
+        <ul class="category-nav-grid">
+          {activeCategories.map((cat) => (
+            <li>
+              <a href={`#price-group-${cat.id}`} class="category-nav-btn">
+                <span class="category-nav-text">{cat.name}</span>
+                <img src="/images/icons/service-arrow-down.svg" alt="" class="category-nav-arrow" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <p class="table-scroll-hint">料金表は横にスクロールできます</p>
     </div>
   </section>
 
-  <!-- Price Groups -->
-  <section class="price-groups">
+  <!-- Price Groups by Category -->
+  <section class="price-section">
     <div class="container">
-      {groupedData.map((group) => (
-        <div class="price-group" id={`price-group-${group.id}`}>
-          <h2 class="price-group-title">{group.name}</h2>
+      {groupedData.map((category) => (
+        <div class="category-block" id={`price-group-${category.id}`}>
+          <h2 class="category-title">
+            <span class="category-title-bar"></span>
+            {category.name}
+          </h2>
           
-          {group.treatments.map((treatment) => (
-            <div class="accordion-item" data-accordion>
-              <button 
-                type="button" 
-                class="accordion-trigger"
-                aria-expanded="false"
-              >
-                <span>{treatment.name}</span>
-                <svg class="accordion-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
-                  <path d="M2 4l4 4 4-4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-              <div class="accordion-content">
-                <table class="price-table">
-                  <thead>
-                    <tr>
-                      <th>項目名</th>
-                      <th>回数</th>
-                      <th>価格</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {treatment.plans.map((plan) => (
-                      <tr>
-                        <td>{plan.plan_name || plan.quantity || '-'}</td>
-                        <td>{plan.sessions ? `${plan.sessions}回` : '1回'}</td>
-                        <td>
-                          <span class="price-value">{formatPrice(plan.price)}円</span>
-                          <span class="price-tax">(税込{formatPrice(plan.price_taxed)}円)</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {category.subcategories.map((subcat) => {
+            // subcategory内の全プランをフラットに収集
+            const allPlans = subcat.treatments.flatMap(t => t.plans);
+            const hasNotes = allPlans.some(p => p.notes);
+            
+            return (
+              <div class="accordion-item" data-accordion>
+                <button 
+                  type="button" 
+                  class="accordion-trigger"
+                  aria-expanded="false"
+                >
+                  <span class="accordion-label">{subcat.name}</span>
+                  <svg class="accordion-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <div class="accordion-content">
+                  <div class="price-table-wrapper">
+                    <table class="price-table">
+                      <thead>
+                        <tr>
+                          <th class="col-name">項目名</th>
+                          <th class="col-sessions">回数</th>
+                          <th class="col-price">価格</th>
+                          {hasNotes && (
+                            <th class="col-desc">説明</th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allPlans.map((plan, planIndex) => {
+                          // 同じtreatment_nameの最初の行かどうか判定
+                          const sameNamePlans = allPlans.filter(p => p.treatment_name === plan.treatment_name);
+                          const isFirstOfGroup = planIndex === allPlans.findIndex(p => p.treatment_name === plan.treatment_name);
+                          const rowSpan = sameNamePlans.length;
+                          
+                          // 表示用の項目名を生成（重複チェック付き）
+                          let displayName = plan.treatment_name;
+                          
+                          // plan_nameを追加（重複していない場合のみ）
+                          if (plan.plan_name && 
+                              plan.plan_name !== plan.treatment_name && 
+                              !plan.plan_name.match(/^\d+回$/) &&
+                              !displayName.includes(plan.plan_name)) {
+                            displayName = `${plan.treatment_name} ${plan.plan_name}`;
+                          }
+                          
+                          // quantityを追加（treatment_nameに既に含まれていない場合のみ）
+                          if (plan.quantity && !displayName.includes(plan.quantity)) {
+                            displayName += ` ${plan.quantity}`;
+                          }
+                          
+                          // 同じtreatment_nameでグループ化されている場合はrowspanを使う
+                          const groupByTreatment = sameNamePlans.length > 1 && sameNamePlans.every(p => p.plan_name?.match(/^\d+回$/) || !p.plan_name);
+                          
+                          return (
+                            <tr>
+                              {groupByTreatment ? (
+                                isFirstOfGroup && (
+                                  <td class="col-name" rowspan={rowSpan}>{plan.treatment_name}</td>
+                                )
+                              ) : (
+                                <td class="col-name">{displayName}</td>
+                              )}
+                              <td class="col-sessions">
+                                {plan.sessions ? `${plan.sessions}回` : 
+                                 plan.plan_name?.match(/^\d+回$/) ? plan.plan_name : 
+                                 plan.quantity || '-'}
+                              </td>
+                              <td class="col-price">
+                                <span class="price-main">{formatPrice(plan.price)}円</span>
+                                <span class="price-tax">(税込{formatPrice(plan.price_taxed)}円)</span>
+                              </td>
+                              {hasNotes && (
+                                groupByTreatment ? (
+                                  isFirstOfGroup && (
+                                    <td class="col-desc" rowspan={rowSpan}>{plan.notes || ''}</td>
+                                  )
+                                ) : (
+                                  <td class="col-desc">{plan.notes || ''}</td>
+                                )
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
 
@@ -194,218 +303,7 @@ function formatPrice(price: number): string {
   </section>
 </PublicLayout>
 
-<style>
-  /* Breadcrumb */
-  .breadcrumb {
-    padding: 15px 0;
-    background: var(--color-bg-cream);
-    font-size: 0.8125rem;
-  }
-  
-  .breadcrumb-list {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .breadcrumb-list li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--color-text-muted);
-  }
-  
-  .breadcrumb-list li:not(:last-child)::after {
-    content: '>';
-  }
-  
-  .breadcrumb-list a {
-    color: var(--color-text);
-  }
-  
-  /* Page Header */
-  .page-header {
-    padding: 50px 0 40px;
-    text-align: center;
-    background: var(--color-bg);
-  }
-  
-  .page-title {
-    font-size: 1.75rem;
-    font-weight: 400;
-    margin-bottom: 10px;
-  }
-  
-  .page-title-en {
-    font-family: var(--font-serif);
-    font-size: 0.875rem;
-    letter-spacing: 0.2em;
-    color: var(--color-accent);
-  }
-  
-  /* Category Section */
-  .category-section {
-    padding: 40px 0;
-    background: var(--color-bg);
-  }
-  
-  .category-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    padding: 30px;
-    background: var(--color-white);
-    border: 1px solid var(--color-border-light);
-  }
-  
-  .category-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    font-size: 0.8125rem;
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    background: var(--color-white);
-    text-decoration: none;
-    transition: all 0.3s ease;
-  }
-  
-  .category-tag:hover {
-    background: var(--color-accent);
-    border-color: var(--color-accent);
-    color: var(--color-white);
-    opacity: 1;
-  }
-  
-  /* Price Groups */
-  .price-groups {
-    padding: 0 0 80px;
-    background: var(--color-bg);
-  }
-  
-  .price-group {
-    margin-bottom: 40px;
-  }
-  
-  .price-group-title {
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 15px 0;
-    margin-bottom: 0;
-    border-bottom: 2px solid var(--color-accent);
-    display: flex;
-    align-items: center;
-  }
-  
-  .price-group-title::before {
-    content: '';
-    display: inline-block;
-    width: 4px;
-    height: 20px;
-    background: var(--color-accent);
-    margin-right: 12px;
-  }
-  
-  /* Accordion */
-  .accordion-item {
-    border-bottom: 1px solid var(--color-border);
-  }
-  
-  .accordion-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 18px 20px;
-    background: var(--color-white);
-    border: none;
-    font-size: 0.9375rem;
-    font-weight: 400;
-    text-align: left;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  
-  .accordion-trigger:hover {
-    background: var(--color-bg-cream);
-  }
-  
-  .accordion-icon {
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-  }
-  
-  .accordion-trigger[aria-expanded="true"] .accordion-icon {
-    transform: rotate(180deg);
-  }
-  
-  .accordion-content {
-    display: none;
-    padding: 0 20px 20px;
-    background: var(--color-white);
-  }
-  
-  .accordion-content.active {
-    display: block;
-  }
-  
-  /* Price Table */
-  .price-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-  }
-  
-  .price-table thead {
-    background: var(--color-bg-cream);
-  }
-  
-  .price-table th {
-    padding: 12px 15px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    text-align: left;
-    border-bottom: 1px solid var(--color-border);
-  }
-  
-  .price-table td {
-    padding: 15px;
-    border-bottom: 1px solid var(--color-border-light);
-  }
-  
-  .price-table tr:last-child td {
-    border-bottom: none;
-  }
-  
-  .price-value {
-    font-weight: 500;
-  }
-  
-  .price-tax {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    margin-top: 3px;
-  }
-  
-  @media (max-width: 768px) {
-    .price-table th:nth-child(2),
-    .price-table td:nth-child(2) {
-      display: none;
-    }
-  }
-  
-  .no-data {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--color-text-muted);
-  }
-</style>
+
 
 <script>
   // Accordion functionality
@@ -421,5 +319,25 @@ function formatPrice(price: number): string {
       content?.classList.toggle('active');
     });
   });
+  
+  // Smooth scroll for category navigation
+  document.querySelectorAll('.category-nav-btn').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = link.getAttribute('href');
+      if (href) {
+        const target = document.querySelector(href);
+        if (target) {
+          const headerOffset = 20;
+          const elementPosition = target.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    });
+  });
 </script>
-

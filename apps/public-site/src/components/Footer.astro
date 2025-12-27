@@ -12,79 +12,96 @@ const footerLinks = [
 
 const socialLinks = [
   {
-    href: 'https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm',
-    icon: '/images/icons/footer-line.svg',
+    href: 'https://liff.line.me/2006759617-MvqGmVmg/landing?follow=%40182ypbnt&lp=SGYKSm&liff_id=2006759617-MvqGmVmg',
+    icon: '/images/footer-line.svg',
     label: 'LINE',
   },
   {
     href: 'https://x.com/LedianClinic',
-    icon: '/images/icons/footer-x.svg',
-    label: 'X (Twitter)',
+    icon: '/images/footer-x.svg',
+    label: 'X',
   },
   {
     href: 'https://www.instagram.com/Ledian_clinic/',
-    icon: '/images/icons/footer-instagram.svg',
+    icon: '/images/footer-instagram.svg',
     label: 'Instagram',
   },
 ];
 ---
 
-<footer class="footer" id="main-content">
-  <div class="container">
-    <div class="footer-content">
-      <!-- Logo -->
-      <div class="footer-logo">
-        <a href="#main-content" aria-label="ページトップへ戻る">
-          <img src="/images/footer-logo.svg" alt="Ledian Clinic" />
-        </a>
-      </div>
+<footer class="footer">
+  <div class="footer-inner">
+    <!-- Logo -->
+    <div class="footer-logo">
+      <a href="#main-content" aria-label="ページトップへ戻る">
+        <img src="/images/footer-logo.svg" alt="Ledian Clinic" />
+      </a>
+    </div>
 
-      <div class="footer-main">
-        <!-- SNS Links -->
-        <ul class="footer-sns">
-          {socialLinks.map((link) => (
-            <li>
-              <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
-                <img src={link.icon} alt={link.label} />
-              </a>
-            </li>
-          ))}
-        </ul>
+    <div class="footer-main">
+      <!-- SNS Links -->
+      <ul class="footer-sns">
+        {socialLinks.map((link) => (
+          <li>
+            <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
+              <img src={link.icon} alt={link.label} />
+            </a>
+          </li>
+        ))}
+      </ul>
 
-        <!-- Footer Links -->
-        <ul class="footer-links">
-          {footerLinks.map((link) => (
-            <li>
-              <a href={link.href}>{link.label}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <!-- Footer Links -->
+      <ul class="footer-links">
+        {footerLinks.map((link) => (
+          <li>
+            <a href={link.href}>{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
 
-      <div class="footer-bottom">
-        <p class="footer-note">※当院は完全自費診療(保険外診療)です。</p>
-        <p class="footer-copyright">©2024, Ledian Clinic</p>
-      </div>
+    <div class="footer-bottom">
+      <p class="footer-note">※当院は完全自費診療(保険外診療)です。</p>
+      <p class="footer-copyright">©2024, Ledian Clinic</p>
     </div>
   </div>
 </footer>
 
 <style>
+  /* ============================================
+     Footer - 本番サイト完コピ版
+     本番: bg #2D2D2D, padding 70px 0 160px
+     ============================================ */
   .footer {
-    background: #000;
+    background: #2D2D2D; /* 本番と同じ */
     color: #fff;
-    padding: 50px 0 30px;
+    padding: 0 20px;
   }
   
-  .footer-content {
+  @media (min-width: 768px) {
+    .footer {
+      padding: 0 86px; /* 本番と同じ */
+    }
+  }
+  
+  .footer-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 50px 0 80px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
   
+  @media (min-width: 768px) {
+    .footer-inner {
+      padding: 70px 0 160px; /* 本番と同じ */
+    }
+  }
+  
   .footer-logo {
-    margin-bottom: 30px;
+    margin-bottom: 40px;
   }
   
   .footer-logo a {
@@ -97,21 +114,21 @@ const socialLinks = [
   }
   
   .footer-logo img {
-    height: 36px;
+    height: 30px; /* 本番と同じ */
     width: auto;
   }
   
   .footer-main {
     width: 100%;
-    margin-bottom: 25px;
+    margin-bottom: 40px;
   }
   
   .footer-sns {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
     list-style: none;
-    margin: 0 0 25px;
+    margin: 0 0 30px;
     padding: 0;
   }
   
@@ -123,64 +140,59 @@ const socialLinks = [
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 50%;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease;
   }
   
   .footer-sns a:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.6);
+    opacity: 0.7;
   }
   
   .footer-sns img {
-    width: 18px;
-    height: 18px;
+    width: 38px; /* 本番と同じ */
+    height: 38px;
   }
   
   .footer-links {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 8px 20px;
+    gap: 10px 24px;
     list-style: none;
     margin: 0;
     padding: 0;
   }
   
   .footer-links a {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    color: #fff;
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: opacity 0.3s ease;
   }
   
   .footer-links a:hover {
-    color: #fff;
+    opacity: 0.7;
   }
   
   .footer-bottom {
     width: 100%;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: center;
   }
   
   .footer-note {
-    font-size: 0.6875rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin: 0 0 8px;
+    font-size: 12px;
+    color: #fff;
+    margin: 0 0 10px;
   }
   
   .footer-copyright {
-    font-size: 0.6875rem;
-    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    color: #fff;
     margin: 0;
   }
   
+  /* PC: 左寄せレイアウト */
   @media (min-width: 768px) {
-    .footer-content {
+    .footer-inner {
       align-items: flex-start;
       text-align: left;
     }
@@ -204,6 +216,7 @@ const socialLinks = [
       display: flex;
       justify-content: space-between;
       align-items: center;
+      text-align: left;
     }
     
     .footer-note {
