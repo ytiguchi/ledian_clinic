@@ -17,11 +17,11 @@
   --color-primary-light: #1e293b;
   --color-primary-dark: #020617;
   
-  /* Accent Colors - Elegant Gold */
-  --color-accent: #d4a853;
-  --color-accent-light: #e9c97a;
-  --color-accent-dark: #b8922e;
-  --color-accent-subtle: rgba(212, 168, 83, 0.1);
+  /* Accent Colors - Corporate Blue */
+  --color-accent: #5885a3;
+  --color-accent-light: #78a0b8;
+  --color-accent-dark: #4b718a;
+  --color-accent-subtle: rgba(88, 133, 163, 0.12);
   
   /* Background Colors */
   --color-bg: #f8fafc;
@@ -705,4 +705,3 @@ img[src=""],
 img:not([src]) {
   visibility: hidden;
 }
-
