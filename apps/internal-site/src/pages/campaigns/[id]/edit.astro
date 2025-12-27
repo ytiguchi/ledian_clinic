@@ -93,7 +93,7 @@ export const prerender = false;
                 <span>📤 画像UP</span>
               </button>
               <button type="button" id="urlBtn" onclick="insertImageUrl()" class="editor-btn" title="画像URL挿入">
-                <span>🔗 URL</span>
+                <span>🖼️ URL</span>
               </button>
               <input type="file" id="imageUploadInput" accept="image/*" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none;" />
               <button type="button" onclick="insertLink()" class="editor-btn" title="リンク挿入">
@@ -226,7 +226,7 @@ export const prerender = false;
         </div>
         
         <!-- 画像アップロード結果モーダル -->
-        <div id="uploadResultModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div id="uploadResultModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" style="display: none;">
           <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div class="p-4 border-b flex justify-between items-center">
               <h4 class="text-lg font-semibold">📤 画像アップロード完了</h4>
@@ -1009,11 +1009,16 @@ export const prerender = false;
     if (urlInput) {
       urlInput.value = url;
     }
-    modal?.classList.remove('hidden');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
   }
 
   function closeUploadModal() {
-    document.getElementById('uploadResultModal')?.classList.add('hidden');
+    const modal = document.getElementById('uploadResultModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
   }
 
   function copyImageUrl() {
