@@ -4,9 +4,16 @@ import PublicLayout from '../../layouts/PublicLayout.astro';
 // D1からデータ取得
 const db = Astro.locals.runtime.env.DB;
 
-// サブカテゴリと施術を取得
+// 型定義
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 type Subcategory = {
   id: string;
+  category_id: string;
   name: string;
   slug: string;
 };
@@ -16,28 +23,38 @@ type Treatment = {
   name: string;
   slug: string;
   subcategory_id: string;
-  subcategory_name: string;
 };
 
+let categories: Category[] = [];
 let subcategories: Subcategory[] = [];
 let treatments: Treatment[] = [];
 
 try {
-  const subcatResult = await db.prepare(`
+  // カテゴリ取得
+  const catResult = await db.prepare(`
     SELECT id, name, slug
+    FROM categories
+    WHERE is_active = 1
+    ORDER BY sort_order
+  `).all();
+  categories = catResult.results as Category[];
+
+  // サブカテゴリ取得
+  const subcatResult = await db.prepare(`
+    SELECT id, category_id, name, slug
     FROM subcategories
     WHERE is_active = 1
     ORDER BY sort_order
   `).all();
   subcategories = subcatResult.results as Subcategory[];
   
+  // 施術取得
   const treatmentResult = await db.prepare(`
     SELECT 
       t.id, 
       t.name, 
       t.slug,
-      t.subcategory_id,
-      sc.name as subcategory_name
+      t.subcategory_id
     FROM treatments t
     JOIN subcategories sc ON t.subcategory_id = sc.id
     WHERE t.is_active = 1 AND sc.is_active = 1
@@ -48,11 +65,17 @@ try {
   console.error('Failed to fetch data:', e);
 }
 
-// サブカテゴリごとにグループ化
-const groupedTreatments = subcategories.map(subcat => ({
-  ...subcat,
-  treatments: treatments.filter(t => t.subcategory_id === subcat.id)
-})).filter(group => group.treatments.length > 0);
+// カテゴリごとにサブカテゴリをグループ化、さらに施術を紐付け
+const groupedByCategory = categories.map(cat => ({
+  ...cat,
+  subcategories: subcategories
+    .filter(sub => sub.category_id === cat.id)
+    .map(sub => ({
+      ...sub,
+      treatments: treatments.filter(t => t.subcategory_id === sub.id)
+    }))
+    .filter(sub => sub.treatments.length > 0)
+})).filter(cat => cat.subcategories.length > 0);
 ---
 
 <PublicLayout 
@@ -81,10 +104,10 @@ const groupedTreatments = subcategories.map(subcat => ({
   <section class="category-nav">
     <div class="container">
       <ul class="category-nav-list">
-        {subcategories.map((subcat) => (
+        {groupedByCategory.map((cat) => (
           <li>
-            <a href={`#service-group-${subcat.id}`} class="category-nav-item">
-              <span class="category-nav-text">{subcat.name}</span>
+            <a href={`#category-${cat.id}`} class="category-nav-item">
+              <span class="category-nav-text">{cat.name}</span>
               <svg class="category-nav-arrow" width="8" height="12" viewBox="0 0 8 12" fill="none">
                 <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -95,28 +118,34 @@ const groupedTreatments = subcategories.map(subcat => ({
     </div>
   </section>
 
-  <!-- Service Groups -->
+  <!-- Service Groups by Category -->
   <section class="service-section">
     <div class="container">
-      {groupedTreatments.map((group) => (
-        <div class="service-group" id={`service-group-${group.id}`}>
-          <h4 class="service-group-title">{group.name}</h4>
-          <ul class="service-list">
-            {group.treatments.map((treatment) => (
-              <li>
-                <a href={`/service/${treatment.slug}/`} class="service-item">
-                  <span class="service-item-name">{treatment.name}</span>
-                  <svg class="service-item-arrow" width="8" height="12" viewBox="0 0 8 12" fill="none">
-                    <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </a>
-              </li>
-            ))}
-          </ul>
+      {groupedByCategory.map((cat) => (
+        <div class="category-group" id={`category-${cat.id}`}>
+          <h2 class="category-title">{cat.name}</h2>
+          
+          {cat.subcategories.map((subcat) => (
+            <div class="service-group" id={`service-group-${subcat.id}`}>
+              <h3 class="service-group-title">{subcat.name}</h3>
+              <ul class="service-list">
+                {subcat.treatments.map((treatment) => (
+                  <li>
+                    <a href={`/service/${treatment.slug}/`} class="service-item">
+                      <span class="service-item-name">{treatment.name}</span>
+                      <svg class="service-item-arrow" width="8" height="12" viewBox="0 0 8 12" fill="none">
+                        <path d="M1.5 1L6.5 6L1.5 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       ))}
 
-      {groupedTreatments.length === 0 && (
+      {groupedByCategory.length === 0 && (
         <div class="no-data">
           <p>サービス情報を読み込み中...</p>
         </div>
@@ -290,19 +319,44 @@ const groupedTreatments = subcategories.map(subcat => ({
     padding: 0 0 60px;
     background: var(--color-bg, #FFFCFA);
   }
+
+  /* Category Group */
+  .category-group {
+    margin-bottom: 50px;
+  }
+
+  .category-title {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 500;
+    padding: 20px;
+    margin: 0 0 20px;
+    background: var(--color-blue, #5885A3);
+    color: var(--color-white, #fff);
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .category-title {
+      font-size: 1.375rem;
+      padding: 24px;
+    }
+  }
   
   .service-group {
-    margin-bottom: 30px;
+    margin-bottom: 0;
   }
   
   .service-group-title {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    padding: 15px 20px;
+    padding: 12px 20px;
     margin: 0;
     background: var(--color-bg-gray, #EFF2F4);
     color: var(--color-text, #000);
     letter-spacing: 0.05em;
+    border-left: 3px solid var(--color-blue, #5885A3);
   }
   
   .service-list {
