@@ -260,6 +260,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
     }));
 
     // Get service content linked to this subcategory via subcategory_id FK
+    // Include unpublished content for admin editing purposes
     let serviceContent: any = null;
     try {
       const results = await queryDB<{
@@ -271,11 +272,12 @@ export const GET: APIRoute = async ({ locals, params }) => {
         about_subtitle: string | null;
         about_description: string | null;
         hero_image_url: string | null;
+        is_published: number;
       }>(
         db,
-        `SELECT id, name_ja, name_en, slug, source_url, about_subtitle, about_description, hero_image_url
+        `SELECT id, name_ja, name_en, slug, source_url, about_subtitle, about_description, hero_image_url, is_published
          FROM service_contents
-         WHERE subcategory_id = ? AND is_published = 1
+         WHERE subcategory_id = ?
          LIMIT 1`,
         [id]
       );
@@ -330,6 +332,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
         );
 
         serviceContent = {
+          id: sc.id,
           nameJa: sc.name_ja,
           nameEn: sc.name_en,
           slug: sc.slug,
@@ -337,6 +340,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
           aboutSubtitle: sc.about_subtitle,
           aboutDescription: sc.about_description,
           heroImageUrl: sc.hero_image_url,
+          isPublished: sc.is_published === 1,
           features,
           recommendations,
           overview: overviews.length > 0 ? overviews[0] : null,
